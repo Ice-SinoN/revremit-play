@@ -1,0 +1,118 @@
+{
+ "name": "pass",
+ "size": [
+  640,
+  360
+ ],
+ "base": "revremit_bg_pass_base.png",
+ "layers": [
+  {
+   "id": "neon",
+   "what": "ネオン看板・灯りの点滅",
+   "type": "parts",
+   "items": [
+    {
+     "part": "revremit_bg_pass_fx_neon_01_lamp_l.png",
+     "x": 62,
+     "y": 30,
+     "move": "glow",
+     "period_ms": 3200,
+     "alpha": [
+      0.85,
+      1.0
+     ]
+    },
+    {
+     "part": "revremit_bg_pass_fx_neon_02_lamp_r.png",
+     "x": 560,
+     "y": 44,
+     "move": "glow",
+     "period_ms": 3200,
+     "alpha": [
+      0.85,
+      1.0
+     ]
+    },
+    {
+     "part": "revremit_bg_pass_fx_neon_03_rail_lights.png",
+     "x": 100,
+     "y": 180,
+     "move": "pulse",
+     "period_ms": 2400,
+     "alpha": [
+      0.7,
+      1.0
+     ]
+    }
+   ],
+   "moves": {
+    "pulse": "ゆっくり明暗（sin）",
+    "flicker": "ふだん点灯・周期ごとに2〜3回ちらつく",
+    "blink": "点いて消える（半々）",
+    "glow": "ごく弱い明暗"
+   },
+   "note": "動かない層には消えかけの色（明るさ45〜85%）が残っているので、消えても穴にならない"
+  },
+  {
+   "id": "reflect",
+   "what": "路面のネオンの映りこみのゆれ",
+   "type": "sheet",
+   "sheet": "revremit_bg_pass_fx_reflect_sheet.png",
+   "x": 0,
+   "y": 274,
+   "frame": [
+    640,
+    86
+   ],
+   "frames": 4,
+   "frame_ms": 180,
+   "loop": true
+  },
+  {
+   "id": "snow",
+   "what": "雪（奥は1ドット・ゆっくり、手前は2ドット・速め）",
+   "type": "particles",
+   "parts": [
+    "revremit_bg_pass_fx_snow_1.png",
+    "revremit_bg_pass_fx_snow_2.png"
+   ],
+   "count": [
+    40,
+    12
+   ],
+   "fall_px_s": [
+    [
+     10,
+     18
+    ],
+    [
+     22,
+     34
+    ]
+   ],
+   "sway_px": [
+    1,
+    3
+   ],
+   "area": [
+    0,
+    0,
+    640,
+    300
+   ],
+   "alpha": [
+    0.6,
+    0.85
+   ],
+   "note": "キャラの後ろに描く。量・速さは抑えめ（背景を抑える方針のまま）"
+  }
+ ],
+ "order": [
+  "base",
+  "neon",
+  "reflect",
+  "snow",
+  "（キャラ）",
+  "（UI）"
+ ]
+}

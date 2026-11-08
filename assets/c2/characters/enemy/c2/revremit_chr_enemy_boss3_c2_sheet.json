@@ -1,0 +1,130 @@
+{
+ "frames": [
+  {
+   "filename": "idle_01",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "sourceSize": {
+    "w": 288,
+    "h": 288
+   },
+   "duration": 320
+  },
+  {
+   "filename": "idle_02",
+   "frame": {
+    "x": 288,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "sourceSize": {
+    "w": 288,
+    "h": 288
+   },
+   "duration": 320
+  },
+  {
+   "filename": "atk_01",
+   "frame": {
+    "x": 576,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "sourceSize": {
+    "w": 288,
+    "h": 288
+   },
+   "duration": 300
+  },
+  {
+   "filename": "hit_01",
+   "frame": {
+    "x": 864,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 288,
+    "h": 288
+   },
+   "sourceSize": {
+    "w": 288,
+    "h": 288
+   },
+   "duration": 220
+  }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3",
+  "image": "/home/claude/rr_gfx/deliv/enemy/boss3/revremit_chr_enemy_boss3_c2_sheet.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1152,
+   "h": 288
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 1,
+    "direction": "forward"
+   },
+   {
+    "name": "atk",
+    "from": 2,
+    "to": 2,
+    "direction": "forward"
+   },
+   {
+    "name": "hit",
+    "from": 3,
+    "to": 3,
+    "direction": "forward"
+   }
+  ],
+  "layers": [
+   {
+    "name": "boss3",
+    "opacity": 255,
+    "blendMode": "normal"
+   }
+  ]
+ }
+}

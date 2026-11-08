@@ -1,0 +1,72 @@
+{
+ "note": "チュートリアルの部品（道具製）。暗くする幕はプログラムで半透明の黒（不透明度 60% くらい）。要らない物は使わなくてよい",
+ "frame": {
+  "file": "revremit_ui_tut_frame_sheet.png",
+  "cell": [
+   24,
+   24
+  ],
+  "frames": 2,
+  "ms": [
+   400,
+   400
+  ],
+  "nine_slice": {
+   "left": 8,
+   "top": 8,
+   "right": 8,
+   "bottom": 8
+  },
+  "note": "教えている所を囲む。辺は伸ばす。外側3ドットが光"
+ },
+ "arrow": {
+  "files": {
+   "up": "revremit_ui_tut_arrow_up_sheet.png",
+   "down": "revremit_ui_tut_arrow_down_sheet.png",
+   "left": "revremit_ui_tut_arrow_left_sheet.png",
+   "right": "revremit_ui_tut_arrow_right_sheet.png"
+  },
+  "cell": [
+   20,
+   20
+  ],
+  "frames": 3,
+  "ms": [
+   160,
+   160,
+   160
+  ],
+  "tip": {
+   "down": [
+    10,
+    17
+   ],
+   "up": [
+    10,
+    3
+   ],
+   "left": [
+    3,
+    10
+   ],
+   "right": [
+    17,
+    10
+   ]
+  },
+  "note": "先が指す所。コマで2ドットずつ跳ねる"
+ },
+ "comm_mio": {
+  "file": "revremit_ui_tut_comm_mio_sheet.png",
+  "cell": [
+   24,
+   24
+  ],
+  "frames": 2,
+  "ms": [
+   500,
+   500
+  ],
+  "note": "会話の帯の左に置く。顔絵は置かない決まり"
+ }
+}

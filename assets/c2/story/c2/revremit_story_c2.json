@@ -1,0 +1,56 @@
+{
+ "note": "ストーリーの一枚絵は 640x360。下の 1/4（y 270〜360）にセリフ窓を重ねる前提で、大事なものは上 3/4 に置いてある。立ち絵（胸から上）は 256x256・下が切れる形・足元点の代わりに下端中央（128,252）を窓の上端に合わせる",
+ "scenes": [
+  {
+   "id": "opening",
+   "file": "revremit_story_opening.png"
+  },
+  {
+   "id": "boss1_after",
+   "file": "revremit_story_boss1_after.png"
+  },
+  {
+   "id": "boss2_after",
+   "file": "revremit_story_boss2_after.png"
+  },
+  {
+   "id": "boss3_after",
+   "file": "revremit_story_boss3_after.png",
+   "text": "ed1 の1〜4行（零号がほどける〜白い光に包まれる）"
+  },
+  {
+   "id": "ending",
+   "file": "revremit_story_ending.png",
+   "text": "ed1 の5〜9行（ガレージ・ミニカー）"
+  }
+ ],
+ "dialog_window": [
+  0,
+  270,
+  640,
+  90
+ ],
+ "busts": {
+  "YUKI": [
+   "normal",
+   "smile",
+   "surprise",
+   "serious"
+  ],
+  "MIO": [
+   "normal",
+   "smile",
+   "surprise",
+   "serious"
+  ]
+ },
+ "bust_file": "revremit_story_bust_{chr小文字}_{表情}.png",
+ "bust_box": [
+  256,
+  256
+ ],
+ "bust_anchor": [
+  128,
+  252
+ ]
+}

@@ -1,0 +1,263 @@
+/* ===== 見た目（α2）：原寸 640×360 のドット。文字は PixelMplus（12・10ドット）だけ ===== */
+:root{--ink:#171B22;--white:#F7F9F5;--lime:#C5FF45;--red:#FF4040;--navy:#1E243A;--grey:#8B95A3;--dark:#2A2F3A;--gold:#FFD34D;--cyan:#7FD8FF;--line:#262B48;--panel:#0E111C}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;-webkit-text-size-adjust:none;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#stage{position:absolute;width:640px;height:360px;/* 大きさは fit() が RES から入れる */transform-origin:0 0;overflow:hidden;background:#0D1020;
+  font:12px/14px 'PM12',monospace;color:var(--white);-webkit-font-smoothing:none;font-smooth:never;image-rendering:pixelated}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+#ui,#modal{position:absolute;left:0;top:0;width:100%;height:100%}
+/* 空の #modal が #ui の上でクリックをふさがないように（BUG-19） */
+#modal{pointer-events:none}#modal>*{pointer-events:auto}
+#ui>*{position:absolute}
+#rot{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#C5FF45;font:16px 'PM12',sans-serif;z-index:9;text-align:center}
+b{font-family:'PM12B','PM12',monospace;font-weight:normal}
+.small{font:10px/12px 'PM10',monospace}
+.dim{color:var(--grey)}.gold{color:var(--gold)}.ok{color:var(--lime)}.ng,.ngc{color:var(--red)}
+.h{font-family:'PM12B','PM12',monospace;color:var(--lime)}
+img.px{image-rendering:pixelated}
+
+/* ボタン（ドットの枠） */
+button{font:inherit;color:var(--white);background:var(--dark);border:0;border-radius:0;padding:2px 6px;cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--grey),inset 0 -2px 0 0 #171B22;line-height:14px}
+button:hover:not(:disabled){box-shadow:inset 0 0 0 1px var(--lime),inset 0 -2px 0 0 #171B22}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.4;cursor:default}
+button.main{background:var(--lime);color:var(--ink);box-shadow:inset 0 0 0 1px var(--white),inset 0 -2px 0 0 #6E9A1E}
+button.warn{background:#5A1620;color:#FFD0D0;box-shadow:inset 0 0 0 1px var(--red)}
+button.sub{background:#1E2A3A;box-shadow:inset 0 0 0 1px var(--cyan),inset 0 -2px 0 0 #171B22;font-size:12px}
+button.mini{padding:0 4px;font:10px/12px 'PM10',monospace}
+button.sel,.sel{box-shadow:inset 0 0 0 2px var(--lime)!important}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:6px}
+.scroll{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--grey) var(--dark)}
+.scroll::-webkit-scrollbar{width:4px}.scroll::-webkit-scrollbar-thumb{background:var(--grey)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-content:start}
+.scroll.cards{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+.scroll.cards .cb{position:relative;width:113px;height:84px}
+
+/* タイトル */
+.logo{text-align:center}
+.logo .t1{color:var(--grey);font:10px 'PM10'}
+.logo .t2{font:24px/28px 'PM12B','PM12';color:var(--lime);text-shadow:2px 2px 0 var(--ink)}
+.logo .t3{color:var(--grey);font:10px 'PM10';margin-top:4px}
+
+/* 上の帯 */
+.hud{background:rgba(14,17,28,.85);padding:0 4px;box-shadow:inset 0 0 0 1px var(--line);white-space:nowrap;overflow:hidden}
+.md{background:var(--lime);color:var(--ink);padding:0 3px}
+
+/* マップ */
+.node{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--dark);
+  box-shadow:inset 0 0 0 1px var(--grey);padding:0;line-height:12px}
+.node .ni{font-size:12px;color:var(--nc,var(--white))}
+.node.now{box-shadow:inset 0 0 0 1px var(--lime),inset 0 -2px 0 0 #171B22;animation:blink 1s steps(2) infinite}
+.node.done{opacity:.35}.node.went{opacity:.9;box-shadow:inset 0 0 0 1px var(--lime)}
+.node.later{opacity:.7}
+.k-battle{--nc:#F7F9F5}.k-elite{--nc:#FF4040}.k-boss{--nc:#FFD34D}.k-shop{--nc:#C5FF45}.k-sim{--nc:#7FD8FF}.k-lucky{--nc:#FFD34D}.k-garage{--nc:#F7F9F5}
+@keyframes blink{50%{box-shadow:inset 0 0 0 1px var(--white)}}
+
+/* 戦闘 */
+.tap{background:transparent}
+.tl{display:flex;gap:2px;white-space:nowrap;overflow:hidden}
+.tl span{font:10px/12px 'PM10';padding:0 3px;background:var(--dark)}
+.tl span.p{background:#2E4A1A;color:var(--lime)}.tl span.e{background:#4A1A24;color:#FFB0B8}
+.tl span:first-child{box-shadow:inset 0 0 0 1px var(--white)}
+.logl{white-space:nowrap;overflow:hidden;color:var(--grey)}
+.ename{text-align:right;white-space:nowrap}
+.ename .tg{background:var(--red);color:var(--ink);padding:0 2px;margin-left:3px;font:10px 'PM10'}
+.intent{text-align:right;color:#FFB0B8}
+.stt{color:var(--lime)}
+.gim{color:#FFB0B8;background:rgba(14,17,28,.7);padding:1px 2px}
+/* 手札のカード 62×88（★C2 v2・ui\c2\revremit_ui_card_c2.json）。絵の窓 (6,15) 50×38 */
+.cs{width:62px;height:88px;padding:0;background:#141022;display:block;overflow:hidden;transition:top .06s steps(2);box-shadow:inset 0 0 0 1px var(--tc),inset 0 0 0 2px #000}
+.cs .cw{position:absolute;left:6px;top:15px;width:50px;height:38px;background:#0E111C;overflow:hidden}
+.cs .cw img{display:block;width:50px;height:38px}
+.cs .ck{position:absolute;left:15px;top:9px;width:20px;height:20px;line-height:20px;text-align:center;background:var(--tc);color:var(--ink);font:12px/20px 'PM12B','PM12'}
+.cs .cc,.cs .ca{position:absolute;top:2px;font:10px/10px 'PM10'}
+.cs .cc{left:4px;color:var(--tc)}.cs .ca{right:4px;color:#FFB23F}.cs .ca.lack{color:var(--red)}.cs.chg .ca{color:#FFD34D}
+.cs .cn{position:absolute;left:2px;right:2px;top:56px;text-align:center;font:10px/11px 'PM10';max-height:22px;overflow:hidden;word-break:break-all}
+.cs .cu{color:var(--gold);font:10px 'PM10'}
+.cs .cbd{position:absolute;left:3px;bottom:3px;font:10px/10px 'PM10';padding:0 2px;background:#0E111C;color:var(--grey)}
+.cs.inb .cbd{background:var(--cyan);color:var(--ink)}
+.cs .crr{position:absolute;left:18px;right:4px;bottom:4px;height:2px;background:repeating-linear-gradient(90deg,var(--tc) 0 2px,transparent 2px 3px);opacity:.5}
+/* カードの面の数字（★14:47）：右下の板（種類の色の縁・アイコン＋数字）。元より上＝緑、下＝赤 */
+.cs .cv{position:absolute;right:6px;top:39px;height:14px;padding:0 3px 0 11px;background:rgb(10,8,18);box-shadow:inset 0 0 0 1px var(--tc);font:12px/14px 'PM12B','PM12';color:rgb(244,246,240)}
+.cs .cv .pi{position:absolute;left:3px;top:3px;width:7px;height:7px;background:var(--tc);-webkit-mask-size:7px 7px;mask-size:7px 7px}
+.cv.upv,.pvn .upv{color:rgb(96,255,120)}.cv.dnv,.pvn .dnv{color:rgb(255,84,96)}.cv.na{color:var(--grey)}
+.pvn{font:12px/14px 'PM12'}
+.cs.inb{box-shadow:inset 0 0 0 2px var(--cyan),inset 0 0 0 3px #000!important}
+.node .mi{display:block;margin:0 auto;width:40px;height:40px}.node.k-battle,.node.k-elite,.node.k-boss,.node.k-shop,.node.k-sim,.node.k-lucky,.node.k-garage{background:transparent;box-shadow:none}
+.scband{background:rgba(10,8,18,.94)!important}
+.bust{pointer-events:none}
+.chain{font:10px/12px 'PM10';color:var(--cyan)}.chain b{font:12px 'PM12B','PM12';color:var(--white)}.chain span{color:var(--lime)}
+.onup{color:var(--cyan)}.onup .oi{background:#1E2A3A;padding:0 2px;margin-left:2px}
+.gasn{font:10px/10px 'PM10';text-align:center;color:#FFB23F}
+.cs.no{opacity:.45}
+.t-atk{--tc:#FF4040}.t-grd{--tc:#F7F9F5}.t-dbf{--tc:#B07CFF}.t-rev{--tc:#C5FF45}.t-drw{--tc:#7FD8FF}.t-sk{--tc:#FFD34D}.t-jam{--tc:#8B95A3}
+.cs,.cb{box-shadow:inset 0 0 0 1px var(--tc),inset 0 -2px 0 0 #000}
+.r-R.cs,.r-R.cb{box-shadow:inset 0 0 0 1px var(--tc),inset 0 0 0 2px #6FB7FF}
+.r-E.cs,.r-E.cb{box-shadow:inset 0 0 0 1px var(--tc),inset 0 0 0 2px #C77DFF}
+.r-SK.cs,.r-SK.cb{box-shadow:inset 0 0 0 1px var(--tc),inset 0 0 0 2px #FFD34D}
+.cs.sel,.cb.sel{box-shadow:inset 0 0 0 2px var(--lime)!important}
+/* 大きいカード */
+.cb{padding:4px;background:#1A1E2C;text-align:left;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.cb .bn{color:var(--tc);font-family:'PM12B','PM12'}
+.cb .bt,.cb .bc{font:10px/12px 'PM10';color:var(--grey)}
+.cb .bd{font:10px/12px 'PM10'}
+/* 説明の小窓 */
+.detail{z-index:3;background:rgba(14,17,28,.94);box-shadow:inset 0 0 0 1px var(--lime);padding:4px;display:flex;flex-direction:column;gap:2px}
+.detail .dn{color:var(--lime)}
+.detail button{margin-top:2px;text-align:left}
+button.end{font-family:'PM12B','PM12';padding:0}
+button.sub{padding:0;line-height:12px}
+.barn{font:10px/10px 'PM10';text-align:center;text-shadow:1px 1px 0 #171B22}.cy{color:var(--cyan)}
+.tachn{font:10px/10px 'PM10';text-align:center}.tachn span{margin-left:1px}.tachm{font:10px/10px 'PM10';text-align:center;color:var(--lime)}
+.apn{font:10px/10px 'PM10';text-align:center}
+/* ショップ */
+.shoprow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(14,17,28,.8);box-shadow:inset 0 0 0 1px var(--line);padding:0 4px}
+.shoprow .tx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.shoprow button{flex:0 0 auto}
+.shoprow.feat{box-shadow:inset 0 0 0 1px var(--gold)}
+.pt{text-align:left;padding:6px;line-height:14px}
+/* デッキ */
+.dr{display:flex;align-items:center;gap:3px;background:rgba(14,17,28,.85);box-shadow:inset 0 0 0 1px var(--line);padding:1px 3px}
+.dr .rk{width:16px;font:10px 'PM10';color:var(--grey)}.dr.r-R .rk{color:#6FB7FF}.dr.r-E .rk{color:#C77DFF}.dr.r-SK .rk{color:#FFD34D}
+.dr .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden}
+.dr .num{width:24px;text-align:center;font:10px 'PM10'}
+/* ミニカー */
+.mc{display:flex;gap:4px;align-items:center;text-align:left;padding:2px 4px;line-height:12px;font:10px/12px 'PM10'}
+.mc .rk{font:12px 'PM12B','PM12';color:var(--gold);width:22px;text-align:center}
+.mc.on{box-shadow:inset 0 0 0 2px var(--lime)}.mc.rel{box-shadow:inset 0 0 0 2px var(--red)}
+.rank{font:24px/28px 'PM12B','PM12';color:var(--gold);text-align:center}
+/* 小窓 */
+.modal{position:absolute;inset:0;background:rgba(5,6,14,.7);display:flex;align-items:center;justify-content:center}
+.modal .box{width:300px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--lime);padding:6px;display:flex;flex-direction:column;gap:4px}
+.modal .box button{text-align:left}
+/* マップのマス（α2：640 いっぱい） */
+.node .nl{display:block;font:10px/10px 'PM10';white-space:nowrap;overflow:hidden}
+/* ★会話の画面 */
+.scdim{background:rgba(5,6,14,.72)}
+.scband{background:rgba(10,12,22,.92);box-shadow:inset 0 0 0 1px var(--line),inset 0 0 0 2px #000;padding:6px 10px;cursor:pointer}
+.scband.nar .sctext{text-align:center;color:#C9D1DC}.scband.file{box-shadow:inset 0 0 0 1px var(--cyan)}
+.scname{color:var(--lime);font:12px/14px 'PM12B','PM12'}
+.sctext{white-space:pre-line;font:12px/18px 'PM12'}
+.scnext{position:absolute;right:8px;bottom:4px;color:var(--lime)}
+.sctitle{text-align:center;font:24px/28px 'PM12B','PM12';color:var(--white);text-shadow:2px 2px 0 #000}.sctitle.file{font:12px/14px 'PM12B','PM12';color:var(--cyan)}
+.toast{background:rgba(10,12,22,.9);box-shadow:inset 0 0 0 1px var(--lime);padding:4px 8px;text-align:center;z-index:4}
+.ra{text-align:right}
+.barn.bl{text-align:left}.barn .bn{color:var(--lime);font:10px 'PM10'}
+.intent{background:rgba(60,10,20,.85);box-shadow:inset 0 0 0 1px var(--red);padding:1px 4px;font:10px/14px 'PM10'}
+.chain{background:rgba(10,8,18,.8);box-shadow:inset 0 0 0 1px var(--lime);padding:2px 4px}
+/* ★チュートリアル */
+#tut{position:absolute;left:0;top:0;width:100%;height:100%;z-index:6;pointer-events:none}
+#tut>*{pointer-events:auto;position:absolute}
+#tut .tm{background:rgba(5,4,12,.55)}
+#tut .tglow{pointer-events:none;box-shadow:0 0 0 2px var(--lime),0 0 0 3px #000;animation:tg .6s steps(2) infinite}
+@keyframes tg{50%{box-shadow:0 0 0 2px var(--cyan),0 0 0 3px #000}}
+#tut .tband{background:rgba(10,8,18,.95);box-shadow:inset 0 0 0 1px var(--cyan);padding:4px 8px;cursor:pointer}
+#tut .t9{box-shadow:none;animation:none;border:8px solid transparent;border-image-slice:8 fill;border-image-width:8px;border-image-repeat:stretch;image-rendering:pixelated;box-sizing:border-box;background:transparent;pointer-events:none}
+#tut .tarrow,#tut .tcomm{pointer-events:none;image-rendering:pixelated}
+#tut .tm{background:rgba(0,0,0,.6)}
+/* ★640 の背景の上に置く箱（タイトル・マップ・戦闘・会話以外の画面） */
+#ui.panel{background:rgba(10,8,18,.80);box-shadow:inset 0 0 0 1px var(--lime),inset 0 0 0 2px #000,0 0 0 1px #000}
+.ic{image-rendering:pixelated;vertical-align:middle}
+.pt .ic{display:block;margin:2px auto 2px}
+.shoprow.feat .ic{float:left;margin:0 4px 0 0}
+.gain{line-height:36px}.gain .ic{margin-right:4px}
+.mparts .ic{margin-right:2px}
+.tinfo{background:rgba(10,8,18,.6);padding:0 4px}
+#ui .logo{text-shadow:2px 2px 0 #000}
+/* BUG-20：スマホ横（CSS 等倍）でも押す所は原寸 28px 以上（シフトの2択を優先） */
+.detail button{min-height:28px;margin-top:2px}
+#ui button.mini,#tut button.mini{min-height:28px}
+.shoprow button{min-height:28px}
+#ui .row button{min-height:28px}
+#modal{z-index:8}
+/* ★v0.14：ショップ・シム・報酬・パーツを背景の絵に合わせた並び（640 いっぱい） */
+.hud.strip{background:rgba(10,8,18,.88);box-shadow:inset 0 0 0 1px var(--line),0 1px 0 0 #000}
+.sign{background:rgba(10,8,18,.84);box-shadow:inset 0 0 0 1px var(--lime),0 0 0 1px #000;padding:2px 6px;text-align:center;line-height:13px}
+.sign.tick{text-align:left;display:flex;align-items:center;gap:4px}
+.shoprow.two{padding:0 4px 0 6px}.shoprow.two .tx{line-height:13px}
+.shoprow .lv{color:var(--lime);font:10px 'PM10';letter-spacing:-1px}
+.shoprow.feat{background:rgba(14,17,28,.9)}.shoprow.feat .tx{white-space:normal;line-height:13px}
+.onctr{filter:drop-shadow(0 2px 0 #000)}.onctr .ic{display:block}
+.cb.lit,.pt.lit{background:rgba(16,12,30,.80);align-items:center;text-align:center}
+.cb.lit .bw{display:block;width:100px;height:76px;margin:2px auto 2px;background:#0E111C;position:relative;flex:0 0 auto}
+.cb.lit .bw img{display:block;width:100px;height:76px}
+.cb.lit .bw .ck{position:absolute;left:38px;top:26px;width:24px;height:24px;line-height:24px;background:var(--tc);color:var(--ink)}
+.cb.lit .bd{text-align:left}
+.monitor{background:rgba(6,14,30,.86);box-shadow:inset 0 0 0 1px var(--cyan),0 0 0 1px #000;padding:3px 5px;line-height:13px;overflow:hidden}
+.monitor .h{color:var(--cyan)}.monitor .small{white-space:nowrap;overflow:hidden}
+.monitor button{position:absolute}
+.simrow{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px;scrollbar-width:none;scroll-behavior:smooth}
+.simrow::-webkit-scrollbar{display:none}
+.simrow .cs{position:relative;flex:0 0 62px}
+.arr{min-height:28px}
+.cb.lit .bc{white-space:nowrap}
+/* ★v0.15：グラフィック班の 640 の部品（ui640_parts.json）。body.u640 のときだけ（絵が無ければ上の見た目のまま） */
+.u640 .sign,.u640 .shoprow.feat{background:none;box-shadow:none;border:10px solid transparent;border-image:var(--u-panel) 10 fill/10px stretch;image-rendering:pixelated;padding:0;margin:0}
+.u640 .sign{display:flex;flex-direction:column;justify-content:center;border-width:6px;border-image-width:10px;border-image-outset:4px}
+.u640 .sign.tick{flex-direction:row;justify-content:flex-start}
+.u640 .shoprow.feat{border-width:6px;border-image-width:10px;border-image-outset:4px;padding:0 2px 0 4px}
+.u640 .sign.board{border-image-outset:0;border-width:10px}
+.u640 .monitor{background:none;box-shadow:none;border:4px solid transparent;border-image:var(--u-panel-cyan) 10 fill/10px stretch;border-image-outset:6px;padding:0 2px}
+.u640 .shoprow.two{background:rgba(255,255,255,.03);box-shadow:inset 0 -1px 0 0 #2B2F4A}
+.hdr{color:var(--ink);font:12px/16px 'PM12B','PM12';padding:1px 8px 0;background:var(--lime);white-space:nowrap}
+.u640 .hdr{background:none;border:0 solid transparent;border-width:0 8px;border-image:var(--u-header) 0 8 fill/0 8px stretch;padding:2px 0 0;image-rendering:pixelated}
+.badge{display:block;image-rendering:pixelated;pointer-events:none;z-index:2}
+.u640 .badge.sale{background:var(--u-badge-sale)}.u640 .badge.feature{background:var(--u-badge-feature)}.u640 .badge.new{background:var(--u-badge-new)}
+.price{position:relative;display:inline-block;flex:0 0 auto;height:14px;min-width:30px;padding:0 4px 0 19px;font:12px/14px 'PM12B','PM12';color:var(--white);background:#2A2F3A;white-space:nowrap}
+.u640 .price{background:none;border:0 solid transparent;border-width:0 5px 0 19px;padding:0 1px;border-image:var(--u-price) 0 5 0 19 fill/0 5px 0 19px stretch;image-rendering:pixelated}
+.u640 .price.sale{border-image-source:var(--u-price-sale)}
+.price.lack{color:var(--red)}.price s{color:var(--grey);margin-right:3px;font:10px/14px 'PM10'}
+.shoprow button.u9{min-width:56px}
+.u640 button.u9{background:none;box-shadow:none;border:6px solid transparent;border-image:var(--u-btn-sub) 6 fill/6px stretch;image-rendering:pixelated;padding:0 2px;color:var(--white);font-family:'PM12B','PM12'}
+.u640 button.u9:active:not([disabled]){border-image-source:var(--u-btn-sub-down)}
+.u640 button.u9.main{border-image-source:var(--u-btn-main);color:#0A0812}
+.u640 button.u9.main:active:not([disabled]){border-image-source:var(--u-btn-main-down)}
+.u640 button.u9[disabled]{border-image-source:var(--u-btn-off);color:#78788C}
+.slot{display:block;width:72px;height:72px;margin:0 auto 2px;padding:4px;box-sizing:border-box}
+.u640 .slot{background:var(--u-slot);image-rendering:pixelated}.u640 .slot.sp{background:var(--u-slot-special)}
+.u640 .pt.lit:hover .slot,.u640 .pt.lit:focus .slot{background:var(--u-slot-select)}
+.slot .ic{margin:0!important}
+.sw{position:relative;flex:0 0 66px;width:66px;height:92px;padding:2px;box-sizing:border-box}
+.sw .cs{position:relative}
+.u640 .sw.on{background:var(--u-card-select-01);animation:csel .6s steps(1) infinite;image-rendering:pixelated}
+@keyframes csel{50%{background-image:var(--u-card-select-02)}}
+.simrow{gap:4px}
+.u640 .sign.gain{flex-direction:row;align-items:center;justify-content:center;gap:4px}
+/* ★BUG-24：ボスの上の段 */
+.bstrip{background:linear-gradient(rgba(10,8,18,.78),rgba(10,8,18,.62));box-shadow:inset 0 -1px 0 0 rgba(255,64,64,.5);pointer-events:none}
+.ename.boss{text-align:left}
+.gim.boss{background:none;padding:0;white-space:nowrap;line-height:11px;text-shadow:1px 1px 0 #000}
+.barn.ra{text-align:right}
+/* ★v0.16：デッキ・ガレージ・休憩・リザルト・入れ替え */
+.grid1{display:flex;flex-direction:column;gap:3px}
+.grid1 .dr{min-height:28px}.grid1 .mc{min-height:30px;width:100%}
+.sign.side{align-items:center;text-align:center;gap:2px}.sign .big{font:24px/26px 'PM12B','PM12'}.sign .big .small{font:10px 'PM10';margin-left:2px}
+.sign .ic{display:block;margin:0 auto}
+.col>button{min-height:28px}
+.rare{display:inline-block;width:7px;height:7px;flex:0 0 7px;margin:0 3px 0 1px;background:var(--grey)}
+.rare.rr{background:#6FB7FF}.rare.re{background:#C77DFF}.rare.rsk{background:#FFD34D}
+.u640 .rare{background:var(--u-rare-c)}.u640 .rare.rr{background:var(--u-rare-r)}.u640 .rare.re{background:var(--u-rare-e)}.u640 .rare.rsk{background:var(--u-rare-sk)}
+.sh{text-shadow:1px 1px 0 #000,-1px 0 0 #000,0 -1px 0 #000}
+.sign.rk{padding:0}.sign.rk .rank{line-height:28px}
+.sign.foot{align-items:flex-start;text-align:left;justify-content:flex-start;gap:1px}
+.case{padding:0;background:rgba(8,10,24,.35);box-shadow:none;display:block}
+.case .cw{position:absolute;left:10px;top:2px;width:50px;height:38px;background:#0E111C;overflow:hidden;box-shadow:0 0 0 1px var(--tc)}
+.case .cw img{display:block;width:50px;height:38px}
+.case .ck{position:absolute;left:15px;top:9px;width:20px;height:20px;line-height:20px;text-align:center;background:var(--tc);color:var(--ink)}
+.case .cn{position:absolute;left:0;right:0;bottom:0;text-align:center;font:10px/10px 'PM10';white-space:nowrap;overflow:hidden;text-shadow:1px 1px 0 #000}
+.case.sel{background:rgba(197,255,69,.18);box-shadow:inset 0 0 0 2px var(--lime)}
+.case.pc .ic{position:absolute;left:19px;top:4px}
+.u640 button.u9.danger{border-image-source:var(--u-btn-danger)}
+/* ★タイトル：Remit の R は左右反転（Я）で赤。ロゴの絵が来たら .tlogo */
+.logo .t2 .rr{display:inline-block;transform:scaleX(-1);color:var(--red)}
+.logo .tlogo{display:block;margin:2px auto;max-width:600px;max-height:80px;image-rendering:pixelated}
+/* v0.18：BUG-22 予告の語を折り返さない／BUG-20 小窓（スキップの確認・ルール一覧）のボタンも 28 以上 */
+.nw{white-space:nowrap}
+.modal .box button{min-height:28px}
+/* ★v0.18.1：読みこみ中・全画面・店を出る */
+.loading{text-align:center;background:rgba(10,8,18,.9);box-shadow:inset 0 0 0 1px var(--lime);padding:6px 10px}
+.lbar{height:8px;margin:6px 0 4px;background:#1C1A2A;box-shadow:inset 0 0 0 1px #2B2F4A}.lbar i{display:block;height:100%;background:var(--lime)}
+.toast2{background:rgba(60,10,20,.9);box-shadow:inset 0 0 0 1px var(--red);text-align:center;padding:4px}
+#ui button.exit{font-size:12px;z-index:3}

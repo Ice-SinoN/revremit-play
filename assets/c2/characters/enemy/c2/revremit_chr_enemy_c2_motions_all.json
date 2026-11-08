@@ -1,0 +1,689 @@
+{
+ "note": "足元の点 foot を画面の敵の足位置に合わせる。左向き。hit は1コマ＋白フラッシュ/揺れはプログラムで。ボス3体・kei・formula の idle_02/hit_01 はプログラム製（仮）。色変えは recolor.json",
+ "enemies": {
+  "bike": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "van": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "wraith": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "minivan": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "sedan": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "boss1": {
+   "frame": [
+    288,
+    288
+   ],
+   "foot": [
+    144,
+    284
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "coupe": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "offbike": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "kei": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "rally": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "downhill": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "boss2": {
+   "frame": [
+    288,
+    288
+   ],
+   "foot": [
+    144,
+    284
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "touring": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "gtcar": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "wrecker": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "formula": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "safety": {
+   "frame": [
+    224,
+    224
+   ],
+   "foot": [
+    112,
+    220
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  },
+  "boss3": {
+   "frame": [
+    288,
+    288
+   ],
+   "foot": [
+    144,
+    284
+   ],
+   "facing": "left",
+   "motions": [
+    {
+     "tag": "idle",
+     "frames": 2,
+     "loop": true,
+     "ms": [
+      320,
+      320
+     ]
+    },
+    {
+     "tag": "atk",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      300
+     ]
+    },
+    {
+     "tag": "hit",
+     "frames": 1,
+     "loop": false,
+     "ms": [
+      220
+     ]
+    }
+   ]
+  }
+ }
+}

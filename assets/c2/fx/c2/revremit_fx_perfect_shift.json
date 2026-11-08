@@ -1,0 +1,12 @@
+{
+ "sheet": "revremit_fx_perfect_shift_sheet.png",
+ "frame": [
+  64,
+  64
+ ],
+ "frames": 4,
+ "frame_ms": 60,
+ "loop": false,
+ "anchor": "center",
+ "blend": "normal（加算にすると光が強く出る。どちらでも可）"
+}

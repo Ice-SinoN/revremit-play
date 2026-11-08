@@ -1,0 +1,12 @@
+{
+ "sheet": "revremit_fx_remit_sheet.png",
+ "frame": [
+  64,
+  64
+ ],
+ "frames": 4,
+ "frame_ms": 90,
+ "loop": false,
+ "anchor": "center",
+ "blend": "normal（加算にすると光が強く出る。どちらでも可）"
+}

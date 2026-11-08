@@ -1,0 +1,347 @@
+{
+ "note": "戦闘以外の画面（640×360・原寸）用の部品（グラフィック班・道具製）。9分割は [左,上,右,下] の角の大きさ、3分割は [左,右]。文字はプログラム（PixelMplus）。要らない物は使わなくてよい",
+ "parts": {
+  "panel": {
+   "file": "revremit_ui640_panel.png",
+   "size": [
+    32,
+    32
+   ],
+   "nine_slice": [
+    10,
+    10,
+    10,
+    10
+   ],
+   "note": "窓。辺を伸ばす。中は半透明の暗い板（不透明度 91%）"
+  },
+  "panel_cyan": {
+   "file": "revremit_ui640_panel_cyan.png",
+   "size": [
+    32,
+    32
+   ],
+   "nine_slice": [
+    10,
+    10,
+    10,
+    10
+   ],
+   "note": "説明・ツールチップ用"
+  },
+  "header": {
+   "file": "revremit_ui640_header.png",
+   "size": [
+    17,
+    16
+   ],
+   "three_slice": [
+    8,
+    8
+   ],
+   "note": "見出しの帯（黒い文字 PixelMplus12 太字を左 6・上 2 に）"
+  },
+  "btn_main": {
+   "file": "revremit_ui640_btn_main.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    10,
+    8,
+    18
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "btn_main_down": {
+   "file": "revremit_ui640_btn_main_down.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    10,
+    8,
+    18
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "btn_sub": {
+   "file": "revremit_ui640_btn_sub.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    244,
+    246,
+    240
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "btn_sub_down": {
+   "file": "revremit_ui640_btn_sub_down.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    244,
+    246,
+    240
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "btn_off": {
+   "file": "revremit_ui640_btn_off.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    120,
+    120,
+    140
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "btn_danger": {
+   "file": "revremit_ui640_btn_danger.png",
+   "size": [
+    48,
+    20
+   ],
+   "nine_slice": [
+    6,
+    6,
+    6,
+    6
+   ],
+   "text_color": [
+    244,
+    246,
+    240
+   ],
+   "note": "文字は PixelMplus12 太字、真ん中（上下は y 9）。_down は押した間"
+  },
+  "coin": {
+   "file": "revremit_ui640_coin.png",
+   "size": [
+    10,
+    10
+   ],
+   "note": "パーツ代のアイコン（文の中・札の左）"
+  },
+  "price": {
+   "file": "revremit_ui640_price.png",
+   "size": [
+    25,
+    14
+   ],
+   "three_slice": [
+    19,
+    5
+   ],
+   "note": "値段の札。数字は PixelMplus12 太字・白を x 19 から。足りないとき赤（255,52,64）"
+  },
+  "price_sale": {
+   "file": "revremit_ui640_price_sale.png",
+   "size": [
+    25,
+    14
+   ],
+   "three_slice": [
+    19,
+    5
+   ],
+   "note": "セール中の札（縁が赤）。元の値段は灰色＋横線、その右に新しい値段"
+  },
+  "badge_sale": {
+   "file": "revremit_ui640_badge_sale.png",
+   "size": [
+    30,
+    12
+   ],
+   "note": "セールの印（札の左上に重ねる）"
+  },
+  "badge_feature": {
+   "file": "revremit_ui640_badge_feature.png",
+   "size": [
+    30,
+    12
+   ],
+   "note": "目玉商品の印"
+  },
+  "badge_new": {
+   "file": "revremit_ui640_badge_new.png",
+   "size": [
+    30,
+    12
+   ],
+   "note": "はじめて見たもの"
+  },
+  "slot": {
+   "file": "revremit_ui640_slot.png",
+   "size": [
+    72,
+    72
+   ],
+   "icon_pos": [
+    4,
+    4
+   ],
+   "note": "パーツ・アイテムのアイコンの枠"
+  },
+  "slot_special": {
+   "file": "revremit_ui640_slot_special.png",
+   "size": [
+    72,
+    72
+   ],
+   "icon_pos": [
+    4,
+    4
+   ],
+   "note": "YUKI 専用パーツ・レア"
+  },
+  "slot_select": {
+   "file": "revremit_ui640_slot_select.png",
+   "size": [
+    72,
+    72
+   ],
+   "icon_pos": [
+    4,
+    4
+   ],
+   "note": "選んでいる所（点滅させるなら slot と交互）"
+  },
+  "slot_sold": {
+   "file": "revremit_ui640_slot_sold.png",
+   "size": [
+    72,
+    72
+   ],
+   "icon_pos": [
+    4,
+    4
+   ],
+   "note": "売り切れ・買えない。アイコンは半分暗くして重ねる"
+  },
+  "card_select_01": {
+   "file": "revremit_ui640_card_select_01.png",
+   "size": [
+    66,
+    92
+   ],
+   "card_pos": [
+    2,
+    2
+   ],
+   "note": "報酬・ショップでカードを選んだ枠（2コマを 300ms で交互）"
+  },
+  "card_select_02": {
+   "file": "revremit_ui640_card_select_02.png",
+   "size": [
+    66,
+    92
+   ],
+   "card_pos": [
+    2,
+    2
+   ],
+   "note": "報酬・ショップでカードを選んだ枠（2コマを 300ms で交互）"
+  },
+  "divider": {
+   "file": "revremit_ui640_divider.png",
+   "size": [
+    16,
+    3
+   ],
+   "three_slice": [
+    1,
+    1
+   ],
+   "note": "区切りの線"
+  },
+  "cursor": {
+   "file": "revremit_ui640_cursor.png",
+   "size": [
+    7,
+    9
+   ],
+   "note": "選んでいる行の左に"
+  },
+  "star": {
+   "file": "revremit_ui640_star.png",
+   "size": [
+    9,
+    9
+   ],
+   "note": "評価の星"
+  },
+  "rare_c": {
+   "file": "revremit_ui640_rare_c.png",
+   "size": [
+    7,
+    7
+   ],
+   "note": "レア度の印 C・R・E・固有"
+  },
+  "rare_r": {
+   "file": "revremit_ui640_rare_r.png",
+   "size": [
+    7,
+    7
+   ],
+   "note": "レア度の印 C・R・E・固有"
+  },
+  "rare_e": {
+   "file": "revremit_ui640_rare_e.png",
+   "size": [
+    7,
+    7
+   ],
+   "note": "レア度の印 C・R・E・固有"
+  },
+  "rare_sk": {
+   "file": "revremit_ui640_rare_sk.png",
+   "size": [
+    7,
+    7
+   ],
+   "note": "レア度の印 C・R・E・固有"
+  }
+ }
+}

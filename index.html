@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Rev:Remit 試作 v0.18.1（α3）</title>
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rev:Remit">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="css/font.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="stage"><canvas id="cv" width="480" height="270"></canvas><div id="ui"></div><div id="modal"></div></div>
+<div id="rot">スマホは横にしてね</div>
+<!-- 読む順番：データ → 計算 → セーブ → 絵 → 音（audio.js はサウンド班）→ モーション → 画面 -->
+<script src="data/screen.js"></script>
+<script src="data/stages.js"></script>
+<script src="data/rules.js"></script>
+<script src="data/chars.js"></script>
+<script src="data/cards.js"></script>
+<script src="data/enemies.js"></script>
+<script src="data/parts.js"></script>
+<script src="data/text.js"></script>
+<script src="data/tutorial.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/save.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/anim.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/tutorial.js"></script>
+<script>if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+</body>
+</html>

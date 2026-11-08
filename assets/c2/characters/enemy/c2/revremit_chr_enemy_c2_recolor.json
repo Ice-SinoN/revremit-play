@@ -1,0 +1,65 @@
+{
+ "wraith": {
+  "base": "van",
+  "hue_shift_deg": 130,
+  "sat_mul": 1.15,
+  "rank": "elite",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "minivan": {
+  "base": "van",
+  "hue_shift_deg": -80,
+  "sat_mul": 1.0,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "sedan": {
+  "base": "bike",
+  "hue_shift_deg": 110,
+  "sat_mul": 1.0,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "offbike": {
+  "base": "coupe",
+  "hue_shift_deg": 120,
+  "sat_mul": 1.0,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "rally": {
+  "base": "kei",
+  "hue_shift_deg": 170,
+  "sat_mul": 1.0,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "downhill": {
+  "base": "kei",
+  "hue_shift_deg": -60,
+  "sat_mul": 1.2,
+  "rank": "elite",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "gtcar": {
+  "base": "touring",
+  "hue_shift_deg": 100,
+  "sat_mul": 1.0,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "wrecker": {
+  "base": "touring",
+  "hue_shift_deg": 180,
+  "sat_mul": 1.2,
+  "rank": "elite",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ },
+ "safety": {
+  "base": "formula",
+  "hue_shift_deg": 50,
+  "sat_mul": 1.1,
+  "rank": "zako",
+  "note": "彩度0.18未満・暗い色（輪郭）は変えない"
+ }
+}

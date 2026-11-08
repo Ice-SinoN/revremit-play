@@ -1,0 +1,90 @@
+{
+ "name": "circuit",
+ "size": [
+  640,
+  360
+ ],
+ "base": "revremit_bg_circuit_base.png",
+ "layers": [
+  {
+   "id": "neon",
+   "what": "ネオン看板・灯りの点滅",
+   "type": "parts",
+   "items": [
+    {
+     "part": "revremit_bg_circuit_fx_neon_01_light_l.png",
+     "x": 157,
+     "y": 51,
+     "move": "glow",
+     "period_ms": 3200,
+     "alpha": [
+      0.85,
+      1.0
+     ]
+    },
+    {
+     "part": "revremit_bg_circuit_fx_neon_02_light_r.png",
+     "x": 566,
+     "y": 11,
+     "move": "glow",
+     "period_ms": 3200,
+     "alpha": [
+      0.85,
+      1.0
+     ]
+    },
+    {
+     "part": "revremit_bg_circuit_fx_neon_03_stand_lights.png",
+     "x": 266,
+     "y": 88,
+     "move": "pulse",
+     "period_ms": 2400,
+     "alpha": [
+      0.7,
+      1.0
+     ]
+    },
+    {
+     "part": "revremit_bg_circuit_fx_neon_04_wall_lights.png",
+     "x": 100,
+     "y": 182,
+     "move": "flicker",
+     "period_ms": 4200,
+     "alpha": [
+      0.15,
+      1.0
+     ]
+    }
+   ],
+   "moves": {
+    "pulse": "ゆっくり明暗（sin）",
+    "flicker": "ふだん点灯・周期ごとに2〜3回ちらつく",
+    "blink": "点いて消える（半々）",
+    "glow": "ごく弱い明暗"
+   },
+   "note": "動かない層には消えかけの色（明るさ45〜85%）が残っているので、消えても穴にならない"
+  },
+  {
+   "id": "reflect",
+   "what": "路面のネオンの映りこみのゆれ",
+   "type": "sheet",
+   "sheet": "revremit_bg_circuit_fx_reflect_sheet.png",
+   "x": 0,
+   "y": 274,
+   "frame": [
+    640,
+    86
+   ],
+   "frames": 4,
+   "frame_ms": 180,
+   "loop": true
+  }
+ ],
+ "order": [
+  "base",
+  "neon",
+  "reflect",
+  "（キャラ）",
+  "（UI）"
+ ]
+}
