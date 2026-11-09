@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.18.1（α3）";
+const VERSION="試作 v0.18.2（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -431,15 +431,33 @@ function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText();
   if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se("text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
   renderScene()}
+/* ★v0.18.2（ちかちかの直し）：絵（一枚絵・立ち絵）は変わったときだけ入れかえる。
+   前は1文字出すたび（30ms ごと）に #ui を丸ごと作り直し、<img> も毎回作り直していたので、スマホで絵が一瞬消えて点滅していた */
 function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const sc=s.sc,l=sc.lines[s.i]||[null,""],who=l[0];
-  let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// ★行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
-  const bgp=bgk?STORY_ART.bg(bgk):null,bg=bgp&&artHave(bgp)?`<img class="px scbg" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:`<div class="scdim" ${at(0,0,640,360)}></div>`;
-  const bw=who==="YUKI"||who==="MIO"||who==="YUKI_IN"?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bust=bw&&artHave(bw)?`<img class="px bust" src="${artURL(bw)}" ${at(who==="MIO"?360:24,18,256,256)}>`:"";// 立ち絵の下端（128,252）を窓の上（y 270）に
-  const name=who?TEXT.names[who]:"",txt=sceneText().slice(0,s.shown);
-  ui().innerHTML=`${bg}${bust}<div class="tap" ${at(0,0,640,360)} onclick="sceneTap()"></div>
-   ${sc.title?`<div class="sctitle${sc.file?" file":""}" ${at(0,sc.file?40:120,640)}>${esc(sc.title)}</div>`:""}
-   ${sc.lines.length?`<div class="scband${who?"":" nar"}${who==="FILE"?" file":""}" ${at(0,270,640,90)} onclick="sceneTap()">${name?`<div class="scname">${esc(name)}</div>`:""}<div class="sctext">${esc(who==="YUKI_IN"?"（"+txt+"）":txt)}</div><div class="scnext small">${s.shown>=sceneText().length?"▼":""}</div></div>`:""}
-   <button class="mini" ${at(568,6,64,18)} onclick="sceneSkip()">${esc("とばす")}</button>`}
+  let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// 行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
+  const bgp=bgk&&artHave(STORY_ART.bg(bgk))?STORY_ART.bg(bgk):"";
+  const bw0=who==="YUKI"||who==="MIO"||who==="YUKI_IN"?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
+  const u=ui();let root=u.querySelector(":scope > .scroot");
+  if(!root||root.dataset.key!==s.key){
+    u.innerHTML=`<div class="scroot" data-key="${esc(s.key)}"><div class="scbgw"></div><div class="scbw"></div><div class="tap" ${at(0,0,640,360)} onclick="sceneTap()"></div>
+     ${sc.title?`<div class="sctitle${sc.file?" file":""}" ${at(0,sc.file?40:120,640)}>${esc(sc.title)}</div>`:""}
+     ${sc.lines.length?`<div class="scband" ${at(0,270,640,90)} onclick="sceneTap()"><div class="scname"></div><div class="sctext"></div><div class="scnext small"></div></div>`:""}
+     <button class="mini" ${at(568,6,64,18)} onclick="sceneSkip()">${esc("とばす")}</button></div>`;
+    root=u.querySelector(":scope > .scroot")}
+  // 一枚絵：ファイルが変わったときだけ
+  const bgw=root.querySelector(".scbgw");if(bgw.dataset.f!==bgp){bgw.dataset.f=bgp;bgw.innerHTML=bgp?`<img class="px scbg" src="${artURL(bgp)}" ${at(0,0,640,360)} decoding="sync">`:`<div class="scdim" ${at(0,0,640,360)}></div>`}
+  // 立ち絵：ファイルか場所が変わったときだけ。新しい絵は読み終わってから見せる（読み終わるまでは前の絵のまま）
+  const bww=root.querySelector(".scbw"),bk=bw+"@"+bx;
+  if(bww.dataset.f!==bk){bww.dataset.f=bk;
+    if(!bw)bww.innerHTML="";
+    else{const im=new Image();im.className="px bust";im.src=artURL(bw);Object.assign(im.style,{position:"absolute",left:bx+"px",top:"18px",width:"256px",height:"256px"});
+      const put=()=>{if(bww.dataset.f===bk){bww.innerHTML="";bww.appendChild(im)}};
+      if(im.complete&&im.naturalWidth)put();else if(im.decode)im.decode().then(put,put);else im.onload=put}}
+  const band=root.querySelector(".scband");if(band){const name=who?TEXT.names[who]:"",txt=sceneText().slice(0,s.shown);
+    band.className=`scband${who?"":" nar"}${who==="FILE"?" file":""}`;
+    const nm=band.querySelector(".scname");nm.textContent=name;nm.style.display=name?"":"none";
+    band.querySelector(".sctext").textContent=who==="YUKI_IN"?"（"+txt+"）":txt;
+    band.querySelector(".scnext").textContent=s.shown>=sceneText().length?"▼":""}}
 function sceneTap(){const s=S.sc;if(!s)return;const full=sceneText();
   if(s.shown<full.length){s.shown=full.length;clearInterval(s.t);renderScene();return}
   SND.se("text_next");s.i++;if(s.i>=s.sc.lines.length){sceneEnd();return}sceneLine()}

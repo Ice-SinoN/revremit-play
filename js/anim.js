@@ -43,7 +43,8 @@ function fxParts(x,y,n,col,o){o=o||{};for(let i=0;i<n;i++){const a=(o.a!=null?o.
 function fxLine(x1,y1,x2,y2,col,life){A.fx.push({k:"line",x1,y1,x2,y2,col,t:0,life:life||160})}
 function fxRing(x,y,r,col,life){A.fx.push({k:"ring",x,y,r,col,t:0,life:life||300})}
 function fxCat(x,y,life){A.fx.push({k:"cat",x,y,t:0,life:life||700})}
-function flash(col,life){A.flash={col,t:0,life:life||90}}
+/* 画面いっぱいの光：1秒に3回をこえない（前の光から 350ms はつけない） */
+function flash(col,life){const now=A.now||performance.now();if(A.lastFlash&&now-A.lastFlash<350)return;A.lastFlash=now;A.flash={col,t:0,life:life||90}}
 
 /* 立ち位置（足元）から、体のまんなか・手の先 */
 const BODY=()=>SPR.YUKI&&!SPR.YUKI.proc?80:34;// C2 の YUKI は背 約160 → 体のまんなか 80
@@ -133,7 +134,7 @@ function playEvents(evs){
         if(x.k==="frz")push({d:1,on(){SND.se("freeze")}});if(x.k==="burn")push({d:1,on(){SND.se("burn")}});if(x.k==="noise")push({d:1,on(){SND.se("noise")}});if(x.k==="gasout")push({d:1,on(){SND.se("gas_empty")}});
         if(x.k==="charge")push({d:1,on(){fxWord(PC().x+30,PC().y-80,"CHARGE","#FFD34D")}});
         if(x.k==="onup")push({d:1,on(){fxParts(PC().x,PC().y-20,6,["#7FD8FF","#F7F9F5"],{v:20,g:-10})}});
-        if(x.k==="phase")push({d:300,on(){A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;A.flash={t:0,life:300,col:"#FFFFFF"}}});
+        if(x.k==="phase")push({d:300,on(){A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
         if(x.k==="cage")push({d:1,on(){fxWord(PC().x,PC().y-60,"CAGE","#FFD34D")}});
       });
       if(e.band)push({d:1,on(){fxWord(PC().x,PC().y-90,"BAND "+(CD(e.id).band||""),"#7FD8FF")}});
@@ -144,7 +145,7 @@ function playEvents(evs){
     if(e.k==="eact"){if(i===0||evs[i-1].k!=="phit"&&evs[i-1].k!=="eact"&&evs[i-1].k!=="eblk")push({d:1,on(){SND.se("enemy_turn")}});const sub=[];i++;while(i<evs.length&&["phit","eblk"].includes(evs[i].k))sub.push(evs[i++]);
       push(...mEnemyAct(e.p,sub.filter(x=>x.k==="phit")));continue}
     if(e.k==="gasout"){push({d:1,on(){SND.se("gas_empty")}});i++;continue}
-    if(e.k==="phase"){push({d:300,on(){A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;A.flash={t:0,life:300,col:"#FFFFFF"}}});i++;continue}
+    if(e.k==="phase"){push({d:300,on(){A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});i++;continue}
     if(e.k==="eburn"){push({d:200,on(){fxParts(EC().x,EC().y,10,["#FF8A3D","#FF4040"],{a:-Math.PI/2,spread:0.8,v:30,g:-20});fxNum(EC().x,EC().y-30,e.v,"#FF8A3D");A.disp.ehp=Math.max(0,A.disp.ehp-e.v)}});i++;continue}
     if(e.k==="turn"){push({d:1,on(){syncDisp()}});i++;continue}
     if(e.k==="win"){push(...mWin());i++;continue}
@@ -161,9 +162,10 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(50,t-(lastT||t));
 /* ★零号の第2形態：ノイズを強めて見せる（横の帯をずらす・色ずれ。決定 2026-11-07） */
 let GLC=null;
 function glitchCanvas(cv){const w=cv.width,h=cv.height;if(!GLC||GLC.width!==w||GLC.height!==h){GLC=mkCanvas(w,h)}const g=GLC.getContext("2d");g.clearRect(0,0,w,h);
-  const t=A.now,strong=Math.floor(t/90)%7===0;let y=0;
-  while(y<h){const bh=4+Math.floor(Math.random()*18),off=(Math.random()<(strong?0.6:0.25))?Math.round((Math.random()-0.5)*(strong?24:8)):0;g.drawImage(cv,0,y,w,bh,off,y,w,bh);y+=bh}
-  if(strong||Math.random()<0.2){g.globalCompositeOperation="lighter";g.globalAlpha=0.35;g.drawImage(tintCanvas(cv,"#FF2BD6"),3,0);g.drawImage(tintCanvas(cv,"#2BE8FF"),-3,0);g.globalAlpha=1;g.globalCompositeOperation="source-over"}
+  // ★v0.18.2：光の点滅は1秒に3回まで。色ずれは「強い」ときだけ（630ms に1回）、帯のずれは 100ms ごとに変える
+  const t=A.now,step=Math.floor(t/90),strong=step%7===0;let y=0,sd=(Math.floor(t/100)*9301+49297)%233280;const rnd=()=>(sd=(sd*9301+49297)%233280)/233280;
+  while(y<h){const bh=4+Math.floor(rnd()*18),off=(rnd()<(strong?0.6:0.25))?Math.round((rnd()-0.5)*(strong?24:8)):0;g.drawImage(cv,0,y,w,bh,off,y,w,bh);y+=bh}
+  if(strong){g.globalCompositeOperation="lighter";g.globalAlpha=0.35;g.drawImage(tintCanvas(cv,"#FF2BD6"),3,0);g.drawImage(tintCanvas(cv,"#2BE8FF"),-3,0);g.globalAlpha=1;g.globalCompositeOperation="source-over"}
   return GLC}
 function drawSprite(g,set,tag,fi,x,y,o){if(!set)return;let cv=frameOf(set,tag,fi);if(o.pal)cv=palCanvas(cv,o.pal);if(o.tint)cv=tintCanvas(cv,o.tint);if(o.glitch)cv=glitchCanvas(cv);
   const s=o.scale||1,f=set.foot||[cv.width/2,cv.height];g.globalAlpha=o.alpha==null?1:o.alpha;
