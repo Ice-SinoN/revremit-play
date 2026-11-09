@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.18.2（α3）";
+const VERSION="試作 v0.18.3（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -24,12 +24,15 @@ function itemIcon(k,size,cls){const p=ITEM_ART(k);return artHave(p)?`<img class=
 const partIcon=(p,size)=>itemIcon("part_"+p,size||64);
 
 /* ---- 整数倍で表示（あまりは黒の帯）。端末の画素で整数倍にする（スマホの横 844×390 → 4倍の画素＝CSS では 1.33） ---- */
-function fit(){const st=$("#stage"),dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight,RW=RES.W,RH=RES.H;
+/* ★v0.18.3：ホーム画面から全画面で開いたとき、切り欠き・角の丸み・ホームバーの所（safe area）をよけて置く */
+function safeArea(){let p=$("#safep");if(!p){p=document.createElement("div");p.id="safep";p.style.cssText="position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";document.body.appendChild(p)}
+  const c=getComputedStyle(p),n=v=>parseFloat(v)||0;return{t:n(c.paddingTop),r:n(c.paddingRight),b:n(c.paddingBottom),l:n(c.paddingLeft)}}
+function fit(){const st=$("#stage"),dpr=window.devicePixelRatio||1,SA=safeArea(),W=innerWidth-SA.l-SA.r,H=innerHeight-SA.t-SA.b,RW=RES.W,RH=RES.H;
   st.style.width=RW+"px";st.style.height=RH+"px";const cv=$("#cv");if(cv.width!==RW){cv.width=RW;cv.height=RH;if(A.g)A.g.imageSmoothingEnabled=false}
   const k=Math.floor(Math.min(W*dpr/RW,H*dpr/RH));const s=k>=1?k/dpr:Math.min(W/RW,H/RH);
-  st.style.transform=`scale(${s})`;st.style.left=Math.round((W-RW*s)/2)+"px";st.style.top=Math.round((H-RH*s)/2)+"px";
-  window.FIT={k,s,dpr};$("#rot").style.display=H>W*1.1?"flex":"none"}
-addEventListener("resize",fit);
+  st.style.transform=`scale(${s})`;st.style.left=Math.round(SA.l+(W-RW*s)/2)+"px";st.style.top=Math.round(SA.t+(H-RH*s)/2)+"px";
+  window.FIT={k,s,dpr,SA};$("#rot").style.display=H>W*1.1?"flex":"none"}
+addEventListener("resize",fit);addEventListener("orientationchange",()=>setTimeout(fit,300));
 
 const TYPE_K={atk:"攻",grd:"守",dbf:"弱",drw:"引",rev:"回",sk:"技"};
 const NODE_JP={battle:"戦闘",shop:"ショップ",sim:"シム",lucky:"ラッキー",elite:"エリート",garage:"ガレージ",boss:"ボス"};
@@ -112,10 +115,11 @@ function renderDeck(){const dk=S.deck,pool=deckPool("YUKI").sort((a,b)=>"SKERC".
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
     return `<div class="dr r-${rarityOf(id)}" title="${esc(descOf(id,false,0))}"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
      <button class="mini" ${k?"":"disabled"} onclick="deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini" ${k>=lim||n>=RULES.deckSize?"disabled":""} onclick="deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
-  <div class="sign side" ${at(452,26,180,120)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
+  ${backBtn("もどる","S.deck=null;showTitle()")}
+  <div class="sign side" ${at(452,60,180,120)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
    <div class="small dim">同じカードは<br>コモン${RULES.deckLimit.C}・レア${RULES.deckLimit.R}・エピック${RULES.deckLimit.E}<br>固有スキル${RULES.deckLimit.SK}枚まで</div></div>
   <div class="col" ${at(452,236,180)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,'YUKI');S.deck=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
-   <button class="u9" onclick="S.deck=defaultDeck('YUKI');renderDeck()">最初のデッキ</button><button class="u9" onclick="S.deck=null;showTitle()">もどる</button></div>`;
+   <button class="u9" onclick="S.deck=defaultDeck('YUKI');renderDeck()">最初のデッキ</button></div>`;
   if($("#dkl"))$("#dkl").scrollTop=sc}
 function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0||k>deckLimitOf(id))return;if(d>0&&deckCount(dk)>=RULES.deckSize)return;if(k)dk[id]=k;else delete dk[id];renderDeck()}
 
@@ -130,9 +134,10 @@ function showMinicarGarage(mode){SND.bgm("title");
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ（${esc(mode)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="mcl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:S.mcSel.includes(m.id)?"on":"",attrs:`onclick="toggleBring(${i})"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
-  <div class="sign side" ${at(452,26,180,96)}>${itemIcon("minicar",32)}<div class="big">${sel.length}/${BRING_MAX}<span class="small">台</span></div><div class="small dim">持ち込むミニカーを<br>${BRING_MAX}台まで選ぶ</div></div>
+  ${backBtn("もどる","S.mcSel=[];showTitle()")}
+  <div class="sign side" ${at(452,60,180,96)}>${itemIcon("minicar",32)}<div class="big">${sel.length}/${BRING_MAX}<span class="small">台</span></div><div class="small dim">持ち込むミニカーを<br>${BRING_MAX}台まで選ぶ</div></div>
   <div class="col" ${at(452,236,180)}><button class="main u9" onclick="startWithMinicars()">${sel.length?"この"+sel.length+"台で出発":"出発"}</button>
-   <button class="u9" onclick="S.mcSel=[];newRun('${mode}')">ミニカーなし</button><button class="u9" onclick="S.mcSel=[];showTitle()">もどる</button></div>`;
+   <button class="u9" onclick="S.mcSel=[];newRun('${mode}')">ミニカーなし</button></div>`;
   if($("#mcl"))$("#mcl").scrollTop=sc}
 function toggleBring(i){const m=S.mcAll[i];if(!m)return;const s=S.mcSel,k=s.indexOf(m.id);
   if(k>=0)s.splice(k,1);else if(s.length<BRING_MAX)s.push(m.id);else{s.shift();s.push(m.id)}showMinicarGarage(S.mcMode)}
@@ -297,7 +302,7 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;SND.jingle(!B.enemyActed?"one_
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">カードを1枚もらう（デッキに足す）</div></div>`;
   S.rewards=rewardOptions(w.rank);
   h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
-   `<button class="u9" ${at(270,244,100,28)} onclick="takeCard(null)">もらわない</button>`+
+   backBtn("もらわない","takeCard(null)")+
    `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}</div>`;
   ui().innerHTML=h;
 }
@@ -311,7 +316,7 @@ function partsChoice(title,done){
   S.partOpts=partOptions(3);S.pdone=done;const full=G.parts.length>=RULES.partsMax;
   ui().innerHTML=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(title)}</div>${full?`<div class="small gold">パーツが${RULES.partsMax}つ。選ぶと入れ替え</div>`:`<div class="small">ライトの下から1つ</div>`}</div>`+
    (S.partOpts.length?S.partOpts.map((p,i)=>`<button class="pt lit" ${at(LAMP_X[i]-70,52,140,184)} onclick="takePart('${p}')"><span class="slot${PARTS[p].own!=="N"?" sp":""}">${partIcon(p,64)}</span><b>${esc(partName(p))}</b><br><span class="small">${esc(PARTS[p].d)}</span></button>`).join(""):`<div class="sign" ${at(220,120,200,24)}>候補がない</div>`)+
-   `<button class="u9" ${at(270,244,100,28)} onclick="S.pdone()">取らない</button>`;
+   backBtn("取らない","S.pdone()");
 }
 function choosePartSlot(p,onOk){
   if(G.parts.length<RULES.partsMax){onOk(-1);return}
@@ -336,7 +341,7 @@ function showShop(n){
     ${n.featBought?"":`${priceTag(pr,RULES.featPrice,G.money>=pr)}<button class="u9" ${G.money>=pr?"":"disabled"} onclick="uiBuyFeat()">買う</button>`}</div>`}
   if(G.tickets)h+=`<label class="small sign tick" ${at(440,296,180,22)}><input type="checkbox" ${ut?"checked":""} onchange="S.useTicket=this.checked;showShop(S.shop)"> 割引券を使う（−50%）</label>`;
   // ★v0.18.1：「店を出る」は右上（どの端末でも下の端が隠れても見える所）
-  h+=`<button class="main u9 exit" ${at(548,22,88,30)} onclick="S.useTicket=false;nextRow()">店を出る ▶</button>`;
+  h+=backBtn("店を出る","S.useTicket=false;nextRow()");
   ui().innerHTML=h;
 }
 /* 値段の札（ui640 price・セールや割引は price_sale で元の値段に線）。足りないときは赤 */
@@ -360,7 +365,7 @@ function showSim(){
   h+=`<button class="mini arr" ${at(4,256,28,72)} onclick="simScroll(-1)">◀</button><div class="simrow scroll" id="simrow" ${at(36,246,568,96)}>`+
    idx.map(i=>{const c=G.deck[i],d=CD(c);return `<span class="sw${i===S.simSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,false,0),gas:d.gas,band:false,cls:i===S.simSel?"sel":"",attrs:`onclick="simPick(${i})"`})+`</span>`}).join("")+
    `</div><button class="mini arr" ${at(608,256,28,72)} onclick="simScroll(1)">▶</button>`;
-  h+=`<button class="u9" ${at(20,206,100,28)} onclick="S.simSel=null;nextRow()">強化しない</button>`;
+  h+=backBtn("強化しない","S.simSel=null;nextRow()");
   const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;
 }
 function simPick(i){if(S.simSel===i){uiUpgrade(i);return}S.simSel=i;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
@@ -468,6 +473,9 @@ function areaIntro(ai,done){const k="area"+(ai+1),sc=TEXT.scenes[k];if(!sc){done
   if(seenGet()[k]){showScene("__t",done);return}showScene(k,done)}
 TEXT.scenes.__t={title:"",lines:[]};
 
+/* ★v0.18.3：戻る／出るボタンは全部の画面で同じ形・同じ場所（右上の角 (532,22) 104×32）。640 の部品のボタン・太字・黒とライムの縁取りで背景から浮かせる */
+const BACK_XY=[532,22,104,32];
+function backBtn(label,on){return `<button class="back u9 main" ${at(...BACK_XY)} onclick="${on}">◀ ${esc(label)}</button>`}
 /* ---- 小窓 ---- */
 function modal(html){$("#modal").innerHTML=`<div class="modal"><div class="box">${html}</div></div>`}
 function closeModal(){const m=$("#modal");if(m)m.innerHTML=""}
