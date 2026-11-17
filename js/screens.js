@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.18.3（α3）";
+const VERSION="試作 v0.18.4（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -81,8 +81,8 @@ function titleLogo(){const f=window.ART_HAVE?[...ART_HAVE].filter(p=>/\/revremit
 function showTitle(){
   setScreen("title");setScene("dim");closeModal();SND.bgm("title");
   const mc=loadMinicars(),dk=loadDeck("YUKI");
-  ui().innerHTML=`<div class="logo" ${at(0,34,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・YUKI・3エリア</div></div>
-  <div class="col" ${at(230,120,180)}>
+  ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・YUKI・3エリア</div></div>
+  <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
    <button class="${loadRun()?"":"main"}" onclick="showMinicarGarage('MT')">MT ではしる</button>
    <button onclick="showMinicarGarage('AT')">AT ではしる</button>
@@ -90,7 +90,7 @@ function showTitle(){
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
-  <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,540)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
+  <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
 function showHowto(){const C=CHARS.YUKI.car;
   modal(`<div class="h">あそびかた</div><div class="scroll" style="height:180px">

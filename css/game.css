@@ -252,7 +252,7 @@ button.sub{padding:0;line-height:12px}
 .u640 button.u9.danger{border-image-source:var(--u-btn-danger)}
 /* ★タイトル：Remit の R は左右反転（Я）で赤。ロゴの絵が来たら .tlogo */
 .logo .t2 .rr{display:inline-block;transform:scaleX(-1);color:var(--red)}
-.logo .tlogo{display:block;margin:2px auto;max-width:600px;max-height:80px;image-rendering:pixelated}
+.logo .tlogo{display:block;margin:2px 0 0 150px;width:341px;height:102px;image-rendering:pixelated}
 /* v0.18：BUG-22 予告の語を折り返さない／BUG-20 小窓（スキップの確認・ルール一覧）のボタンも 28 以上 */
 .nw{white-space:nowrap}
 .modal .box button{min-height:28px}
