@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.19（α3）";
+const VERSION="試作 v0.19.1（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -428,7 +428,9 @@ function releaseMinicar(){const a=S.relList,s=S.relSel;if(s===null)return;
    文は data/text.js（正本は revremit-text.md）。絵はグラフィック班の story\c2（一枚絵・立ち絵）。なければ戦闘の背景を暗くして出す */
 const STORY_ART={bg:k=>k.startsWith("fx:")?`assets/c2/fx/c2/revremit_fx_bg_${k.slice(3)}.png`:`assets/c2/story/c2/revremit_story_${k}.png`,bust:(who,face)=>`assets/c2/story/c2/revremit_story_bust_${who.toLowerCase()}_${face||"normal"}.png`};
 /* 表情：文の3つ目に書いてあればそれ、なければ「！」で surprise・「……」で serious */
-function faceOf(l){if(l[2])return l[2];if(/！/.test(l[1]))return"surprise";if(l[0]==="YUKI"&&/^……/.test(l[1]))return"serious";return"normal"}
+/* ★v0.19.1：表情は行ごとに text.js の3つ目の欄で決める（tech-notes 1-6-1 の表）。書いていない行は「！」なら surprise、ほかは normal。
+   前は YUKI の「……」はじまりを serious にしていたので、こゆきの行がほとんど険しい顔になっていた */
+function faceOf(l){if(l[2]&&l[2]!=="tag")return l[2];if(/！/.test(l[1]))return"surprise";return"normal"}
 const artHave=p=>window.ART_HAVE&&ART_HAVE.has(p);
 const artURL=p=>(window.ART_EMBED&&ART_EMBED[p])||p;
 /* ★v0.19：戦闘の上の一言（零号の第2形態は2行を順に。1行 2.5秒） */
