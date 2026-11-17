@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.18.4（α3）";
+const VERSION="試作 v0.19（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -149,8 +149,11 @@ function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;
   else if(st.s==="win"){const rk=st.rank;if(rk==="boss"||rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
   else showMap()}
 function newRun(mode,bring){clearRun();newRunState(mode,"YUKI",(bring||[]).map(normMinicar).filter(Boolean),loadDeck("YUKI"));SND.setCar();
-  // ★text.md 9-11：チュートリアル → （最初のランなら）オープニング → エリアの入り口 → マップ
-  const run=G,go=()=>{G=run;B=null;areaIntro(0,showMap)},op=()=>{G=run;B=null;if(!seenGet().op)showScene("op",go);else go()};if(!tutDone())startTutorial(op);else op()}
+  // ★v0.19（text.md v0.7 10-1）：初めてのラン＝チュートリアル → 導入 prologue → オープニング op → ROAD に入る op_road → エリアの入り口 → マップ。
+  //   2回目からは run_start（ROAD OPEN と2行）→ エリア名 → マップ。v0.18 までに op を見た人も、導入は1回出る（話が新しくなったため）
+  const run=G,go=()=>{G=run;B=null;areaIntro(0,showMap)},
+    op=()=>{G=run;B=null;if(!seenGet().prologue)showScene("prologue",()=>showScene("op",()=>showScene("op_road",go)));else showScene("run_start",go)};
+  if(!tutDone())startTutorial(op);else op()}
 
 /* ---- 上の帯 ---- */
 function hud(x){const full=FULL_SCREENS.includes(window.SCREEN);return `<div class="hud${full&&window.SCREEN!=="map"?" strip":""}" ${at(x||4,3,(full?632:472)-(x?x-4:0))}><span class="md">${G.mode}</span> 耐久 <b>${G.hp}/${G.maxhp}</b>　お金 <b>${G.money}</b>${G.tickets?`　券 ${G.tickets}`:""}　パーツ ${G.parts.length}/${RULES.partsMax}　デッキ ${G.deck.length}</div>`}
@@ -183,10 +186,10 @@ function enterNode(j){SND.se("map_select");
   else if(n.k==="shop")showShop(n);
   else if(n.k==="sim")showSim();
   else if(n.k==="lucky"){partsChoice("ラッキー！パーツを1つ選ぶ",nextRow);setBg("lucky")}
-  else if(n.k==="garage")showRest();
+  else if(n.k==="garage"){if(!seenGet().rest_first)showScene("rest_first",showRest);else showRest()}// ★v0.19：休憩に初めて入ったとき（text.md 10-20）
 }
 function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
-  if(r==="clear"){showScene(AREAS[prev.a].boss+"_post",()=>showScene("ed1",()=>showScene("roadlog_001",()=>showResult(true))));return}
+  if(r==="clear"){showScene(AREAS[prev.a].boss+"_post",()=>showScene("ed1",()=>showScene("roadlog_001",()=>showScene("ed1_after",()=>showResult(true)))));return}
   if(r==="area"){showScene(AREAS[prev.a].boss+"_post",()=>areaIntro(areaIdx(),showMap));return}
   showMap()}
 
@@ -203,7 +206,7 @@ function onIdle(){if(S.pending&&!busy()){const f=S.pending;S.pending=null;f()}}
 setInterval(onIdle,50);
 /* 押したら、モーションの残りを飛ばす */
 function uiSkip(){flushAnim();onIdle()}
-function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="boss3"){S.toast=TEXT.scenes.boss3_phase.lines[0];S.toastT=Date.now()}
+function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="boss3"){S.toastQ=TEXT.scenes.boss3_phase.lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
   // エンジン音：回転数が変わったら約2秒だけ（★08:20）。ブローは SND.blow が鳴らす
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
@@ -262,7 +265,7 @@ function renderBattle(){
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${st.length?`<div class="stt small" ${at(...L.stt)}>${st.map(esc).join("<br>")}</div>`:""}
   ${B.onUp.length?`<div class="onup small" ${at(...L.onup)}>${onUpIcons()}</div>`:""}
-  ${S.toast&&Date.now()-S.toastT<2500?`<div class="toast" ${at(160,90,320)}><span class="scname">${esc(TEXT.names[S.toast[0]])}</span> ${esc(S.toast[1])}</div>`:""}`;
+  ${toastNow()}`;
   // 手札
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),cls:(p.ok?"":"no ")+(sel?"sel":""),
@@ -428,9 +431,16 @@ const STORY_ART={bg:k=>k.startsWith("fx:")?`assets/c2/fx/c2/revremit_fx_bg_${k.s
 function faceOf(l){if(l[2])return l[2];if(/！/.test(l[1]))return"surprise";if(l[0]==="YUKI"&&/^……/.test(l[1]))return"serious";return"normal"}
 const artHave=p=>window.ART_HAVE&&ART_HAVE.has(p);
 const artURL=p=>(window.ART_EMBED&&ART_EMBED[p])||p;
+/* ★v0.19：戦闘の上の一言（零号の第2形態は2行を順に。1行 2.5秒） */
+function toastNow(){const q=S.toastQ;if(!q||!q.length)return"";const i=Math.floor((Date.now()-S.toastT)/2500);if(i>=q.length){S.toastQ=null;return""}
+  const l=q[i];return `<div class="toast" ${at(160,90,320)}><span class="scname">${esc(TEXT.names[l[0]]||"")}</span> <span class="tt">${esc(l[1].replace(/<br>/g,"\n"))}</span></div>`}
+/* 絵の名前 "a|b"：a があれば a、なければ b（グラフィック班の新しい絵が来るまでの代わり） */
+function storyBg(k){if(!k)return"";for(const x of String(k).split("|")){const p=STORY_ART.bg(x);if(artHave(p))return p}return""}
+/* 話す人：GHOST:名前＝ボスの声（名前を灰色）・REC＝記録のかけら（名前なし）。文の〈 〉は text.md の文に入っている */
+function whoName(who){if(!who||who==="REC")return"";if(who.startsWith("GHOST:"))return who.slice(6);return TEXT.names[who]||""}
 function showScene(key,done){const sc=TEXT.scenes[key];if(!sc){done&&done();return}
-  setScreen("scene");setScene(A.mode==="battle"?"battle":"dim");closeModal();
-  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(key==="ed1"?"ending":key==="roadlog_001"?"pzlog":key==="__t"||/^area/.test(key)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
+  setScreen("scene");setScene(A.mode==="battle"&&!sc.under?"battle":"dim");closeModal();if(sc.under)setBg(sc.under);
+  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(key==="ed1"||key==="ed1_after"?"ending":key==="roadlog_001"?"pzlog":key==="__t"||key==="run_start"||key==="rest_first"||/^area/.test(key)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
   sceneLine()}
 function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/g,"\n"):""}
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText();
@@ -440,7 +450,7 @@ function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneT
    前は1文字出すたび（30ms ごと）に #ui を丸ごと作り直し、<img> も毎回作り直していたので、スマホで絵が一瞬消えて点滅していた */
 function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const sc=s.sc,l=sc.lines[s.i]||[null,""],who=l[0];
   let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// 行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
-  const bgp=bgk&&artHave(STORY_ART.bg(bgk))?STORY_ART.bg(bgk):"";
+  const bgp=storyBg(bgk);
   const bw0=who==="YUKI"||who==="MIO"||who==="YUKI_IN"?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");
   if(!root||root.dataset.key!==s.key){
@@ -450,7 +460,9 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
      <button class="mini" ${at(568,6,64,18)} onclick="sceneSkip()">${esc("とばす")}</button></div>`;
     root=u.querySelector(":scope > .scroot")}
   // 一枚絵：ファイルが変わったときだけ
-  const bgw=root.querySelector(".scbgw");if(bgw.dataset.f!==bgp){bgw.dataset.f=bgp;bgw.innerHTML=bgp?`<img class="px scbg" src="${artURL(bgp)}" ${at(0,0,640,360)} decoding="sync">`:`<div class="scdim" ${at(0,0,640,360)}></div>`}
+  const bgw=root.querySelector(".scbgw");if(bgw.dataset.f!==bgp){bgw.dataset.f=bgp;bgw.innerHTML=bgp?`<img class="px scbg" src="${artURL(bgp)}" ${at(0,0,640,360)} decoding="sync">`:`<div class="scdim${sc.light?" light":""}" ${at(0,0,640,360)}></div>`}
+  // 演出（オープニング 13行目からのノイズ）：点滅させない。ゆっくり流れる走査線だけ（ちかちか対策・1秒に3回以下の明滅も起こさない）
+  let fx="";(sc.fx||[]).forEach(([i,k])=>{if(s.i>=i)fx=k});if((root.dataset.fx||"")!==fx){root.dataset.fx=fx;root.classList.toggle("fx-noise",fx==="noise")}
   // 立ち絵：ファイルか場所が変わったときだけ。新しい絵は読み終わってから見せる（読み終わるまでは前の絵のまま）
   const bww=root.querySelector(".scbw"),bk=bw+"@"+bx;
   if(bww.dataset.f!==bk){bww.dataset.f=bk;
@@ -458,8 +470,8 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
     else{const im=new Image();im.className="px bust";im.src=artURL(bw);Object.assign(im.style,{position:"absolute",left:bx+"px",top:"18px",width:"256px",height:"256px"});
       const put=()=>{if(bww.dataset.f===bk){bww.innerHTML="";bww.appendChild(im)}};
       if(im.complete&&im.naturalWidth)put();else if(im.decode)im.decode().then(put,put);else im.onload=put}}
-  const band=root.querySelector(".scband");if(band){const name=who?TEXT.names[who]:"",txt=sceneText().slice(0,s.shown);
-    band.className=`scband${who?"":" nar"}${who==="FILE"?" file":""}`;
+  const band=root.querySelector(".scband");if(band){const name=whoName(who),txt=sceneText().slice(0,s.shown);
+    band.className=`scband${who&&who!=="REC"?"":" nar"}${who==="FILE"?" file":""}${who==="REC"?" rec":""}${who&&who.startsWith("GHOST:")?" ghost":""}${!who&&l[2]==="tag"?" tag":""}`;
     const nm=band.querySelector(".scname");nm.textContent=name;nm.style.display=name?"":"none";
     band.querySelector(".sctext").textContent=who==="YUKI_IN"?"（"+txt+"）":txt;
     band.querySelector(".scnext").textContent=s.shown>=sceneText().length?"▼":""}}

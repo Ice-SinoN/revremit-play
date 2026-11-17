@@ -18,7 +18,7 @@ const TUT={
   hand:["hakusen","rikka","pitboard","hakusen","hyouga","shimo","counter"],
   draw:["whiteout","braking","hakunetsu","rinkai"],   // 引く順（先頭から）。シャッフルしない
   hello:[
-    ["MIO","こゆきさん、聞こえますか？<br>ROAD に入る前に、練習しておきましょう。"],
+    ["MIO","こゆきさん、聞こえますか？<br>本番の前に、練習しておきましょう。"],
     ["YUKI","……ん。手短にね。"],
     ["MIO","は、はい……！<br>練習なので、負けることはありません。"]],
   steps:[
