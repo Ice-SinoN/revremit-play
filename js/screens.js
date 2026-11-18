@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.22（β2）";
+const VERSION="試作 v0.22.23（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -160,7 +160,7 @@ function deckPick(id){if(S.dkSel===id)return;SND.se("ui_ok");if(S.dkSel)S.dkCmp=
 function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(id,false,0),
    du=descOf(id,true,0),dn=descOf(id,false,0);
   return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
-   <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
+   <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
   if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div></div>`;
   const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
@@ -309,6 +309,7 @@ function cardActions(i){const c=B.hand[i],p=preview(c);if(!p.ok)return[];
 function clickCard(i){
   if(B.over)return;if(busy())uiSkip();if(!tutAllow("card",i))return;
   const c=B.hand[i];if(!c)return;const p=preview(c);
+  if(S.sel===i&&!p.ok)SND.se("card_cant");/* ★audio-check 1：打てない（ローテーションの「このターンは使った」「入れかえるカードがない」も）をもう一度タップ */
   if(S.sel===i&&p.ok){const a=cardActions(i).find(a=>tutAllow("play",{i,shift:a[1]}));if(a&&a[2]!=="warn"){doPlay(i,a[1]);return}}
   S.sel=i;setPreview(i);renderBattle();tutAfter("sel");
 }
@@ -351,8 +352,9 @@ function renderBattle(){
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" ${locked?"disabled":""}`})}).join("");
   // 選んだカードの説明と打ち方
+  /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
-    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-22}px;overflow-y:auto"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
+    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow-y:auto"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
       <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div>${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`).join("")}</div>`}
