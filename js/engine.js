@@ -223,6 +223,8 @@ function preview(c){
   }else{if(auto)txt+="　自動シフト";else if(paddle)txt+="　パドルでシフトできる";else if(nr>L)txt+="　リミッター（火力 半分）"}
   txt+=`　ガソリン\u00a0−${g}`;// BUG-22：「−2」だけ折り返さない
   if(rotN)txt+=`　→${rotN}\u00a0枚入れかえ`;
+  if(d.fx.some(f=>f[0]==="kousetsu")&&!inRed())txt+="　×0.5（レッドの外）";/* ★BUG-43・text 27-4 */
+  if(d.fx.some(f=>f[0]==="taikan")&&!isTopGear())txt+="　×0.5（最大ギアの外）";
   return{ok:true,txt,canShift,auto,paddle,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
 }
 /* 効果の手助け */
@@ -246,7 +248,7 @@ function mkCtx(m){return{
 const OPS={
  atk:(x,a)=>x.attack(a),atkGear:(x,a)=>x.attack(a*(B.gear+1)),
  blk:(x,a)=>x.block(a),blkGear:(x,a)=>x.block(a*(B.gear+1)),blkRaw:(x,a)=>x.blockRaw(a),
- frz:(x,a)=>x.freeze(a),noise:(x,a)=>x.noise(a),burn:(x,a)=>x.burn(a),heal:(x,a)=>x.heal(a),
+ frz:(x,a)=>x.freeze(a),noise:(x,a)=>x.noise(a),burn:(x,a)=>x.burn(a),heal:(x,a)=>x.heal(a),healUp:(x,a,b)=>x.heal(B.playUp?b:a),/* 強化で数が変わる回復（春風 design 10-12-2） */
  draw:(x,a)=>x.draw(a),revDown:(x,a)=>x.revDown(a),
  gen:(x,id,n)=>x.gen(id,n),genHand:(x,id,n)=>x.genHand(id,n),nextBonus:(x,a)=>{B.nextBonus=Math.round((B.nextBonus+a)*100)/100},
  forcePerfect:()=>{B.forcePerfect=true},atShiftDraw:(x,a)=>{B.atShiftDraw+=a;addLog("次の自動シフトで1枚引く")},
@@ -346,7 +348,7 @@ function simulateCard(i,shift){
   G=og;B=ob;uidN=su;return out}
 /* カードに書いてある元の数字（倍率・帯なし）：色を変える基準。num の書き方は cards.js */
 function baseNumbers(c){const d=CD(c),v=cardVal(c),hits=[];let block=0;
-  d.fx.forEach(f=>{const a=argOf(f[1],v);if(f[0]==="atk"||f[0]==="atkGear")hits.push(a);if(f[0]==="atkHits")for(let k=0;k<f[2];k++)hits.push(a);
+  d.fx.forEach(f=>{const a=argOf(f[1],v);if(f[0]==="atk"||f[0]==="atkGear"||f[0]==="kousetsu"||f[0]==="taikan")hits.push(a);/* ★BUG-43 紅雪・戴冠にも数字（実際の数＝×0.5 か満額は simulateCard） */if(f[0]==="atkHits")for(let k=0;k<f[2];k++)hits.push(a);
     if(f[0]==="blk"||f[0]==="blkGear"||f[0]==="blkRaw")block+=a});
   if(d.fx.some(f=>f[0]==="atkBlk"||f[0]==="atkChain"||f[0]==="atkFrz")&&!hits.length)hits.push(0);
   return{hits,block}}
@@ -359,7 +361,7 @@ function playCard(i,shift){
   if(G.mode==="AT"){const pd=!p.auto&&!!shift&&p.paddle;if(pd){B.paddleT=true;addLog("パドルシフター")}shift=p.auto||pd}else shift=!!shift&&p.canShift;
   const band=p.band,red=inRed();// ★打つ前の回転で判定
   if(has("drysump")&&d.band==="R"&&band&&gasBase(c)>p.gas&&B.dryT<2)B.dryT++;
-  B.gas-=p.gas;B.hand.splice(i,1);B.cards++;if(d.t==="atk")B.atks++;B.playUid=c.uid;B.playRed=red;if(red)B.redT++;
+  B.gas-=p.gas;B.hand.splice(i,1);B.cards++;if(d.t==="atk")B.atks++;B.playUid=c.uid;B.playUp=!!c.up;B.playRed=red;if(red)B.redT++;
   if(d.t==="atk"&&B.atkDown)B.atkDown=0;
   B.chainBefore=B.chain;
   let nr=B.rpm+cost,bonus=0;

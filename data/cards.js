@@ -93,9 +93,9 @@ const CARDS={
  m_kaerizaki:{r:"E",mo:"atk_finisher",own:"MOMO",n:"返り咲き",t:"atk",c:2000,gas:2,v:12,vu:18,fx:[["atkLowHp","v"]],d:"{v}ダメージ（エンジン耐久が半分以下なら2倍）"},
  m_openair:{r:"R",mo:"rev",own:"MOMO",n:"オープンエア",t:"rev",c:0,gas:1,sup:1,v:2,vu:3,fx:[["openAir","v"]],d:"このターン、補助のカードを打つたびに {v}ダメージ"},
  m_hanafubuki:{r:"R",mo:"atk_light",own:"MOMO",n:"花吹雪",t:"atk",c:2500,gas:2,v:2,vu:3,band:"M",fx:[["atkHits","v",5,5]],d:"{v}ダメージを5回"},
- m_harukaze:{r:"C",mo:"guard",own:"MOMO",n:"春風",t:"grd",c:1000,gas:1,v:3,vu:5,band:"L",fx:[["blk","v"],["heal",3]],d:"防御 {v}・エンジン耐久 +3",num:"blk"},
+ m_harukaze:{r:"C",mo:"guard",own:"MOMO",n:"春風",t:"grd",c:1000,gas:1,v:3,vu:5,band:"L",fx:[["blk","v"],["healUp",1,2]],d:"防御 {v}・エンジン耐久 +1",du:"防御 {v}・エンジン耐久 +2",num:"blk"},/* ★design 10-12-2：+3 → +1（強化 +2） */
  m_hanawa:{r:"C",mo:"atk_light",own:"MOMO",n:"花輪",t:"atk",c:1500,gas:1,v:5,vu:8,band:"L",fx:[["atk","v"],["chainAdd",1]],d:"{v}ダメージ・チェイン +1"},
- m_hanami:{r:"R",mo:"draw",own:"MOMO",n:"花見",t:"rev",c:0,gas:1,sup:1,v:2,vu:3,fx:[["hanami","v"]],d:"捨て札から回転0のカードを {v}枚手札に（花見はもどさない）"},
+ m_hanami:{r:"R",mo:"draw",own:"MOMO",n:"花見",t:"rev",c:0,gas:1,sup:1,v:1,vu:2,fx:[["hanami","v"]],d:"捨て札から回転0のカードを {v}枚手札に（花見はもどさない）"},/* ★design 10-12-2：2 → 1（強化 3 → 2） */
  // --- NANA（シフト連打）---
  n_koutotsu:{r:"C",mo:"atk_heavy",own:"NANA",n:"紅突",t:"atk",c:2000,gas:2,v:10,vu:15,band:"M",fx:[["atk","v"]],d:"{v}ダメージ"},
  n_hosaki:{r:"C",mo:"atk_light",own:"NANA",n:"穂先",t:"atk",c:1000,gas:1,v:5,vu:8,band:"L",fx:[["atk","v"]],d:"{v}ダメージ"},
