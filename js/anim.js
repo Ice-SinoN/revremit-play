@@ -121,7 +121,7 @@ function playEvents(evs){
       // このカードで起きたこと（次の card・eact・turn まで）
       const sub=[];i++;while(i<evs.length&&!["card","eact","turn","win","dead","down"].includes(evs[i].k))sub.push(evs[i++]);
       const hits=sub.filter(x=>x.k==="ehit"),mo=MOTIONS[e.mo]?e.mo:"rev";
-      const dmg=hits.reduce((a,x)=>a+x.v,0),cardSE={guard:"card_guard",skill:"card_guard",debuff:"card_attack_s",draw:"card_draw"}[mo];
+      const dmg=hits.reduce((a,x)=>a+x.v,0),cardSE={guard:"card_guard",skill:"card_skill",/* ★v0.22.6 audio-list 6-0 */debuff:"card_attack_s",draw:"card_draw"}[mo];
       push({d:1,on(){if(hits.length)SND.attack(dmg);else if(cardSE)SND.se(cardSE);if(e.chain>=1)SND.se("chain_up",{lv:e.chain})}});
       push(...MOTIONS[mo](hits.length?hits:[]));
       sub.forEach(x=>{

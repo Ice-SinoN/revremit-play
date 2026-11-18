@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.5（β2）";
+const VERSION="試作 v0.22.6（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -112,12 +112,13 @@ function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal
     const b3=canR?`<button class="u9 ld" ${at(384,44,172,28)} onclick="dataRestore(${r.k})">オートセーブからもどす</button>`:"";
     return `<div class="slot${cur?" cur":""}" ${at(40,y,560,78)}><div class="sn">${nm}${cur?'<span class="now">いまのデータ</span>':""}</div>
       <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div><div class="ss dim">${esc(an)}</div>${b1}${b2}${b3}</div>`}).join("")}`}
-function dataUse(n){if(SAVE.use(n)){S.deck=null;S.mcSel=[];showTitle();toast2(`スロット${n}であそびます`)}else showData()}
-function dataErase(n){S.dataGo=()=>{SAVE.erase(n);closeModal();showData();toast2(`スロット${n}を消しました`)};
+/* ★v0.22.6 音（audio-list 6-0）：あそぶ・はじめる・もどした＝load_ok、確認の小窓＝overwrite_warn、消した＝ui_cancel */
+function dataUse(n){if(SAVE.use(n)){SND.se("load_ok");S.deck=null;S.mcSel=[];showTitle();toast2(`スロット${n}であそびます`)}else showData()}
+function dataErase(n){SND.se("overwrite_warn");S.dataGo=()=>{SAVE.erase(n);SND.se("ui_cancel");closeModal();showData();toast2(`スロット${n}を消しました`)};
   modal(`<div class="h">スロット${n}を消しますか？</div><div class="small">ミニカー・解放・ログもいっしょに消えます。もとにはもどせません。</div>
   <div class="row"><button class="warn" onclick="S.dataGo()">消す</button><button onclick="closeModal()">やめる</button></div>`)}
 function dataRestore(n){const r=SAVE.list().find(x=>x.k===n);if(!r||!r.auto)return;
-  S.dataGo=()=>{const k=SAVE.restore(n);closeModal();showTitle();toast2(`スロット${k}をオートセーブの状態にもどしました`)};
+  SND.se("overwrite_warn");S.dataGo=()=>{const k=SAVE.restore(n);SND.se("load_ok");closeModal();showTitle();toast2(`スロット${k}をオートセーブの状態にもどしました`)};
   modal(`<div class="h">スロット${n}をオートセーブの状態にもどしますか？</div><div class="small">${esc(SAVE.label(r.auto))}<br>${esc(SAVE.when(r.auto))}</div>
   <div class="row"><button class="main" onclick="S.dataGo()">もどす</button><button onclick="closeModal()">やめる</button></div>`)}
 function showHowto(){const C=CHARS.YUKI.car;
@@ -505,6 +506,7 @@ function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;con
   return!MIO_HERE.test(s.key)}
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
   if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");if(!comm&&s.i>0&&mioComm(s,s.i-1))SND.se("comm_close");
+  if(comm&&/^ボスです/.test(full))SND.se("comm_glitch");// ★v0.22.6 通信の「ボスです……」の行で1回（audio-list 6-0）
   if(/^カシャ/.test(full))SND.se("photo_shutter");// ★v0.22.2 MOMO 編の写真の音
   if(s.key==="next_sora"){/* ★v0.22.4 audio-list 6-0：始まりで BGM を止める・9行目 そらが録った起動音・15行目 起動音 */
     if(s.i===0)SND.bgmStop();if(s.i===8)SND.se("gate_boot",{rec:true});if(s.i===14)SND.se("gate_boot")}

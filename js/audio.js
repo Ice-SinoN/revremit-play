@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.10（サウンド班 2026-11-18。claude/revremit-audio.js v0.10 の写し・ゲームに入れたのはプログラム班 v0.22.4）
+/* Rev:Remit audio.js v0.10.1（v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。サウンド班 2026-11-18。claude/revremit-audio.js v0.10.1 の写し・ゲームに入れたのはプログラム班 v0.22.4）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -468,8 +468,9 @@ Object.assign(LV,{photo_shutter:.8});
 // （story：起動音がエンジンの始動音に似ている＝YUKI のひみつ。ROAD LOG No.001「波形がぴったり重なる」）。text の「起動音。白い光。」の行で1回
 SE.push({id:'gate_boot',name:'CROSS GATE の起動音（エンジンの始動音に似ている。{rec:true} で録った音を小さく流す＋奥の細い旋律）',dur:3.2,fn:(c,o,t,p)=>{
  if(p&&p.rec){const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1400;bp.Q.value=.6;const gg=c.createGain();gg.gain.value=.7;bp.connect(gg).connect(o);o=bp;
-  // そらの未公開の曲（text 15章 9行目「起動音の奥に、細い旋律」）：細い 12.5% の音で、高く小さく
-  [[0,76],[.16,78],[.32,83],[.64,81],[.8,78],[.96,76],[1.28,73],[1.6,78]].forEach(([d,m])=>tone(c,gg,t+.9+d,{wave:.125,f:mf(m+12),dur:.3,g:.045,hold:.08}));nz(c,gg,t,{ft:'highpass',f:3000,dur:3,g:.015,a:.05,hold:2.6});}
+  // そらの未公開の曲＝起動音の旋律（シリーズのフレーズ「ラ・ド・ミ｜レ・ド・シ♭」。text 15章 9行目「起動音の奥に、細い旋律」）：
+  // ベルのフレーズより先に、細い 12.5% の音で高く小さく（v0.10.1：別の旋律にしていたのを、起動音の旋律と同じにそろえた）
+  [[0,69],[.16,72],[.32,76],[.56,74],[.72,72],[.88,70],[1.2,69]].forEach(([d,m])=>tone(c,gg,t+.75+d,{wave:.125,f:mf(m+24),dur:.3,g:.045,hold:.08}));nz(c,gg,t,{ft:'highpass',f:3000,dur:3,g:.015,a:.05,hold:2.6});}
  for(let i=0;i<6;i++){tone(c,o,t+i*.1,{type:'square',f:70+i*4,dur:.08,g:.12,lp:900});nz(c,o,t+i*.1,{f:1200,dur:.05,g:.12,q:2});}
  burst(c,o,t+.6,900,1400,'real',{dur:1.8});
  [[0,69],[.18,72],[.36,76],[.62,74],[.8,72],[.98,70]].forEach(([d,m])=>{tone(c,o,t+1.0+d,{f:mf(m+12),dur:1.1,g:.07});tone(c,o,t+1.0+d,{f:mf(m+12)*2.76,dur:.3,g:.018});});
@@ -538,7 +539,7 @@ function jingle(id){const c=ok();if(!c)return;const j=JINGLES[id];if(!j){console
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05);}
 
 window.AUDIO={
- VERSION:'0.10',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.10.1',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
