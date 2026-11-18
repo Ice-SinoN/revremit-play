@@ -33,7 +33,9 @@ const ART_SRC={
 ["HINA","MOMO","NANA"].forEach(c=>{const f=`assets/c2/characters/${c}/c2/revremit_chr_${c}_c2_sheet`;ART_SRC[c]={sheet:f+".png",json:f+".json",foot:[112,220]}});
 ["lost_wraith","lost_downhill","lost_wrecker"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220]}});
 /* 絵がまだない敵のもと（色変えで仮に出す。いまは全部そろったので使われない） */
-const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1"};
+/* ★v0.22.7 その子のボス（graphics-hq 18-B・ボスの枠 288）。置けば出る。まだないあいだは残光・白夜の色変え（仮） */
+["kuuten","sanka","miketsu"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[144,284]}});
+const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1",kuuten:"boss1",sanka:"boss2",miketsu:"boss2"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
 const PALS={
   // design 付録の仮の色（グラフィック班の色変えの表が来たら map で置きかえ）
@@ -41,7 +43,7 @@ const PALS={
   z_sedan:{hue:60},z_minivan:{sat:0.5},z_offbike:{sat:0.6,lit:1.15},z_rally:{hue:20},z_gtcar:{hue:240},z_safety:{hue:50,sat:1.4},boss3_p2:{hue:180},
   // 絵がまだない敵の仮（ゴーストバンの色変えで見分ける）
   f_bike:{hue:70,sat:1.1},f_boss1:{hue:200,sat:0.6,lit:1.15},f_coupe:{hue:-40},f_kei:{hue:110,sat:0.7},f_boss2:{sat:0.1,lit:1.4},
-  f_touring:{hue:-120},f_formula:{hue:30,sat:1.3},f_boss3:{hue:260,sat:0.4},
+  f_touring:{hue:-120},f_kuuten:{hue:180},f_sanka:{hue:150,lit:0.9},f_miketsu:{hue:200,sat:1.2},f_formula:{hue:30,sat:1.3},f_boss3:{hue:260,sat:0.4},
 };
 const SPR={};// 読みこんだ／描いた絵
 

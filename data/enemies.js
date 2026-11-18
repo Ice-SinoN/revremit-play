@@ -28,16 +28,23 @@ const ENEMIES={
    morph:[[["atk",20],["multi",8,3]],[["prc",26],["jam","crosstalk",2]],[["blk",24],["atk",30]]],
    phase:{at:0.5,spd:14,glitch:1,morph:[[["atk",24],["multi",10,3]],[["prc",32],["apd",20]],[["blk",30],["atk",36]]]}},
 };
-/* ★v0.22.3 その子のボス（story 7-4・text 11-6／13-6／14-6）の受け口。サーキットで、その子で走るときだけ零号の前に1戦（連戦）。
-   数値・行動・置き方はデザイン班の決め待ち → 仮：白夜（boss2）・残光（boss1）の絵と行動、体力は 0.8 倍（エリアの倍率は今までどおり）。prov:1＝仮 */
+/* ★v0.22.3 その子のボス（story 7-4・text 11-6／13-6／14-6）。サーキットで、その子で走るときだけ零号の前に1戦（連戦・置き方は仮のまま）。
+   ★v0.22.7 design v0.10 10-4 の数値と行動（測りなおし待ち）。art は kuuten／sanka／miketsu（graphics-hq 18-B）→ 絵がまだないので、ENEMY_ART にないときは
+   今までの仮の絵（残光・白夜の色変え）で出す（js/screens.js の ALLY_BOSS_FB） */
 const ALLY_BOSS={HINA:"kuuten",MOMO:"sanka",NANA:"miketsu"};
 Object.assign(ENEMIES,{
- kuuten:{art:"boss1",pal:"boss3_p2",n:"空転",rank:"boss",ally:"HINA",prov:1,hp:300,spd:10,pat:[["blk",18],["atk",16],["rev",1500],["multi",6,3],["atk",22]],blkKeep:0.5,gimTxt:"（仮）防御の半分が次の番まで残る",phase:{at:0.5,spd:10}},
- sanka:{art:"boss2",pal:"elite_wraith",n:"散花",rank:"boss",ally:"MOMO",prov:1,hp:300,spd:10,pat:[["atk",18],["multi",7,3],["blk",25],["atk",28]],five:1,gimTxt:"（仮）5枚ごとに受けるダメージ −30%",phase:{at:0.5,spd:10}},
- miketsu:{art:"boss2",pal:"elite_downhill",n:"未決",rank:"boss",ally:"NANA",prov:1,hp:300,spd:10,pat:[["atk",18],["multi",7,3],["blk",25],["atk",28]],mirror:0.5,gimTxt:"（仮）防御の半分を次の攻撃に",phase:{at:0.5,spd:10}},
+ kuuten:{art:"kuuten",n:"空転",rank:"boss",ally:"HINA",hp:220,spd:9,rage:1,
+   pat:[["rev",2000],["atk",14],["blk",12],["multi",5,3]],gimTxt:"回転を上げてくる・動くたびに攻撃 +1",
+   phase:{at:0.5,spd:11,pat:[["rev",2500],["atk",17],["multi",6,3]]}},
+ sanka:{art:"sanka",n:"散花",rank:"boss",ally:"MOMO",hp:240,spd:10,
+   pat:[["atk",14],["jam","mud",2],["multi",4,4],["blk",16]],gimTxt:"花びら（泥はね）を山札に混ぜる",
+   phase:{at:0.5,spd:11,pat:[["multi",5,4],["jam","mud",2],["atk",20]]}},
+ miketsu:{art:"miketsu",n:"未決",rank:"boss",ally:"NANA",hp:240,spd:10,forms:["緑","金"],
+   morph:[[["atk",16],["blk",12]],[["multi",6,3],["prc",18]]],gimTxt:"緑の車と金のクーペ、2つの形が入れかわる",
+   phase:{at:0.5,spd:12,morph:[[["atk",18],["apd",1]],[["multi",7,3],["prc",22]]]}},
 });
 const AREAS=[
- {key:"street",n:"ストリート",rows:13,pool:["van","bike","sedan","minivan"],easy:["van","bike"],elite:"wraith",boss:"boss1",mid:6,hpMul:1.2,bossMul:1.5,atkMul:1.3},
- {key:"touge",n:"峠",rows:14,pool:["coupe","kei","offbike","rally"],easy:["coupe","offbike"],elite:"downhill",boss:"boss2",mid:6,hpMul:1.4,bossMul:1.1,atkMul:1.3},
- {key:"circuit",n:"サーキット",rows:15,pool:["touring","formula","gtcar","safety"],easy:["touring","formula"],elite:"wrecker",boss:"boss3",mid:7,hpMul:1.6,bossMul:0.85,atkMul:1.2},
+ {key:"street",n:"ストリート",rows:13,pool:["van","bike","sedan","minivan"],easy:["van","bike"],elite:"wraith",boss:"boss1",mid:6,hpMul:1.38,bossMul:1.5,atkMul:1.3},
+ {key:"touge",n:"峠",rows:14,pool:["coupe","kei","offbike","rally"],easy:["coupe","offbike"],elite:"downhill",boss:"boss2",mid:6,hpMul:1.61,bossMul:1.1,atkMul:1.3},
+ {key:"circuit",n:"サーキット",rows:15,pool:["touring","formula","gtcar","safety"],easy:["touring","formula"],elite:"wrecker",boss:"boss3",mid:7,hpMul:1.84,bossMul:0.85,atkMul:1.2},
 ];

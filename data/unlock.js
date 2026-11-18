@@ -21,8 +21,8 @@ UNLOCK.chars={
   HINA:{start:["h_youda","h_gouda","h_kagerou","h_kneegrip","h_saitenka","h_sunrise","h_kickstart","h_hibana","h_hidamari"],
     a1:["h_asayake","h_nukiuchi"],a2:["h_shippu","h_mahiru"],clear:["h_nichirin","h_fullthrottle"],sRank:["h_fullbrake"],hidden:["h_memo"],
     parts:{start:["h_wheelie"],a1:["h_12inch"],clear:["h_bigbore"]}},
-  MOMO:{start:["m_touka","m_rinjin","m_hanaguruma","m_softtop","m_kinen","m_hougou","m_cruise","m_harukaze","m_hanawa"],
-    a1:["m_haruichiban","m_hanaakari"],a2:["m_hanafubuki","m_musubime"],clear:["m_mankai","m_kaerizaki"],sRank:["m_openair"],hidden:["m_hanami"],
+  MOMO:{start:["m_touka","m_rinjin","m_hanaguruma","m_softtop","m_kinen","m_hougou","m_hanaakari","m_haruichiban","m_hanawa"],/* ★v0.22.7 design 10-3 */
+    a1:["m_cruise","m_harukaze"],a2:["m_hanafubuki","m_musubime"],clear:["m_mankai","m_kaerizaki"],sRank:["m_openair"],hidden:["m_hanami"],
     parts:{start:["m_horo"],a1:["m_light"],clear:["m_jinba"]}},
   NANA:{start:["n_koutotsu","n_hosaki","n_hachiren","n_downforce","n_houyoku","n_phoenix","n_paddle","n_teatime","n_teppeki"],
     a1:["n_hiiro","n_recordline"],a2:["n_totsugeki","n_shukumei"],clear:["n_gaisen","n_taikan"],sRank:["n_hokori"],hidden:["n_tenshou"],
