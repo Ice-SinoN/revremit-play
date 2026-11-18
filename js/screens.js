@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.17（β2）";
+const VERSION="試作 v0.22.18（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -277,8 +277,21 @@ function afterAct(r,rpm0){A.pv=null;const phK=B.key==="boss3"?sceneKey("boss3_ph
   renderBattle();
 }
 function doPlay(i,shift,ok){if(B.over||!tutAllow("play",{i,shift}))return;
+  /* ★design 11-1 ローテーション：打てないカードが {v} 枚より多いときは自分で選ぶ（オート中は自動＝rotOrder） */
+  if(!S.rotPicked&&!(typeof AUTO!=="undefined"&&AUTO.on)&&rotNeedPick(B.hand[i])){showRotPick(i,shift,ok);return}
   if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){SND.se("blow_warn");S.blowGo=()=>{SND.se("ui_ok");seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
     modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">エンジンが止まって、このランは終わります。</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="SND.se('ui_cancel');closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
+function showRotPick(i,shift,ok){const c=B.hand[i],v=cardVal(c),t=rotTargets(c,B.rpm+costOf(c));S.rot={i,shift,ok,v,t:t.map(x=>x.uid),sel:[]};SND.se("ui_ok");renderRotPick()}
+function renderRotPick(){const R=S.rot,c0=B.hand[R.i];
+  const cards=B.hand.map((c,j)=>{if(j===R.i)return"";const can=R.t.includes(c.uid),on=R.sel.includes(c.uid);
+    return cardSmall(c,{cost:costOf(c),gas:gasOf(c),gasNow:B.gas,cls:(can?"":"no ")+(on?"sel":""),attrs:`style="position:relative;display:inline-block;margin:2px" onclick="rotToggle(${c.uid})"`})}).join("");
+  modal(`<div class="rotp"><div class="h">入れかえるカードをえらぶ（${R.v} 枚まで）<span class="small" style="float:right">${R.sel.length}／${R.v} 枚</span></div>
+   ${R.sel.length?"":`<div class="small dim">打てないカードを、タップでえらぶ</div>`}<div class="rotcards">${cards}</div>
+   <div class="row"><button class="main" ${R.sel.length?"":"disabled"} onclick="rotGo()">入れかえる</button><button onclick="rotCancel()">やめる</button></div></div>`);
+  const m=$("#modal .modal .box");if(m)m.classList.add("wide")}
+function rotToggle(uid){const R=S.rot;if(!R.t.includes(uid)){SND.se("card_cant");return}const k=R.sel.indexOf(uid);if(k>=0)R.sel.splice(k,1);else if(R.sel.length<R.v)R.sel.push(uid);else{SND.se("card_cant");return}SND.se("ui_ok");renderRotPick()}
+function rotGo(){const R=S.rot;if(!R||!R.sel.length)return;B.rotPick=R.sel.slice();S.rot=null;closeModal();S.rotPicked=true;try{doPlay(R.i,R.shift,R.ok)}finally{S.rotPicked=false}}
+function rotCancel(){S.rot=null;closeModal();SND.se("ui_cancel")}/* やめる：ローテーションは手札のまま・何も使わない */
 function doEndTurn(){if(B.over||!tutAllow("end"))return;flushAnim();const r0=B.rpm;SND.se("turn_end");afterAct(endTurn(),r0)}
 function doDownShift(){if(B.over||!tutAllow("down"))return;flushAnim();const r0=B.rpm,g0=B.gear;afterAct(downShift(),r0);if(B.gear<g0)TUTS.downs++;tutAfter("down")}
 function doParking(){if(B.over)return;flushAnim();const r0=B.rpm;afterAct(parking(),r0)}
@@ -692,7 +705,7 @@ function renderLab(){const p=PRF(),have=new Set(unlockedCards(p)),sel=S.labSel,p
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>
   ${backBtn("もどる","showTitle()")}<div class="sign" ${at(8,26,300,260)}></div>
   <div class="small" ${at(16,32,284)}><span class="nmtag">みお</span>ロガーに残った記録から、カードを作れます……！</div>`+
-  UNLOCK.shop.map(([id,price],i)=>{const d=CARDS[id],own=have.has(id);return `<button class="u9 lrow${sel===id?" main":""}" ${at(16,52+i*44,284,40)} onclick="S.labSel='${id}';renderLab()"><span class="ln">${esc(d.n)}</span><span class="small dim"> ${RARITY_JP[d.r]}</span><span class="lp ${own?"dim":p.log>=price?"gold":"ngc"}">${own?"解放ずみ":"ログ "+price}</span></button>`}).join("")+
+  UNLOCK.shop.map(([id,price],i)=>{const d=CARDS[id],own=have.has(id);return `<button class="u9 lrow${sel===id?" main":""}" ${at(16,52+i*38,284,35)} onclick="S.labSel='${id}';renderLab()"><span class="ln">${esc(d.n)}</span><span class="small dim"> ${RARITY_JP[d.r]}</span><span class="lp ${own?"dim":p.log>=price?"gold":"ngc"}">${own?"解放ずみ":"ログ "+price}</span></button>`}).join("")+
   (sel?cardBig(sel,{art:true,attrs:at(380,64,140,184)})+(have.has(sel)?`<div class="small dim" ${at(330,262,240)}>解放ずみ（報酬・デッキに出る）</div>`:
     `<button class="main u9" ${at(380,258,140,32)} ${p.log>=pr?"":"disabled"} onclick="labBuy('${sel}')">ログ ${pr} で開く</button>`):"")}
 function labBuy(id){const p=PRF(),it=UNLOCK.shop.find(x=>x[0]===id);if(!it||unlockedCards(p).includes(id))return;if(p.log<it[1]){SND.se("card_cant");toast2("みお：ログが、足りません……");return}p.log-=it[1];SAVE.unlock("cards",id);SND.se("upgrade_buy");setTimeout(()=>SND.se("card_unlock"),500);toast2(`「${CARDS[id].n}」を開きました`);renderLab()}

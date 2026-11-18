@@ -7,7 +7,7 @@ const UNLOCK={
   area:{a1:["pitin","fubuki","hyoujin"],a2:["hakunetsu","muhyou","clutchk"],clear:["rinkai","eikyu","nadare"]},
   sRank:["heeltoe","rikkamai","setsuka","senbon"],             // S 以上のミニカーを作るたびに、この順で1枚
   hidden:["hyouen","kyokkou","renpou","saihyou"],             // 裏道で勝つと、まだのものから1枚
-  shop:[["drift",100],["hyouheki",100],["oilchange",150],["fuelcut",150],["dblclutch",150]],   // ラン後の強化ショップ（ログ）
+  shop:[["drift",100],["hyouheki",100],["pitsign",100],["oilchange",150],["fuelcut",150],["dblclutch",150]],/* ★design 11-1：ローテーション（ログ 100） */   // ラン後の強化ショップ（ログ）
   startParts:["turbo","nitro","lsd","closs","clutch","oilcool","boost","cat","hook","grip","cage","jack","launch","pacenote","widebody"],
   areaParts:{a1:["flywheel","icool","carbon"],a2:["limiter","hicam","pipe"],clear:["seq","slick","emblem"]},
   // ログ（ラン後のマネー・名前は案 A）

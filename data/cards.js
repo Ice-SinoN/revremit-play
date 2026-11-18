@@ -49,7 +49,7 @@ const CARDS={
  hakunetsu:{r:"R",mo:"atk_heavy",own:"YUKI",n:"白熱",t:"atk",c:1000,gas:2,v:12,vu:18,band:"R",bm:2,fx:[["atk","v"]],d:"{v}ダメージ（レッドゾーンで2倍）"},
  /* ===== ★v0.21：β で足す10種（design v0.6 9-2・名前は仮＝シナリオ班が text.md で決める）===== */
  hyouen:{r:"R",mo:"atk_heavy",own:"YUKI",n:"氷炎",t:"atk",c:1500,gas:2,v:9,vu:14,band:"R",bm:2,fx:[["atk","v"],["redStay",1000]],d:"{v}ダメージ（レッドゾーンで打つと2倍）。レッドゾーンで打ったら、そのあと回転 −1000"},
- kyokkou:{r:"E",mo:"atk_finisher",own:"YUKI",n:"紅雪",t:"atk",c:1000,gas:2,v:10,vu:15,fx:[["kousetsu","v",8]],d:"{v}ダメージ＋このターンにレッドゾーンで打ったカードの数 ×8。レッドゾーンでなければ全部 ×0.5"},
+ kyokkou:{r:"E",mo:"atk_finisher",own:"YUKI",n:"紅雪",t:"atk",c:1000,gas:2,v:10,vu:15,fx:[["kousetsu","v",8]],d:"{v}＋このターンにレッドで打った数 ×8。レッドの外では全部半分。"},
  fuelcut:{r:"R",mo:"rev",own:"N",n:"フューエルカット",t:"rev",c:0,gas:0,v:0,sup:1,exile:1,upKeep:2,fx:[["limitGuard"]],d:"このターン、回転はリミットで止まる（オーバーレブ・ブローにならない）。戦闘で1回",du:"このターン、回転はリミットで止まる（オーバーレブ・ブローにならない）。戦闘で2回まで"},
  renpou:{r:"R",mo:"atk_light",own:"YUKI",n:"霰打ち",t:"atk",c:1500,gas:1,v:3,vu:4,band:"M",fx:[["atkShifts","v"]],d:"{v}ダメージを（このターンのシフトアップの回数＋1）回"},
  dblclutch:{r:"R",mo:"rev",own:"N",n:"ダブルクラッチ",t:"rev",c:0,gas:1,gasu:0,v:0,fx:[["down1"],["draw",1],["forcePerfect"]],d:"1段シフトダウンして1枚引く。次のシフトアップは必ずパーフェクト",
@@ -109,7 +109,7 @@ const CARDS={
  n_totsugeki:{r:"R",mo:"atk_heavy",own:"NANA",n:"突撃",t:"atk",c:3500,gas:2,v:16,vu:24,band:"R",fx:[["atk","v"]],d:"{v}ダメージ（レッドゾーンで ×1.5）"},
  n_teatime:{r:"C",mo:"rev",own:"NANA",n:"ティータイム",t:"rev",c:0,gas:0,sup:1,v:1500,vu:2000,fx:[["revDown","v"],["draw",1]],d:"回転 −{v}・1枚引く"},
  n_hokori:{r:"R",mo:"rev",own:"NANA",n:"誇り",t:"rev",c:0,gas:1,sup:1,v:3,vu:5,fx:[["onPerf","nextAtkAdd","v"]],d:"この戦闘の間、パーフェクトのたびに次のアタック +{v}（重なる）"},
- n_taikan:{r:"E",mo:"atk_finisher",own:"NANA",n:"戴冠",t:"atk",c:4000,gas:2,v:20,vu:30,fx:[["taikan","v"]],d:"{v}ダメージ。最大ギアなら先に相手の防御を0にする。最大ギアでなければ ×0.5"}/* ★design 10-11・10-12（条件の外は ×0.5） */,
+ n_taikan:{r:"E",mo:"atk_finisher",own:"NANA",n:"戴冠",t:"atk",c:4000,gas:2,v:20,vu:30,fx:[["taikan","v"]],d:"{v} ダメージ。最大ギアなら先に相手の防御を0に。最大ギアでなければ半分。"}/* ★design 10-11・10-12（条件の外は ×0.5） */,
  n_shukumei:{r:"R",mo:"atk_heavy",own:"NANA",n:"宿命",t:"atk",c:2000,gas:1,v:7,vu:10,fx:[["atkVsBig","v"]],d:"{v}ダメージ（エリート・ボスに1.5倍）"},
  n_recordline:{r:"C",mo:"draw",own:"NANA",n:"レコードライン",t:"drw",c:1000,gas:0,v:1,vu:2,band:"M",fx:[["draw","v"],["drawIfShift",1]],d:"{v}枚引く。このターンにシフトアップしていたら +1枚"},
  n_teppeki:{r:"C",mo:"guard",own:"NANA",n:"鉄壁",t:"grd",c:2000,gas:1,v:8,vu:12,fx:[["blk","v"]],d:"防御 {v}"},
@@ -117,6 +117,7 @@ const CARDS={
  // --- 生成・ジャマ（30種に数えない。チェインには数える）---
  oil:{r:"C",own:"N",n:"エンジンオイル",t:"rev",c:0,gas:0,sup:1,gen:1,v:500,fx:[["atkDown","v"],["draw",1]],d:"次に打つアタックの回転 −{v}・1枚引く（使うと消える）"},
  hyoushou:{r:"C",mo:"atk_light",own:"YUKI",n:"氷晶",t:"atk",c:0,gas:0,gen:1,v:3,fx:[["atk","v"]],d:"{v}ダメージ（使うと消える）"},
+ pitsign:{r:"C",own:"N",n:"ローテーション",t:"drw",c:1000,gas:0,v:2,vu:3,fx:[["rotate","v"]],d:"打てないカードを {v} 枚まで捨てて、同じ枚数引く（1ターン1回）。"},/* ★design 11-1（名前は text 27-3） */
  mud:{r:"C",own:"N",n:"泥はね",t:"jam",c:0,gas:1,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},
  crosstalk:{r:"C",own:"N",n:"混線",t:"jam",c:1000,gas:0,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},
 };

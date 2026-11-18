@@ -137,6 +137,7 @@ function playEvents(evs){
         if(x.k==="charge")push({d:1,on(){fxWord(PC().x+30,PC().y-80,"CHARGE","#FFD34D")}});
         if(x.k==="onup")push({d:1,on(){fxParts(PC().x,PC().y-20,6,["#7FD8FF","#F7F9F5"],{v:20,g:-10})}});
         if(x.k==="phase")push({d:300,on(){phaseArt(x);A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
+        if(x.k==="rotate")push({d:1,on(){for(let k=0;k<x.n;k++){setTimeout(()=>SND.se("card_toss"),k*120);setTimeout(()=>SND.se("card_draw"),x.n*120+80+k*120)}}});/* ★audio-list 11-2：捨てる 0.12秒ずつ → 同じ枚数引く */
         if(x.k==="rescue")push({d:1,on(){fxWord(PC().x-20,PC().y-74,"花の便り","#FF9FC8");fxParts(PC().x,PC().y-30,8,["#FF9FC8","#F7F9F5"],{v:22,g:-8});SND.se("card_draw");if(x.first&&typeof toast2==="function")toast2("MOMO：ふふ、お届けものよ。",226)}});/* ★design 10-10・text 27-2 */
         if(x.k==="cage")push({d:1,on(){fxWord(PC().x,PC().y-60,"CAGE","#FFD34D")}});
       });

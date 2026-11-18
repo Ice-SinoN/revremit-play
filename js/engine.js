@@ -180,7 +180,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
   B.block=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
-  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.rescueT=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
+  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
   if(first&&RULE().firstGas){B.gas+=RULE().firstGas;addLog(`最初のターン：ガソリン +${RULE().firstGas}`)}
@@ -196,6 +196,10 @@ function startPlayerTurn(first){
 /* 自動シフト（AT）／シフトできるか（MT） */
 function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=b.lo&&costOf(c)>0}
 /* カードを打つ前の見込み（打てるか・シフト・危ない）。数字は simulateCard */
+/* ★design 11-1 ローテーション（pitsign）：打てないカード＝ガソリン・回転・条件で打てないカードとジャマ。nr＝打ったあとの回転で見る。ほかのローテーションは同じターンに打てないので打てない扱い */
+function rotTargets(self,nr){const r0=B.rpm,c0=B.cards;B.rpm=nr;B.cards++;try{return B.hand.filter(x=>x!==self&&(CD(x).t==="jam"||CD(x).fx.some(f=>f[0]==="rotate")||!preview(x).ok))}finally{B.rpm=r0;B.cards=c0}}
+function rotOrder(t){const k=x=>CD(x).t==="jam"?0:1;return t.slice().sort((a,b)=>k(a)-k(b)||gasOf(b)-gasOf(a)||costOf(b)-costOf(a))}
+function rotNeedPick(c){if(!c||!CD(c).fx.some(f=>f[0]==="rotate"))return 0;const t=rotTargets(c,B.rpm+costOf(c)),v=cardVal(c);return t.length>v?v:0}
 function preview(c){
   const d=CD(c),C=car(),cost=costOf(c),rs=inRed()?d.fx.find(f=>f[0]==="redStay"):null,nr=B.rpm+cost-(rs?rs[1]:0),L=limit();
   if(d.redOnly&&!inRed())return{ok:false,txt:"レッドゾーンでないと打てない"};
@@ -204,6 +208,7 @@ function preview(c){
   if(B.cards>=RULES.cardCap)return{ok:false,txt:`このターンはもう打てない（${RULES.cardCap}枚まで）`};
   const g=gasOf(c);if(g>B.gas)return{ok:false,txt:d.charge&&g>maxGas()?`大技：あと ${g-B.gas} 目盛り（条件で減る）`:`ガソリンが足りない（${g}目盛り）`};
   if(d.t==="atk"&&B.e.cap&&B.atks>=B.e.cap)return{ok:false,txt:`このターンはもうアタックできない（${B.e.cap}枚まで）`};
+  let rotN=0;if(d.fx.some(f=>f[0]==="rotate")){if(B.rotT)return{ok:false,txt:"このターンは使った"};rotN=Math.min(rotTargets(c,nr).length,cardVal(c));if(!rotN)return{ok:false,txt:"入れかえるカードがない"}}
   if(d.shiftCard&&G.mode==="MT"&&isTopGear())return{ok:false,txt:"もう最大ギア（シフトできない）"};// BUG-04
   if(d.shiftCard&&G.mode==="MT"&&!shiftLeft())return{ok:false,txt:`シフトアップは1ターン${shiftCapNow()}回まで`};
   const canShift=G.mode==="MT"&&!isTopGear()&&shiftLeft()&&((nr>=C.minShift&&cost>0)||!!d.shiftCard);
@@ -217,6 +222,7 @@ function preview(c){
     else if(nr>L){if(isTopGear()&&!noBlow()){danger="blow";txt+="　⚠ブロー"}else{danger="over";txt+=canShift&&!isTopGear()?"　（シフトしないとオーバーレブ）":"　⚠オーバーレブ"}}
   }else{if(auto)txt+="　自動シフト";else if(paddle)txt+="　パドルでシフトできる";else if(nr>L)txt+="　リミッター（火力 半分）"}
   txt+=`　ガソリン\u00a0−${g}`;// BUG-22：「−2」だけ折り返さない
+  if(rotN)txt+=`　→${rotN}\u00a0枚入れかえ`;
   return{ok:true,txt,canShift,auto,paddle,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
 }
 /* 効果の手助け */
@@ -295,6 +301,8 @@ const OPS={
  atkShiftsN:(x,k)=>{const n=Math.min(B.shifts,shiftCapNow());if(n)x.attack(k*n)},
  onPerf:(x,op,...a)=>{B.onPerf.push([op,...a]);addLog("この戦闘の間、パーフェクトのたびに効く");ev({k:"onset"})},
  clearBlock:()=>{if(B.e.block){addLog(`相手の防御 ${B.e.block} を0に`);B.e.block=0}},
+ rotate:(x,v)=>{B.rotT=true;let t=rotTargets(null,B.rpm);const pk=B.rotPick;B.rotPick=null;if(pk)t=t.filter(c=>pk.includes(c.uid));t=rotOrder(t).slice(0,v);
+   t.forEach(c=>B.hand.splice(B.hand.indexOf(c),1));const n=drawN(t.length);t.forEach(c=>{if(!CD(c).gen)B.disc.push(c)});/* 引いてから捨て札へ（捨てたカードをすぐ引き直さない） */addLog(`ローテーション：${t.length} 枚入れかえた`);ev({k:"rotate",n:t.length,drawn:n})},/* ★design 11-1 */
  taikan:(x,v)=>{if(isTopGear()){OPS.clearBlock(x);x.attack(v)}else x.attack(Math.round(v*0.5*10)/10)},/* ★戴冠（design 10-11）：いつでも打てる・最大ギアでなければ ×0.5（防御は0にしない） */
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
  drawIfShift:(x,a)=>{if(B.shifts>0)x.draw(a)},
