@@ -7,8 +7,9 @@
 const TUT_KEY=TUT.key||"revremit_tutorial_done";
 const TUTS={i:-1,ph:"lines",li:0,turns:0,downs:0,done:null,p0:0,c0:0,lastGrade:null,force:false};
 window.TUTORIAL_ON=false;
-function tutDone(){try{return localStorage.getItem(TUT_KEY)==="1"}catch(e){return true}}
-function tutMark(){try{localStorage.setItem(TUT_KEY,"1")}catch(e){}}
+/* ★v0.20：済んだかは今のデータ（SAVE.cur.profile.tutorial）。TUT_KEY は v0.19 までのキー */
+function tutDone(){try{return!!SAVE.cur.profile.tutorial}catch(e){return true}}
+function tutMark(){try{if(!SAVE.cur.profile.tutorial){SAVE.cur.profile.tutorial=true;SAVE.auto()}}catch(e){}}
 /* はじめる。done：終わったら（スキップでも）呼ぶ */
 function startTutorial(done){
   TUTS.done=done;TUTS.i=-1;TUTS.ph="lines";TUTS.li=0;TUTS.turns=0;TUTS.downs=0;window.TUTORIAL_ON=true;tutMark();

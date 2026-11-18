@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.19.1（α3）";
+const VERSION="試作 v0.20（α3）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -15,7 +15,7 @@ function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_ba
 function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle")SND.engineStop();setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
-const FULL_SCREENS=["battle","map","scene","title","shop","sim","win","parts","deck","garage","rest","result","release"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
+const FULL_SCREENS=["battle","map","scene","title","data","shop","sim","win","parts","deck","garage","rest","result","release"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
 function placeUI(n){const u=$("#ui");if(!u)return;const full=FULL_SCREENS.includes(n);
   u.style.left=(full?0:RES.inner[0])+"px";u.style.top=(full?0:RES.inner[1])+"px";u.style.width=(full?RES.W:480)+"px";u.style.height=(full?RES.H:270)+"px";u.classList.toggle("panel",!full)}
 /* ★アイテム・パーツのアイコン（items\c2・64×64） */
@@ -89,9 +89,30 @@ function showTitle(){
    <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
+  <button class="mini dataBtn" ${at(8,8,132,28)} onclick="showData()">データ：${esc(dataName(SAVE.src))}</button>
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
   <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
+/* ===== ★v0.20 データ（3スロット＋オートセーブ）。tech-notes 1-10 ===== */
+function dataName(k){return k==="auto"?"オート":k==="new"?"新しいデータ":"スロット"+k}
+function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal();SND.bgm("title");const L=SAVE.list();
+  ui().innerHTML=`<div class="hdr" ${at(40,22,300,18)}>データ</div>  <div class="small dhint" ${at(352,24,170,24)}>オートセーブは区切りごとに自動。<br>スロット1〜3は自分でセーブ。</div>
+  ${backBtn("もどる","showTitle()")}
+  ${L.map((r,i)=>{const y=58+i*62,cur=SAVE.src===r.k,nm=r.k==="auto"?"オートセーブ":"スロット"+r.k;
+    const sub=r.broken?"読めないデータ（消さずに別の名前で保管しました）":SAVE.label(r.d);
+    const note=r.d?(SAVE.when(r.d)+(r.k==="auto"&&r.d.from?`・${r.d.from==="v0.19"?"v0.19 から引きつぎ":"スロット"+r.d.from+" から"}`:"")+(r.d.newer?"・新しい版のデータ":"")):"";
+    return `<div class="slot${cur?" cur":""}" ${at(40,y,560,58)}><div class="sn">${nm}${cur?'<span class="now">いま遊んでいるデータ</span>':""}</div>
+      <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div>
+      ${r.d?`<button class="u9 ld" ${at(r.k==="auto"?472:384,13,84,32)} onclick="dataLoad('${r.k}')">ロード</button>`:""}
+      ${r.k!=="auto"?`<button class="u9 main sv" ${at(472,13,84,32)} onclick="dataSave(${r.k})">セーブ</button>`:""}</div>`}).join("")}
+  <button class="u9" ${at(220,310,200,32)} onclick="dataNew()">はじめから（新しいデータ）</button>`}
+function dataLoad(k){if(SAVE.load(k)){S.deck=null;S.mcSel=[];showTitle();toast2(dataName(k)+"をロードしました")}else showData()}
+function dataSave(n){const r=SAVE.list().find(x=>x.k===n),go=()=>{const ok=SAVE.saveTo(n);closeModal();showData();toast2(ok?`スロット${n}にセーブしました`:"セーブできませんでした")};
+  S.dataGo=go;if(r&&(r.d||r.broken))modal(`<div class="h">スロット${n}に上書きしますか？</div><div class="small">${r.d&&r.d.newer?"このスロットは新しい版のデータです。上書きすると、新しい版で増えた分が消えるかもしれません。<br>":""}${esc(r.d?SAVE.label(r.d):"読めないデータ（保管ずみ）")}</div>
+    <div class="row"><button class="main" onclick="S.dataGo()">上書きする</button><button onclick="closeModal()">やめる</button></div>`);
+  else go()}
+function dataNew(){modal(`<div class="h">新しいデータではじめますか？</div><div class="small">今のデータはオートセーブから消えます。残したいときは、先にスロットにセーブしてください。</div>
+  <div class="row"><button class="main" onclick="SAVE.newData();closeModal();showTitle()">はじめる</button><button onclick="closeModal()">やめる</button></div>`)}
 function showHowto(){const C=CHARS.YUKI.car;
   modal(`<div class="h">あそびかた</div><div class="scroll" style="height:180px">
   ・カードのコストは<b>回転数</b>。打つと回転が上がる。<br>
@@ -382,7 +403,7 @@ function showRest(){setScreen("rest");setScene("dim");const x=restAmount(),to=Ma
    <button class="main u9" ${at(452,134,180,28)} onclick="G.hp=Math.min(G.maxhp,G.hp+${x});nextRow()">エンジンを直す（+${x}）</button>`}
 
 /* ---- リザルト・ミニカー ---- */
-function showResult(clear){
+function showResult(clear){try{const st=SAVE.cur.profile.stats;st.runs=(+st.runs||0)+1;if(clear)st.clears=(+st.clears||0)+1}catch(e){}
   setScreen("result");setScene("dim");closeModal();clearRun();if(!clear){setBg("lose");SND.jingle("gameover")}else SND.bgm("result");
   const res=calcResult(clear),st=G.st;S.res=res;setTimeout(()=>{const ri=res.ri;if(ri>=5)SND.se("rank_high",{tier:ri-4});else SND.se(ri>=2?"rank_mid":"rank_low")},clear?2400:3900);S.pickSel=[];S.partSel=G.parts.length?0:-1;S.need=Math.min(MC_CARDS,res.ten.length);
   /* ★v0.16：背景 result。ショーケース（6列×4段）の上2段に候補のカード10枚、3段目にパーツ、下の床に説明と「ミニカーを作る」 */
@@ -507,4 +528,6 @@ function toggleFS(){const d=document.documentElement;
   Promise.resolve(p).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{toast2("全画面にできませんでした")})}
 function toast2(t){const u=ui();if(!u)return;const d=document.createElement("div");d.className="toast2";d.textContent=t;Object.assign(d.style,{left:"200px",top:"300px",width:"240px",position:"absolute"});u.appendChild(d);setTimeout(()=>d.remove(),2000)}
 document.addEventListener("fullscreenchange",()=>{setTimeout(fit,50);if(window.SCREEN==="title")showTitle()});
-(async function(){fit();animInit($("#cv"));loadingProg(0,0);await loadArt();if(document.fonts&&document.fonts.ready)await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1500))]);showTitle()})();
+(async function(){fit();animInit($("#cv"));loadingProg(0,0);await loadArt();if(document.fonts&&document.fonts.ready)await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1500))]);
+  /* ★v0.20：スロットにデータがあれば、はじめにデータをえらぶ（初めての人・テストはそのままタイトル） */
+  if([1,2,3].some(n=>{try{return localStorage.getItem(SAVE_KEYS[n])!=null}catch(e){return false}}))showData();else showTitle()})();

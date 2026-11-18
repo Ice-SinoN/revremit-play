@@ -178,5 +178,6 @@ const TEXT={
 };
 /* どの場面をもう見たか（オープニング・初めての REMIT・エリアの一言は1回だけ） */
 const SEEN_KEY="revremit_seen_v1";
-function seenGet(){try{return JSON.parse(localStorage.getItem(SEEN_KEY)||"{}")||{}}catch(e){return{}}}
-function seenSet(k){try{const s=seenGet();s[k]=1;localStorage.setItem(SEEN_KEY,JSON.stringify(s))}catch(e){}}
+/* ★v0.20：見た場面は今のデータ（SAVE.cur.profile.seen）。SEEN_KEY は v0.19 までのキー（引きつぎで読むだけ） */
+function seenGet(){try{return SAVE.cur.profile.seen}catch(e){return{}}}
+function seenSet(k){try{if(!SAVE.cur.profile.seen[k]){SAVE.cur.profile.seen[k]=1;SAVE.auto()}}catch(e){}}
