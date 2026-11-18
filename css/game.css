@@ -259,6 +259,15 @@ button.sub{padding:0;line-height:12px}
 .modal .box button{min-height:28px}
 /* ★v0.22.9 パーツの入れ替え */
 .modal .box.wide{width:600px}
+/* ★v0.22.11 設定・オート */
+.modal .box.optbox{width:360px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.oprow{display:flex;align-items:center;gap:8px;min-height:30px}
+.oprow>span:first-child{width:96px}
+.oprow input[type=range]{flex:1;height:28px;accent-color:var(--lime)}
+.oprow b{width:28px;text-align:right}
+.opbtns{display:flex;gap:4px}.opbtns button{min-width:48px}
+button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .pswap{display:grid;grid-template-columns:330px 1fr;grid-template-rows:auto auto 1fr;gap:4px 8px}
 .pswap>.h,.pswap>.small{grid-column:1/3}
 .pslist{display:flex;flex-direction:column;gap:3px}

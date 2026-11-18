@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.10（β2）";
+const VERSION="試作 v0.22.11（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -205,7 +205,7 @@ function showMap(){
                   :`<div class="node k-${n.k} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
   <div class="small dim" ${at(150,326,420)}>${G.bring.length?"ミニカー："+G.bring.map(m=>esc(m.rank)).join("・")+`（攻撃 +${Math.round((G.atkBonus||0)*100)}%）`:""}</div>
-  <button class="mini" ${at(576,326,56,28)} onclick="showDeckList()">デッキ</button>`;
+  <button class="mini" ${at(576,326,56,28)} onclick="showDeckList()">デッキ</button><button class="mini optb" ${at(576,22,56,30)} onclick="showOpts()">設定</button>`;/* ★v0.22.11 */
   ui().innerHTML=h;
 }
 function showDeckList(){const c={};G.deck.forEach(x=>{const k=CD(x).n+(x.up?"+":"");c[k]=(c[k]||0)+1});
@@ -325,6 +325,7 @@ function renderBattle(){
       ${acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`).join("")}</div>`}
   // 右下：ボタン
   h+=`<button class="main end" ${at(...L.btnEnd)} ${locked?"disabled":""} onclick="doEndTurn()">ターン<br>終了</button>`;
+  if(!window.TUTORIAL_ON&&typeof autoButtons==="function")h+=autoButtons(locked);/* ★v0.22.11 オート・設定 */
   if(G.mode==="MT"){const k=downCost();h+=`<button class="sub" ${at(...L.btnSub)} ${locked||B.gear===0||full||B.gas<k?"disabled":""} onclick="doDownShift()">${full&&B.gear>0?"手札満杯":`↓シフト<br><span class="small">1枚引く G${k}</span>`}</button>`}
   else{const k=parkCost();h+=`<button class="sub" ${at(...L.btnSub)} ${locked||full||B.gas<k?"disabled":""} onclick="doParking()">${full?"手札満杯":`パーキング<br><span class="small">1枚引く G${k}</span>`}</button>`}
   // 数字（キャンバスの上に文字で）：体力・防御・回転数・倍率・ガソリン・山札

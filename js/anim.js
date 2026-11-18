@@ -160,7 +160,7 @@ function playEvents(evs){
 /* ---- 描く ---- */
 let lastT=0;
 function loop(t){requestAnimationFrame(loop);const dt=Math.min(50,t-(lastT||t));lastT=t;A.now=t;
-  try{step(dt);draw(dt)}catch(e){if(!A.errLogged){A.errLogged=1;console.error(e)}}}
+  try{step(dt*(typeof animSpeed==="function"?animSpeed():1));draw(dt)}catch(e){if(!A.errLogged){A.errLogged=1;console.error(e)}}}
 /* ★零号の第2形態：ノイズを強めて見せる（横の帯をずらす・色ずれ。決定 2026-11-07） */
 let GLC=null;
 function glitchCanvas(cv){const w=cv.width,h=cv.height;if(!GLC||GLC.width!==w||GLC.height!==h){GLC=mkCanvas(w,h)}const g=GLC.getContext("2d");g.clearRect(0,0,w,h);
