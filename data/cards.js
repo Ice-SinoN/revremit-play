@@ -14,8 +14,8 @@
 const CARDS={
  // --- ニュートラル 12 ---
  braking:{r:"C",own:"N",n:"ブレーキング",t:"grd",c:1000,gas:1,v:5,vu:8,band:"L",fx:[["blk","v"]],d:"防御 {v}"},
- qshift:{r:"C",own:"N",n:"クイックシフト",t:"rev",c:1000,cu:500,gas:0,v:0,shiftCard:1,fx:[],d:"そのままシフトアップする（4000回転未満でもできる）",
-   at:{n:"キックダウン",shiftCard:0,c:0,cu:0,fx:[["kickDown"],["drawIfLow",1,3]],d:"［AT］1段シフトダウン。手札が3枚以下なら1枚引く"}},
+ qshift:{r:"C",own:"N",n:"クイックシフト",t:"rev",c:1000,cu:500,gas:0,v:0,shiftCard:1,fx:[],d:"回転を少し上げて、そのままシフトアップする（低い回転でもできる）。",/* text 27-1（design 10-12-5） */
+   at:{n:"キックダウン",shiftCard:0,c:0,cu:0,fx:[["kickDown"],["drawIfLow",1,3]],d:"［AT］1段シフトダウン。ほかの手札が3枚以下なら1枚引く。"}},/* text v0.22.4：打ったあと・自分を除いて数える（drawIfLow は手札から抜いたあとに数える） */
  slip:{r:"C",mo:"draw",own:"N",n:"スリップストリーム",t:"drw",c:2000,gas:0,v:2,vu:3,band:"M",fx:[["draw","v"]],d:"{v}枚引く"},
  blip:{r:"C",own:"N",n:"ブリッピング",t:"rev",c:1500,gas:0,v:0.1,vu:0.2,band:"L",bm:3,fx:[["nextBonus","v"]],d:"次に打つカードの倍率 +{v}（L の帯なら3倍）",
    at:{c:0,fx:[["nextBonus","v"],["revDown",500]],d:"［AT］回転0。次に打つカードの倍率 +{v}・回転 −500"}},

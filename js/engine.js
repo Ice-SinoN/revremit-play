@@ -200,6 +200,14 @@ function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGe
 function rotTargets(self,nr){const r0=B.rpm,c0=B.cards;B.rpm=nr;B.cards++;try{return B.hand.filter(x=>x!==self&&(CD(x).t==="jam"||CD(x).fx.some(f=>f[0]==="rotate")||!preview(x).ok))}finally{B.rpm=r0;B.cards=c0}}
 /* ★LD balance 11-15（チーフ承認）：自動で選ぶとき（オート・ボット）は、ガソリンだけ足りなくて次の番に打てるカードは捨てない */
 function rotKeepForNext(x,nr){if(CD(x).t==="jam")return false;const r0=B.rpm,g0=B.gas,c0=B.cards;B.rpm=nr;B.gas=99;B.cards++;try{return preview(x).ok&&gasOf(x)<=maxGas()}finally{B.rpm=r0;B.gas=g0;B.cards=c0}}
+/* ★design v0.11.9 11-1：オート・ボットの捨てる順。1 ジャマ → 2 この戦闘でもう打てない（最大ギア・シフトの回数をこえたシフトのカード）→ 3 打つとオーバーレブ・ブローの予告 → 4 ガソリン満タンでも足りない。
+   捨てない：今の番だけガソリンが足りない・固有スキル・手札に1枚しかない攻撃。同じ順の中はレア度の低い方 → 回転の高い方 */
+function rotCat(x,nr,onlyAtk){const d=CD(x);if(d.t==="jam")return 1;if(d.r==="SK"||d.t==="sk"||x===onlyAtk)return 0;if(d.fx.some(f=>f[0]==="rotate"))return 0;
+  if((d.shiftCard||d.atShift)&&(isTopGear()||!shiftLeft()))return 2;
+  const r0=B.rpm,g0=B.gas,c0=B.cards;B.rpm=nr;B.gas=99;B.cards++;let p;try{p=preview(x)}finally{B.rpm=r0;B.gas=g0;B.cards=c0}
+  if(p.ok&&(p.danger==="over"||p.danger==="blow"))return 3;if(gasOf(x)>maxGas())return 4;return 0}
+function rotAutoPick(self,nr,v){const h=B.hand.filter(x=>x!==self),atks=h.filter(x=>CD(x).t==="atk"),only=atks.length===1?atks[0]:null,rk={C:0,R:1,E:2,SK:3};
+  return h.map(x=>({x,k:rotCat(x,nr,only)})).filter(o=>o.k>0).sort((a,b)=>a.k-b.k||(rk[CD(a.x).r]||0)-(rk[CD(b.x).r]||0)||costOf(b.x)-costOf(a.x)).slice(0,v).map(o=>o.x)}
 function rotOrder(t){const k=x=>CD(x).t==="jam"?0:1;return t.slice().sort((a,b)=>k(a)-k(b)||gasOf(b)-gasOf(a)||costOf(b)-costOf(a))}
 function rotNeedPick(c){if(!c||!CD(c).fx.some(f=>f[0]==="rotate"))return 0;const t=rotTargets(c,B.rpm+costOf(c)),v=cardVal(c);return t.length>v?v:0}
 function preview(c){
@@ -305,7 +313,7 @@ const OPS={
  atkShiftsN:(x,k)=>{const n=Math.min(B.shifts,shiftCapNow());if(n)x.attack(k*n)},
  onPerf:(x,op,...a)=>{B.onPerf.push([op,...a]);addLog("この戦闘の間、パーフェクトのたびに効く");ev({k:"onset"})},
  clearBlock:()=>{if(B.e.block){addLog(`相手の防御 ${B.e.block} を0に`);B.e.block=0}},
- rotate:(x,v)=>{B.rotT=true;let t=rotTargets(null,B.rpm);const pk=B.rotPick;B.rotPick=null;if(pk)t=t.filter(c=>pk.includes(c.uid));else t=t.filter(c=>!rotKeepForNext(c,B.rpm));t=rotOrder(t).slice(0,v);
+ rotate:(x,v)=>{B.rotT=true;let t=rotTargets(null,B.rpm);const pk=B.rotPick;B.rotPick=null;if(pk)t=B.hand.filter(c=>pk.includes(c.uid));else t=rotAutoPick(null,B.rpm,v);t=rotOrder(t).slice(0,v);
    t.forEach(c=>B.hand.splice(B.hand.indexOf(c),1));const n=drawN(t.length);t.forEach(c=>{if(!CD(c).gen)B.disc.push(c)});/* 引いてから捨て札へ（捨てたカードをすぐ引き直さない） */addLog(`ローテーション：${t.length} 枚入れかえた`);ev({k:"rotate",n:t.length,drawn:n})},/* ★design 11-1 */
  taikan:(x,v)=>{if(isTopGear()){OPS.clearBlock(x);x.attack(v)}else x.attack(Math.round(v*0.5*10)/10)},/* ★戴冠（design 10-11）：いつでも打てる・最大ギアでなければ ×0.5（防御は0にしない） */
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},

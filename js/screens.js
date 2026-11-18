@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.20（β2）";
+const VERSION="試作 v0.22.21（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -278,7 +278,8 @@ function afterAct(r,rpm0){A.pv=null;const phK=B.key==="boss3"?sceneKey("boss3_ph
 }
 function doPlay(i,shift,ok){if(B.over||!tutAllow("play",{i,shift}))return;
   /* ★design 11-1 ローテーション：打てないカードが {v} 枚より多いときは自分で選ぶ（オート中は自動＝rotOrder） */
-  if(!S.rotPicked&&!(typeof AUTO!=="undefined"&&AUTO.on)&&rotNeedPick(B.hand[i])){showRotPick(i,shift,ok);return}
+  if(!S.rotPicked&&!(typeof AUTO!=="undefined"&&AUTO.on)&&CD(B.hand[i]).fx.some(f=>f[0]==="rotate")){if(rotNeedPick(B.hand[i])){showRotPick(i,shift,ok);return}
+    const c=B.hand[i];B.rotPick=rotTargets(c,B.rpm+costOf(c)).map(x=>x.uid)}/* 人が打つとき：打てないカードが {v} 枚以下なら全部入れかえる（自動の順はオート・ボットだけ） */
   if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){SND.se("blow_warn");S.blowGo=()=>{SND.se("ui_ok");seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
     modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">エンジンが止まって、このランは終わります。</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="SND.se('ui_cancel');closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
 function showRotPick(i,shift,ok){const c=B.hand[i],v=cardVal(c),t=rotTargets(c,B.rpm+costOf(c));S.rot={i,shift,ok,v,t:t.map(x=>x.uid),sel:[]};SND.se("ui_ok");renderRotPick()}
@@ -351,7 +352,7 @@ function renderBattle(){
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" ${locked?"disabled":""}`})}).join("");
   // 選んだカードの説明と打ち方
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
-    h+=`<div class="detail" ${at(...L.detail)}><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
+    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-22}px;overflow-y:auto"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
       <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div>${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`).join("")}</div>`}
