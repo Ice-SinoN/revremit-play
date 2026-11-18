@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.15（β2）";
+const VERSION="試作 v0.22.16（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -145,14 +145,15 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>デッキを組む（${esc(ch)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
     return `<div class="dr r-${rarityOf(id)}${S.dkSel===id?" on":S.dkCmp===id?" cmp":""}" onclick="deckPick('${id}')"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
-     <button class="mini" ${k?"":"disabled"} onclick="event.stopPropagation();deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini" ${k>=lim||n>=RULES.deckSize?"disabled":""} onclick="event.stopPropagation();deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
+     <button class="mini" ${k?"":"disabled"} onclick="event.stopPropagation();deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini${k>=lim||n>=RULES.deckSize?" off":""}" onclick="event.stopPropagation();deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
   ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;showTitle()")}
   ${deckDetail(dk)}
   <div class="sign side" ${at(316,262,150,92)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
    <div class="small dim">同じカードは<br>C${RULES.deckLimit.C}・R${RULES.deckLimit.R}・E${RULES.deckLimit.E}・固有${RULES.deckLimit.SK}枚まで</div></div>
   <div class="col" ${at(474,262,158)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,curChar());S.deck=null;S.dkSel=S.dkCmp=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
    <button class="u9" onclick="S.deck=defaultDeck(curChar());renderDeck()">最初のデッキ</button></div>`;
-  if($("#dkl"))$("#dkl").scrollTop=sc}
+  if($("#dkl"))$("#dkl").scrollTop=sc;
+  const dd=$(".dkdet"),mo=$(".dkmore");if(dd&&mo){const up=()=>mo.classList.toggle("on",dd.scrollTop+dd.clientHeight<dd.scrollHeight-2);dd.onscroll=up;up()}}
 /* ★v0.22.13（★虎雪 20:10「デッキ構築画面でカードの効果が見られない」）：行をタップで選ぶ → 効果を右の窓に。
    別のカードを続けて選ぶと、前に選んだカードと並べて見せ、「入れ替える」（前のを1枚抜いて、選んだのを1枚入れる） */
 function deckPick(id){if(S.dkSel===id)return;SND.se("ui_ok");if(S.dkSel)S.dkCmp=S.dkSel;S.dkSel=id;renderDeck()}
@@ -163,16 +164,17 @@ function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
   if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div></div>`;
   const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
-  return `<div class="sign dkdet${c?" two":""}" ${at(316,56,316,c?166:200)}>${c?deckCardBox(c,dk,"前に選んだ"):""}${deckCardBox(s,dk,"選んだ")}</div>`+
-   (c?`<button class="u9 dkswap" ${at(316,226,316,32)} ${can?"":"disabled"} onclick="deckSwap()">${can?`入れ替える（${esc(CARDS[c].n)} −1 → ${esc(CARDS[s].n)} ＋1）`:`入れ替えられない（${(dk[c]||0)?esc(CARDS[s].n)+"はもう上限":esc(CARDS[c].n)+"はデッキにない"}）`}</button>`:"")}
+  const hh=c?166:200;/* ★BUG-41：説明が長くて窓に入らないときは、下に「▼ つづき」を出す（指で上下に動かせる） */
+  return `<div class="sign dkdet${c?" two":""}" ${at(316,56,316,hh)}>${c?deckCardBox(c,dk,"前に選んだ"):""}${deckCardBox(s,dk,"選んだ")}</div><div class="dkmore" ${at(316,56+hh-15,316,14)}>▼ つづき（上下に動かせます）</div>`+
+   (c?`<button class="u9 dkswap" ${at(316,226,316,32)} ${can?"":"disabled"} onclick="deckSwap()">${can?`入れ替える（${esc(CARDS[c].n)} −1 → ${esc(CARDS[s].n)} ＋1）`:`入れ替えられない（${(dk[c]||0)?"選んだカードは上限":"前のカードがデッキにない"}）`}</button>`:"")}
 function deckSwap(){const dk=S.deck,s=S.dkSel,c=S.dkCmp;if(!s||!c||!(dk[c]>0)||(dk[s]||0)>=deckLimitOf(s))return;
   dk[c]--;if(!dk[c])delete dk[c];dk[s]=(dk[s]||0)+1;SND.se("part_swap");renderDeck()}
-function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0||k>deckLimitOf(id))return;if(d>0&&deckCount(dk)>=RULES.deckSize)return;if(k)dk[id]=k;else delete dk[id];renderDeck()}
+function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0)return;if(k>deckLimitOf(id)||d>0&&deckCount(dk)>=RULES.deckSize){SND.se("card_cant");return}if(k)dk[id]=k;else delete dk[id];SND.se(d>0?"ui_ok":"card_toss");renderDeck()}/* ★audio-list 11-2（v0.13）：入れた＝ui_ok・外した＝card_toss・上限＝card_cant */
 
 /* ---- ガレージ（ミニカーを2台まで） ---- */
 function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
 function mcHTML(m,o={}){const b=mcBonus(m);
-  return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}<br><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
+  return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
 /* ★v0.16：背景 garage。デッキと同じ並び（左に一覧・右にボタン） */
 function showMinicarGarage(mode){SND.bgm("title");
   setScreen("garage");setScene("dim");
@@ -473,7 +475,7 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   <div class="small sh" ${at(100,24,380)}>${Object.entries(res.pts).map(([k,v])=>`${k}${v}`).join("・")}　合計${res.total}</div>
   <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}　<span class="gold">ログ +${lg}</span></div>`;
   h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,50)} onclick="togglePick(${i})"`})}).join("");
-  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn">${esc(PARTS[p].n)}</span></button>`}).join("");
+  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn${[...PARTS[p].n].length>6?" lng":""}">${esc(PARTS[p].n)}</span></button>`}).join("");
     const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`}
   h+=`<div class="sign foot" id="pkd" ${at(100,276,300,74)}><div class="h">ミニカーに残すカードを${S.need}枚</div><div class="small dim">上のショーケースから選ぶ（ランダムな${res.ten.length}枚）${G.parts.length?"・パーツも1つ":""}</div><div class="small">評価${res.rank}：次のランで 耐久+${MC_BONUS.hp[res.ri]}・攻撃+${MC_BONUS.atk[res.ri]}%</div></div>
   <button class="main u9" id="mkcar" ${at(410,300,130,28)} disabled onclick="saveCar()">あと${S.need}枚えらぶ</button>`;
@@ -483,7 +485,7 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
 const CASE_XY=i=>[103+(i%6)*73,52+Math.floor(i/6)*55];
 /* ショーケースの中のカード：絵の窓 50×38＋名前 */
 function caseCard(c,o){const d=CD(c),r=rarityOf(c),art=cardArtTag(c.id||c);
-  return `<button class="case t-${d.t} r-${r}" ${o.attrs||""}><span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span><span class="cn">${esc(d.n)}${c.up?"+":""}</span></button>`}
+  return `<button class="case t-${d.t} r-${r}" ${o.attrs||""}><span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span><span class="cn${[...d.n].length>6?" lng":""}">${esc(d.n)}${c.up?"+":""}</span></button>`}
 function togglePick(i){const s=S.pickSel,k=s.indexOf(i);if(k>=0)s.splice(k,1);else if(s.length<S.need)s.push(i);
   S.res.ten.forEach((_,j)=>{const el=$("#pk"+j);if(el)el.classList.toggle("sel",s.includes(j))});
   const b=$("#mkcar"),rest=S.need-s.length;if(b){b.disabled=rest>0;b.textContent=rest>0?`あと${rest}枚えらぶ`:"ミニカーを作る"}
@@ -609,7 +611,7 @@ function toggleFS(){const d=document.documentElement;
   if(isFS()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
   const p=(d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:"hide"});
   Promise.resolve(p).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{toast2("全画面にできませんでした")})}
-function toast2(t){const u=ui();if(!u)return;const d=document.createElement("div");d.className="toast2";d.textContent=t;Object.assign(d.style,{left:"200px",top:"300px",width:"240px",position:"absolute"});u.appendChild(d);setTimeout(()=>d.remove(),2000)}
+function toast2(t,y){const u=ui();if(!u)return;const d=document.createElement("div");d.className="toast2";d.textContent=t;Object.assign(d.style,{left:"200px",top:(y||300)+"px",width:"240px",position:"absolute"});u.appendChild(d);setTimeout(()=>d.remove(),2000)}
 /* ★v0.20.1：タッチ画面の長押しで右クリックのメニューを出さない・絵を長押ししてもドラッグを始めない（Windows のタッチ） */
 document.addEventListener("contextmenu",e=>e.preventDefault());document.addEventListener("dragstart",e=>e.preventDefault());
 document.addEventListener("selectstart",e=>{if(!(e.target&&e.target.closest&&e.target.closest("input,textarea")))e.preventDefault()});

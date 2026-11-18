@@ -351,3 +351,20 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .cs.tight .cn{left:2px;right:auto;width:calc(var(--vis) - 4px);text-align:left}
 .cs.sel{z-index:5}
 #ui .lrow.main .lp,#ui .lrow.main .small{color:#0A0812!important}/* ★BUG-38 の続き：選んだ行（ライム）の上でログの数・レア度を読めるように */
+
+/* ★BUG-36 リザルトのショーケース：長い名前は2行（絵の下の方に重ねる）・字の間をつめる */
+.case{overflow:hidden}
+.case .cn.lng{white-space:normal;letter-spacing:-1px;line-height:10px;max-height:20px;padding:0 1px;background:rgba(8,10,24,.7);word-break:break-all}
+/* ★BUG-37 ガレージ：カードの名前は1行（…で切る）、下の行は枠の中 */
+.mc .mb{min-width:0;flex:1;overflow:hidden}
+.mc .mcn{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ★BUG-41 デッキの効果の窓：入りきらないときの印とスクロールバー */
+#ui .dkmore{display:none;pointer-events:none;text-align:center;font:10px/14px 'PM10';color:var(--ink);background:linear-gradient(transparent,rgba(197,255,69,.9) 40%)}
+#ui .dkmore.on{display:block}
+#ui .dkdet{scrollbar-width:thin;scrollbar-color:var(--lime) transparent}
+#ui .dkdet::-webkit-scrollbar{width:4px}#ui .dkdet::-webkit-scrollbar-thumb{background:var(--lime)}
+
+#ui .dkswap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+
+#ui button.mini.off{opacity:.4}/* 上限：押すと card_cant（audio-list 11-2） */

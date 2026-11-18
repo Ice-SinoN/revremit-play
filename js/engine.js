@@ -180,7 +180,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
   B.block=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
-  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
+  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.rescueT=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
   if(first&&RULE().firstGas){B.gas+=RULE().firstGas;addLog(`最初のターン：ガソリン +${RULE().firstGas}`)}
@@ -406,6 +406,8 @@ function playCard(i,shift){
   if(has("qrelease")&&cost===0&&B.qrT<2){B.qrN++;if(B.qrN%3===0){B.qrT++;if(drawN(1))addLog("クイックリリース：1枚引いた")}}
   if(B.e.hp<=0)return finish("win");
   if(G.hp<=0&&dead())return finish("dead");
+  /* ★design 10-10 MOMO「花の便り」：チェイン3以上で、打てるアタックが手札にないとき1枚引く（1ターン1回） */
+  {const R=RULE();if(R.rescue&&!B.sim&&B.chain>=R.rescue&&(B.rescueT||0)<(R.rescueN||1)&&canDraw()&&!B.hand.some(x=>CD(x).t==="atk"&&preview(x).ok)){B.rescueT=(B.rescueT||0)+1;if(drawN(1)){addLog("花の便り：1枚引いた");ev({k:"rescue",first:!G.rescueSaid});G.rescueSaid=true}}}
   return checkAP();
 }
 function finish(r){if(!B.over)ev({k:r});B.over=true;B.result=r;if(r==="dead")G.hp=Math.max(0,G.hp);return r}
