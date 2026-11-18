@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.23（β2）";
+const VERSION="試作 v0.22.24（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -59,6 +59,10 @@ function cardSmall(c,o){const d=CD(c),r=rarityOf(c),nm=o.num,art=cardArtTag(c.id
    `<span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`+
    `<span class="cc">${costK(o.cost)}</span><span class="ca${o.gas>(o.gasNow==null?99:o.gasNow)?" lack":""}">G${o.gas}</span>`+plate+
    `<span class="cn">${esc(d.n)}${c.up?'<b class="cu">+</b>':""}</span>${d.band?`<span class="cbd b-${d.band}">${d.band}</span>`:""}<span class="crr"></span></button>`}
+/* ★BUG-35（v0.22.24）：手札の名前が2行に入らないとき ①字を小さく（9px） ②3行（上へのばす・絵の下の端に重ねる） ③それでも入らなければ「…」で切る（全部の名前は説明の窓に出る） */
+function fitHandNames(){const over=e=>e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1;
+  document.querySelectorAll("#ui .cs .cn").forEach(e=>{if(!over(e))return;e.classList.add("f9");if(!over(e))return;e.classList.add("f3");if(!over(e))return;
+    const t=e.firstChild;if(!t||t.nodeType!==3)return;const s=[...t.nodeValue];for(let k=s.length-1;k>1;k--){t.nodeValue=s.slice(0,k).join("")+"…";if(!over(e))break}})}
 /* ---- カードの面の数字（★14:47）：今打ったときのダメージ（多段は 6×2）・ガードは防御。元の数字より上は緑・下は赤 ---- */
 function numText(hits,block){if(hits.length){const all=hits.every(h=>h===hits[0]);return hits.length>1&&all?`${hits[0]}×${hits.length}`:String(hits.reduce((a,b)=>a+b,0))}return block?String(block):""}
 function faceNumber(i,shift){const c=B.hand[i],d=CD(c),base=baseNumbers(c);if(!base.hits.length&&!base.block)return null;
@@ -162,7 +166,7 @@ function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear
   return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
    <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
-  if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div></div>`;
+  if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div>${CHARS[curChar()]&&CHARS[curChar()].ruleTxt?`<div class="small" style="margin-top:8px"><span class="gold">キャラの決まり</span><br>${esc(CHARS[curChar()].ruleTxt)}</div>`:""}</div>`;/* ★v0.22.24 text 27-2：キャラの決まり（MOMO は花の便りの1行） */
   const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
   const hh=c?166:200;/* ★BUG-41：説明が長くて窓に入らないときは、下に「▼ つづき」を出す（指で上下に動かせる） */
   return `<div class="sign dkdet${c?" two":""}" ${at(316,56,316,hh)}>${c?deckCardBox(c,dk,"前に選んだ"):""}${deckCardBox(s,dk,"選んだ")}</div><div class="dkmore" ${at(316,56+hh-15,316,14)}>▼ つづき（上下に動かせます）</div>`+
@@ -370,7 +374,7 @@ function renderBattle(){
   ${METER.blank?"":`<div class="tachn ${red?"ngc":""}" ${at(...L.tachn)}>${B.rpm}<span class="dim">rpm</span></div><div class="gasn" ${at(...L.gasn)}>${B.gas}/${maxGas()}</div>`}
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
-  ui().innerHTML=h;if(window.TUTORIAL_ON)tutRender();
+  ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
 }
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
 function gimLines(e){return e.gimTxt.split("・").map((t,i)=>t+(i===0&&e.five?`（今 ${B.cards}枚）`:"")+(i===0&&e.cap?`（今 ${B.atks}/${e.cap}）`:""))}

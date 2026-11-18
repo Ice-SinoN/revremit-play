@@ -35,7 +35,7 @@ const CHARS={
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1000,2500],M:[2500,4000],R:[6800,8000]}},
     deck:[["m_touka",4],["m_rinjin",2],["m_hanawa",2],["m_softtop",1],["m_hanaakari",1],["m_kinen",2],["m_hougou",1],["braking",2],["qshift",2],["slip",2],["blip",1]],/* ★v0.22.8 10-6 ブリッピング1枚をスリップに */
-    pool:null,skill:"m_hougou",rule:{chainStep:0.15,rescue:3,rescueN:1},/* ★v0.22.23 design v0.11.11 10-12-4c：チェインの守りをなくした（花の便りは残す） */ruleTxt:"チェインのボーナスが1つ +15%（ほかは +10%）・花の便り：チェイン3以上で、打てる攻撃が手札にないとき1枚引く（1ターン1回）",
+    pool:null,skill:"m_hougou",rule:{chainStep:0.15,rescue:3,rescueN:1},/* ★v0.22.23 design v0.11.11 10-12-4c：チェインの守りをなくした（花の便りは残す） */ruleTxt:"花の便り：チェイン3以上で、打てる攻撃が手札にないとき1枚引く（1ターン1回）",
   },
   NANA:{
     name:"NANA",carName:"GR スープラ",weapon:"ストレートシックス",type:"シフト連打",join:3,
