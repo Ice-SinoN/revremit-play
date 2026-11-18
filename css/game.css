@@ -257,6 +257,21 @@ button.sub{padding:0;line-height:12px}
 /* v0.18：BUG-22 予告の語を折り返さない／BUG-20 小窓（スキップの確認・ルール一覧）のボタンも 28 以上 */
 .nw{white-space:nowrap}
 .modal .box button{min-height:28px}
+/* ★v0.22.9 パーツの入れ替え */
+.modal .box.wide{width:600px}
+.pswap{display:grid;grid-template-columns:330px 1fr;grid-template-rows:auto auto 1fr;gap:4px 8px}
+.pswap>.h,.pswap>.small{grid-column:1/3}
+.pslist{display:flex;flex-direction:column;gap:3px}
+.pslist .psrow{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:3px 6px;min-height:40px}
+.pslist .psrow.on{box-shadow:inset 0 0 0 2px var(--lime);background:rgba(184,255,60,.12)}
+.pdn{display:flex;align-items:center;gap:4px}
+.psside{display:flex;flex-direction:column;gap:4px}
+.pdcard{padding:4px 6px;background:rgba(0,0,0,.35)}
+.pdcard.new{box-shadow:inset 0 0 0 1px var(--lime)}.pdcard.old{box-shadow:inset 0 0 0 1px #FF6B6B}
+.pdiff{padding:3px 6px;background:rgba(0,0,0,.35)}
+.pdrow{display:flex;justify-content:space-between;font-size:10px;line-height:14px}
+.pdrow .up{color:var(--lime)}.pdrow .down{color:#FF8A8A}
+.pshint{padding:8px 4px}
 /* ★v0.18.1：読みこみ中・全画面・店を出る */
 .loading{text-align:center;background:rgba(10,8,18,.9);box-shadow:inset 0 0 0 1px var(--lime);padding:6px 10px}
 .lbar{height:8px;margin:6px 0 4px;background:#1C1A2A;box-shadow:inset 0 0 0 1px #2B2F4A}.lbar i{display:block;height:100%;background:var(--lime)}

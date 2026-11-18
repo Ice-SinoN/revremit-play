@@ -301,7 +301,7 @@ const OPS={
 function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
 function checkPhase(){const e=B.e;if(e.phase&&!e.phased&&e.hp>0&&e.hp<=e.maxhp*e.phase.at){e.phased=true;e.spd=e.phase.spd;
-  if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}addLog(`${e.n} の形がくずれていく……`);ev({k:"phase",pal:e.phase.pal||null,glitch:!!e.phase.glitch})}}
+  if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}addLog(`${e.n} の形がくずれていく……`);ev({k:"phase",pal:e.phase.pal||null,glitch:!!e.phase.glitch,art:e.phase.art||null})}}
 function overRev(){const dmg=has("oilcool")?RULES.overDmgCool:RULES.overDmg;G.hp-=dmg;B.rpm=limit();addLog(`オーバーレブ！エンジン耐久 −${dmg}`);ev({k:"over",v:dmg});return dead()}
 /* ロールケージ：ランに1回、1で耐える */
 function dead(){if(G.hp<=0&&B&&B.phoenix&&!B.phoenixUsed){B.phoenixUsed=true;G.hp=B.phoenix;B.phoenix=0;addLog(`クリムゾン・フェニックス：耐久 ${G.hp} で耐えた`);ev({k:"cage"});return false}

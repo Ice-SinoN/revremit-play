@@ -35,13 +35,13 @@ const ALLY_BOSS={HINA:"kuuten",MOMO:"sanka",NANA:"miketsu"};
 Object.assign(ENEMIES,{
  kuuten:{art:"kuuten",n:"空転",rank:"boss",ally:"HINA",hp:220,spd:9,rage:1,
    pat:[["rev",2000],["atk",14],["blk",12],["multi",5,3]],gimTxt:"回転を上げてくる・動くたびに攻撃 +1",
-   phase:{at:0.5,spd:11,pat:[["rev",2500],["atk",17],["multi",6,3]]}},
+   phase:{art:"kuuten_p2",at:0.5,spd:11,pat:[["rev",2500],["atk",17],["multi",6,3]]}},
  sanka:{art:"sanka",n:"散花",rank:"boss",ally:"MOMO",hp:240,spd:10,
    pat:[["atk",14],["jam","mud",2],["multi",4,4],["blk",16]],gimTxt:"花びら（泥はね）を山札に混ぜる",
-   phase:{at:0.5,spd:11,pat:[["multi",5,4],["jam","mud",2],["atk",20]]}},
+   phase:{art:"sanka_p2",at:0.5,spd:11,pat:[["multi",5,4],["jam","mud",2],["atk",20]]}},
  miketsu:{art:"miketsu",n:"未決",rank:"boss",ally:"NANA",hp:240,spd:10,forms:["緑","金"],
    morph:[[["atk",16],["blk",12]],[["multi",6,3],["prc",18]]],gimTxt:"緑の車と金のクーペ、2つの形が入れかわる",
-   phase:{at:0.5,spd:12,morph:[[["atk",18],["apd",1]],[["multi",7,3],["prc",22]]]}},
+   phase:{art:"miketsu_p2",at:0.5,spd:12,morph:[[["atk",18],["apd",1]],[["multi",7,3],["prc",22]]]}},
 });
 const AREAS=[
  {key:"street",n:"ストリート",rows:13,pool:["van","bike","sedan","minivan"],easy:["van","bike"],elite:"wraith",boss:"boss1",mid:6,hpMul:1.38,bossMul:1.5,atkMul:1.3},

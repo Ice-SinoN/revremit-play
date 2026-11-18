@@ -1,0 +1,38 @@
+{
+ "frame": [
+  224,
+  224
+ ],
+ "foot": [
+  112,
+  220
+ ],
+ "facing": "left",
+ "motions": [
+  {
+   "tag": "idle",
+   "frames": 2,
+   "loop": true,
+   "ms": [
+    320,
+    320
+   ]
+  },
+  {
+   "tag": "atk",
+   "frames": 1,
+   "loop": false,
+   "ms": [
+    300
+   ]
+  },
+  {
+   "tag": "hit",
+   "frames": 1,
+   "loop": false,
+   "ms": [
+    220
+   ]
+  }
+ ]
+}

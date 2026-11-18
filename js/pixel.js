@@ -34,7 +34,7 @@ const ART_SRC={
 ["lost_wraith","lost_downhill","lost_wrecker"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220]}});
 /* 絵がまだない敵のもと（色変えで仮に出す。いまは全部そろったので使われない） */
 /* ★v0.22.7 その子のボス（graphics-hq 18-B・ボスの枠 288）。置けば出る。まだないあいだは残光・白夜の色変え（仮） */
-["kuuten","sanka","miketsu"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[144,284]}});
+["kuuten","sanka","miketsu","kuuten_p2","sanka_p2","miketsu_p2"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[144,284]}});
 const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1",kuuten:"boss1",sanka:"boss2",miketsu:"boss2"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
 const PALS={

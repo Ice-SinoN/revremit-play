@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.8（β2）";
+const VERSION="試作 v0.22.9（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -234,7 +234,7 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
 function enterBattle(){
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
   A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";
-  const E=Object.assign({},ENEMIES[B.key]);if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
+  const E=Object.assign({},ENEMIES[B.key]);if(B.e&&B.e.phased&&E.phase&&E.phase.art&&SPR[E.phase.art]&&!SPR[E.phase.art].proc){E.art=E.phase.art;E.pal=null}/* ★v0.22.9 */if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
   const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
   Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
   takeEvents();syncDisp();renderBattle();SND.redOn=true;SND.red(B.rpm);SND.areaBgm("battle");
@@ -370,11 +370,23 @@ function partsChoice(title,done){
    (S.partOpts.length?S.partOpts.map((p,i)=>`<button class="pt lit" ${at(LAMP_X[i]-70,52,140,184)} onclick="takePart('${p}')"><span class="slot${PARTS[p].own!=="N"?" sp":""}">${partIcon(p,64)}</span><b>${esc(partName(p))}</b><br><span class="small">${esc(PARTS[p].d)}</span></button>`).join(""):`<div class="sign" ${at(220,120,200,24)}>候補がない</div>`)+
    backBtn("取らない","S.pdone()");
 }
+/* ★v0.22.9 パーツの入れ替え（★虎雪 18:27「効果が見えないのやだな」）：付ける方・外す方の効果を両方出す。タップで外すパーツを選ぶ → 前 → 後 の数値 → 「入れ替える」 */
+function partStats(parts){const sv=G.parts,hp=G.maxhp+(sv.includes("forged")?10:0);G.parts=parts;
+  try{const b=bandRange();return{limit:limit(),red:redLo(),band:`${b.lo}〜${b.hi}`,maxhp:hp-(parts.includes("forged")?10:0)}}finally{G.parts=sv}}
+function partDiffRows(before,after){const a=partStats(before),b=partStats(after),w=x=>{const m=String(x).split("〜");return m[1]-m[0]},
+  L=[["リミット","limit",(x,y)=>y>x],["レッドゾーン（から）","red",(x,y)=>y<x],["シフトの帯","band",(x,y)=>w(y)>w(x)],["エンジン耐久の最大","maxhp",(x,y)=>y>x]];
+  return L.filter(([,k])=>a[k]!==b[k]).map(([n,k,good])=>`<div class="pdrow"><span>${n}</span><span>${a[k]} → <b class="${good(a[k],b[k])?"up":"down"}">${b[k]}</b></span></div>`).join("")}
 function choosePartSlot(p,onOk){
   if(G.parts.length<RULES.partsMax){onOk(-1);return}
-  S.slotOk=onOk;
-  modal(`<div class="h">どれと入れ替える？</div><div class="small">新しく入る：${esc(partName(p))}</div>`+G.parts.map((q,i)=>`<button onclick="closeModal();S.slotOk(${i})">${esc(partName(q))}</button>`).join("")+`<button onclick="closeModal()">やめる</button>`);
-}
+  S.slotOk=onOk;S.slotNew=p;S.slotSel=-1;renderPartSlot()}
+function renderPartSlot(){const p=S.slotNew,sel=S.slotSel,q=sel>=0?G.parts[sel]:null;
+  const card=(id,tag,cls)=>`<div class="pdcard ${cls}"><div class="small dim">${tag}</div><div class="pdn">${partIcon(id,24)}<b>${esc(partName(id))}</b></div><div class="small">${esc(PARTS[id].d)}</div></div>`;
+  let diff="";if(q){const after=G.parts.slice();after[sel]=p;diff=partDiffRows(G.parts,after)}
+  modal(`<div class="pswap"><div class="h">どれと入れ替える？</div><div class="small dim">パーツは${RULES.partsMax}つまで。外すパーツをえらぶ</div>
+   <div class="pslist">${G.parts.map((x,i)=>`<button class="psrow${i===sel?" on":""}" onclick="S.slotSel=${i};SND.se('ui_ok');renderPartSlot()"><span class="pdn">${partIcon(x,20)}<b>${esc(partName(x))}</b></span><span class="small">${esc(PARTS[x].d)}</span></button>`).join("")}</div>
+   <div class="psside">${card(p,"付ける","new")}${q?card(q,"外す","old")+(diff?`<div class="pdiff">${diff}</div>`:""):`<div class="small dim pshint">左から、外すパーツをえらぶ</div>`}
+   <div class="row"><button class="main" ${q?"":"disabled"} onclick="closeModal();S.slotOk(${sel})">入れ替える</button><button onclick="closeModal()">やめる</button></div></div></div>`);
+  const m=$("#modal .modal .box");if(m)m.classList.add("wide")}
 function takePart(p){choosePartSlot(p,idx=>{addPart(p,idx);SND.se(idx>=0?"part_swap":"part_get");S.pdone()})}
 
 /* ---- チューニングショップ ---- */
@@ -521,7 +533,7 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
   let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// 行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
   const bgp=storyBg(bgk);
   /* ★v0.20.1：キャラが描いてある一枚絵（opening_road・ending_garage）の上には立ち絵を出さない（2人が重なるため）。名前は帯に出る */
-  const bgHasChars=/revremit_story_(opening_road|ending_garage)\.png/.test(bgp);
+  const bgHasChars=/revremit_story_(opening_road|ending_garage|join_morning|join_bar_night|join_bar_nana)\.png/.test(bgp);/* ★v0.22.9 加わる話の一枚絵にもキャラが描いてある */
   const comm=mioComm(s,s.i);
   const bwho=who&&who.replace(/_IN$/,""),bw0=!bgHasChars&&/^(YUKI|MIO|HINA|MOMO|NANA)$/.test(bwho||"")?STORY_ART.bust(bwho,faceOf(l)):null,/* ★v0.22.2 仲間の立ち絵（あれば） */bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");

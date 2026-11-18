@@ -136,7 +136,7 @@ function playEvents(evs){
         if(x.k==="frz")push({d:1,on(){SND.se("freeze")}});if(x.k==="burn")push({d:1,on(){SND.se("burn")}});if(x.k==="noise")push({d:1,on(){SND.se("noise")}});if(x.k==="gasout")push({d:1,on(){SND.se("gas_empty")}});
         if(x.k==="charge")push({d:1,on(){fxWord(PC().x+30,PC().y-80,"CHARGE","#FFD34D")}});
         if(x.k==="onup")push({d:1,on(){fxParts(PC().x,PC().y-20,6,["#7FD8FF","#F7F9F5"],{v:20,g:-10})}});
-        if(x.k==="phase")push({d:300,on(){A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
+        if(x.k==="phase")push({d:300,on(){phaseArt(x);A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
         if(x.k==="cage")push({d:1,on(){fxWord(PC().x,PC().y-60,"CAGE","#FFD34D")}});
       });
       if(e.band)push({d:1,on(){fxWord(PC().x,PC().y-90,"BAND "+(CD(e.id).band||""),"#7FD8FF")}});
@@ -147,7 +147,7 @@ function playEvents(evs){
     if(e.k==="eact"){if(i===0||evs[i-1].k!=="phit"&&evs[i-1].k!=="eact"&&evs[i-1].k!=="eblk")push({d:1,on(){SND.se("enemy_turn")}});const sub=[];i++;while(i<evs.length&&["phit","eblk"].includes(evs[i].k))sub.push(evs[i++]);
       push(...mEnemyAct(e.p,sub.filter(x=>x.k==="phit")));continue}
     if(e.k==="gasout"){push({d:1,on(){SND.se("gas_empty")}});i++;continue}
-    if(e.k==="phase"){push({d:300,on(){A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});i++;continue}
+    if(e.k==="phase"){push({d:300,on(){phaseArt(e);A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});i++;continue}
     if(e.k==="eburn"){push({d:200,on(){fxParts(EC().x,EC().y,10,["#FF8A3D","#FF4040"],{a:-Math.PI/2,spread:0.8,v:30,g:-20});fxNum(EC().x,EC().y-30,e.v,"#FF8A3D");A.disp.ehp=Math.max(0,A.disp.ehp-e.v)}});i++;continue}
     if(e.k==="turn"){push({d:1,on(){syncDisp()}});i++;continue}
     if(e.k==="win"){push(...mWin());i++;continue}
@@ -261,6 +261,8 @@ function catPx(g,x,y,s){const m=["w.......w","ww.....ww","www...www","wwwwwwwww"
 
 /* ---- 待機のループ（★2026-11-06 14:35）----
    動きの途中でないとき（stand）は、絵に idle のタグがあればそれをくり返す。なければ、ゆっくり1ドット上下（敵は ふわっと）。 */
+/* ★v0.22.9 話のボスの第2形態の絵（graphics-hq 20-11）：phase.art の絵があれば切りかえる */
+function phaseArt(x){if(x.art&&SPR[x.art]&&!SPR[x.art].proc){A.E.set=x.art;A.E.pal=null}}
 function idlePose(set,act,phase){
   const out={tag:act.tag,fi:act.fi,dy:0};if(!set||act.tag!=="stand"||busy())return out;
   const t=A.now+phase*1000,tg=set.tags.idle;

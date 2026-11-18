@@ -1,0 +1,73 @@
+{
+ "frame": [
+  224,
+  224
+ ],
+ "foot": [
+  112,
+  220
+ ],
+ "note": "足元の点（112,220）を画面の足の位置（FOOT）に合わせて置く。右向き。左向きは左右反転",
+ "motions": [
+  {
+   "tag": "idle",
+   "frames": 6,
+   "loop": true
+  },
+  {
+   "tag": "atk_l",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "atk_h",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "super",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "guard",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "debuff",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "rev",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "draw",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "skill",
+   "frames": 3,
+   "loop": false
+  },
+  {
+   "tag": "hit",
+   "frames": 2,
+   "loop": false
+  },
+  {
+   "tag": "blow",
+   "frames": 1,
+   "loop": false
+  },
+  {
+   "tag": "win",
+   "frames": 3,
+   "loop": false
+  }
+ ]
+}

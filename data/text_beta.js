@@ -1120,6 +1120,14 @@ null,
 [
 2,
 "ending_garage|opening"
+],
+[
+9,
+"photo"
+],
+[
+10,
+"ending_garage|opening"
 ]
 ]
 },

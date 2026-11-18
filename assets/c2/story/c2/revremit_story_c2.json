@@ -32,6 +32,31 @@
    "id": "ending_garage",
    "file": "revremit_story_ending_garage.png",
    "text": "ed1 の6〜25行と ed1_after（夜明け前のガレージ）"
+  },
+  {
+   "id": "join_morning",
+   "file": "revremit_story_join_morning.png",
+   "text": "join_hina 全部（朝6時のガレージ・ひなが来る）"
+  },
+  {
+   "id": "join_bar_night",
+   "file": "revremit_story_join_bar_night.png",
+   "text": "join_momo 全部（閉店後のバー・ももが来る）。もも は設定画が届くまで仮"
+  },
+  {
+   "id": "join_bar_nana",
+   "file": "revremit_story_join_bar_nana.png",
+   "text": "join_nana 全部（バーのカウンターのななみ）。もも・ななみ は設定画が届くまで仮"
+  },
+  {
+   "id": "photo",
+   "file": "revremit_story_photo.png",
+   "text": "momo のエンディング10行目・ROAD LOG（古い写真：倉庫の前の大人たちと布をかぶせた箱）"
+  },
+  {
+   "id": "next_sora",
+   "file": "revremit_story_next_sora.png",
+   "text": "next_sora 全部（SORA の予告。夜のガレージ、録音の機材とヘッドホンの後ろ姿・顔なし）"
   }
  ],
  "dialog_window": [
