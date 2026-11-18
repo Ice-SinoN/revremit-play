@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.13（β2）";
+const VERSION="試作 v0.22.14（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -15,7 +15,7 @@ function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_ba
 function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle")SND.engineStop();setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
-const FULL_SCREENS=["battle","map","scene","title","data","lab","shop","sim","win","parts","deck","garage","rest","result","release"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
+const FULL_SCREENS=["battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
 function placeUI(n){const u=$("#ui");if(!u)return;const full=FULL_SCREENS.includes(n);
   u.style.left=(full?0:RES.inner[0])+"px";u.style.top=(full?0:RES.inner[1])+"px";u.style.width=(full?RES.W:480)+"px";u.style.height=(full?RES.H:270)+"px";u.classList.toggle("panel",!full)}
 /* ★アイテム・パーツのアイコン（items\c2・64×64） */
@@ -53,7 +53,9 @@ function cardSmall(c,o){const d=CD(c),r=rarityOf(c),nm=o.num,art=cardArtTag(c.id
   // ★ui\c2\revremit_ui_card_c2.json：絵の窓 (6,15) 50×38、数字の板は右下（右 56・下 53・高さ 14）に種類の色のアイコン＋数字
   let plate="";if(nm){const ic=CARD_ICON(nm.kind==="blk"?"grd":"atk"),icon=artHave(ic)?`<i class="pi" style="-webkit-mask-image:url(${artURL(ic)});mask-image:url(${artURL(ic)})"></i>`:"";
     plate=`<span class="cv ${nm.cls}">${icon}${esc(nm.txt)}</span>`}
-  return `<button class="cs t-${d.t} r-${r}${o.band?" inb":""}${d.charge?" chg":""}${o.cls?" "+o.cls:""}" ${o.attrs||""}>`+
+  /* ★BUG-34：手札が重なる（見える幅 o.vis が 62 より狭い）ときは、ガソリン・数字・名前を左に寄せる。★BUG-35：長い名前は字の間をつめる */
+  const tight=o.vis&&o.vis<60,nl=[...d.n].length+(c.up?0.5:0);
+  return `<button class="cs t-${d.t} r-${r}${o.band?" inb":""}${d.charge?" chg":""}${tight?" tight":""}${nl>10?" lng":""}${o.cls?" "+o.cls:""}" ${tight?(o.attrs||"").replace('style="',`style="--vis:${o.vis}px;`):o.attrs||""}>`+
    `<span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`+
    `<span class="cc">${costK(o.cost)}</span><span class="ca${o.gas>(o.gasNow==null?99:o.gasNow)?" lack":""}">G${o.gas}</span>`+plate+
    `<span class="cn">${esc(d.n)}${c.up?'<b class="cu">+</b>':""}</span>${d.band?`<span class="cbd b-${d.band}">${d.band}</span>`:""}<span class="crr"></span></button>`}
@@ -330,11 +332,11 @@ function renderBattle(){
   ${toastNow()}`;
   // 手札
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
-    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),cls:(p.ok?"":"no ")+(sel?"sel":""),
+    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" ${locked?"disabled":""}`})}).join("");
   // 選んだカードの説明と打ち方
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
-    h+=`<div class="detail" ${at(...L.detail)}><div class="dn">${esc(d.n)}${c.up?"+":""}<span class="small dim"> ${TYPE_JP[d.t]}・${RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
+    h+=`<div class="detail" ${at(...L.detail)}><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
       <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div>${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`).join("")}</div>`}
@@ -601,8 +603,8 @@ function closeModal(){const m=$("#modal");if(m)m.innerHTML=""}
 function loadingProg(d,n){const u=ui();if(!u)return;const pc=n?Math.floor(d*100/n):0;
   u.innerHTML=`<div class="loading" ${at(170,150,300,60)}><div class="h">読み込み中…　${pc}%</div><div class="lbar"><i style="width:${pc}%"></i></div><div class="small dim">${d}/${n}</div></div>`}
 /* ★v0.18.1：全画面のボタン（requestFullscreen が使える端末だけ。iPhone の Safari・ホーム画面から開いたときは出さない） */
-const FS_OK=()=>{const d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)&&document.fullscreenEnabled!==false&&!matchMedia("(display-mode: fullscreen)").matches&&!matchMedia("(display-mode: standalone)").matches};
 const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+const FS_OK=()=>{const d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)&&document.fullscreenEnabled!==false&&(isFS()||(!matchMedia("(display-mode: fullscreen)").matches&&!matchMedia("(display-mode: standalone)").matches))};/* ★BUG-40：display-mode はホーム画面の PWA で開いたとき（全画面の要素がないとき）だけ見る。自分で全画面にしたあとも「やめる」を出す */
 function toggleFS(){const d=document.documentElement;
   if(isFS()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
   const p=(d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:"hide"});

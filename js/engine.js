@@ -432,7 +432,7 @@ function endTurn(){return turnEnd()}
 function turnEnd(gasout){
   if(B.over)return B.result;
   if(has("subcon")&&!gasout&&B.chain>1){B.chainCarry=Math.floor(B.chain/3);addLog(`サブコン：チェイン ${B.chainCarry} が残る`)}
-  if(RULE().chainBlk&&B.chain>0){const k=Math.min(B.chain*(RULE().chainBlkMul||1),RULE().chainBlk);/* ★v0.22.8 10-6 */B.block+=k;addLog(`チェインの守り：防御 +${k}`);ev({k:"pblk",v:k})}/* ★v0.22.7 MOMO（design 10-3） */
+  if(RULE().chainBlk&&B.chain>0){const k=Math.min(Math.floor(B.chain*(RULE().chainBlkMul||1)),RULE().chainBlk);/* ★v0.22.8 10-6 */B.block+=k;addLog(`チェインの守り：防御 +${k}`);ev({k:"pblk",v:k})}/* ★v0.22.7 MOMO（design 10-3） */
   if(has("m_horo")&&B.chain>=5){B.block+=5;addLog("幌：防御 +5");ev({k:"pblk",v:5})}
   B.pTurns++;
   if(B.hidden&&B.pTurns>=UNLOCK.hiddenTurns&&B.e.hp>0){addLog("ロストラインは逃げていった");ev({k:"escape"});return finish("escape")}
@@ -450,7 +450,7 @@ function formOf(e){return e.morph&&e.forms?e.forms[e.mi%e.forms.length]:""}
 function eAtk(e,v){return Math.max(0,Math.round(v*B.am)+e.atkUp-e.noise)}
 /* ★v0.22.8 design 10-7：大きな攻撃の予告（攻撃・連撃・貫通の合計がエンジン耐久の最大の 1/3 以上、貫通はいつでも） */
 function bigIntent(e){const p=curAct(e);if(!p)return false;if(p[0]==="prc")return true;
-  const t=p[0]==="atk"?eAtk(e,p[1]):p[0]==="multi"?eAtk(e,p[1])*p[2]:0;return t>0&&t>=G.maxhp/3}
+  const t=p[0]==="atk"?eAtk(e,p[1]):p[0]==="multi"?eAtk(e,p[1])*p[2]:0;return t>0&&t>=G.maxhp*(B&&B.e&&B.e.rank==="boss"?1/3:1/2)}/* ★design 10-7：ボス 1/3・ほか 1/2・貫通はいつでも */
 function intent(e){const p=curAct(e);
   switch(p[0]){case"atk":return`攻撃 ${eAtk(e,p[1])}`;case"multi":return`攻撃 ${eAtk(e,p[1])}×${p[2]}`;case"prc":return`貫通 ${eAtk(e,p[1])}`;
    case"blk":return`防御 ${p[1]}`;case"buf":return`攻撃アップ ${p[1]}`;case"rev":return`回転 +${p[1]}`;case"jam":return`ジャマ（${CARDS[p[1]].n}×${p[2]}）`;case"apd":return"ガソリン −1";}return""}

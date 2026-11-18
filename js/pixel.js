@@ -321,7 +321,7 @@ async function buildMeter(have){
 /* ===== ★戦闘以外の画面の部品（ui\\c2\\revremit_ui640_parts.json）：CSS の変数に入れて、body に u640 をつける（無ければ前の見た目） ===== */
 function applyUi640(have){const d="assets/c2/ui/c2/revremit_ui640_",ks=["panel","panel_cyan","header","btn_main","btn_main_down","btn_sub","btn_sub_down","btn_off","btn_danger","price","price_sale","badge_sale","badge_feature","badge_new","slot","slot_special","slot_select","slot_sold","card_select_01","card_select_02","coin","cursor","star","rare_c","rare_r","rare_e","rare_sk","divider"];
   if(!have.has(d+"panel.png")||!have.has(d+"btn_main.png"))return;const r=document.documentElement.style;
-  ks.forEach(k=>{const f=d+k+".png";if(have.has(f))r.setProperty("--u-"+k.replace(/_/g,"-"),`url(${(window.ART_EMBED&&ART_EMBED[f])||f})`)});
+  ks.forEach(k=>{const f=d+k+".png";if(have.has(f))r.setProperty("--u-"+k.replace(/_/g,"-"),`url("${(window.ART_EMBED&&ART_EMBED[f])||new URL(f,document.baseURI).href}")`/* ★BUG-38：var() の url は使う側の css/ から見た場所になるので、ページから見た絶対の場所にする */)});
   document.body.classList.add("u640")}
 /* ===== ★チュートリアルの部品（ui\c2\revremit_ui_tut_c2.json）：コマを切って data URL に（DOM で使う） ===== */
 const TUTP={};

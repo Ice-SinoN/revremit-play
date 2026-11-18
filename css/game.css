@@ -343,3 +343,11 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .dkdet .dkd{line-height:1.35}
 .dr.on{box-shadow:inset 0 0 0 2px var(--lime)}
 .dr.cmp{box-shadow:inset 0 0 0 2px #7fd6ff}
+
+/* ★BUG-34・35 手札のカード */
+.cs.lng .cn{left:1px;right:1px;letter-spacing:-1px}
+.cs.tight .ca{right:auto;left:3px;top:13px;padding:0 1px;background:#0A0812;line-height:10px}
+.cs.tight .cv{right:auto;left:3px}
+.cs.tight .cn{left:2px;right:auto;width:calc(var(--vis) - 4px);text-align:left}
+.cs.sel{z-index:5}
+#ui .lrow.main .lp,#ui .lrow.main .small{color:#0A0812!important}/* ★BUG-38 の続き：選んだ行（ライム）の上でログの数・レア度を読めるように */
