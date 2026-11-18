@@ -28,6 +28,14 @@ const ENEMIES={
    morph:[[["atk",20],["multi",8,3]],[["prc",26],["jam","crosstalk",2]],[["blk",24],["atk",30]]],
    phase:{at:0.5,spd:14,glitch:1,morph:[[["atk",24],["multi",10,3]],[["prc",32],["apd",20]],[["blk",30],["atk",36]]]}},
 };
+/* ★v0.22.3 その子のボス（story 7-4・text 11-6／13-6／14-6）の受け口。サーキットで、その子で走るときだけ零号の前に1戦（連戦）。
+   数値・行動・置き方はデザイン班の決め待ち → 仮：白夜（boss2）・残光（boss1）の絵と行動、体力は 0.8 倍（エリアの倍率は今までどおり）。prov:1＝仮 */
+const ALLY_BOSS={HINA:"kuuten",MOMO:"sanka",NANA:"miketsu"};
+Object.assign(ENEMIES,{
+ kuuten:{art:"boss1",pal:"boss3_p2",n:"空転",rank:"boss",ally:"HINA",prov:1,hp:300,spd:10,pat:[["blk",18],["atk",16],["rev",1500],["multi",6,3],["atk",22]],blkKeep:0.5,gimTxt:"（仮）防御の半分が次の番まで残る",phase:{at:0.5,spd:10}},
+ sanka:{art:"boss2",pal:"elite_wraith",n:"散花",rank:"boss",ally:"MOMO",prov:1,hp:300,spd:10,pat:[["atk",18],["multi",7,3],["blk",25],["atk",28]],five:1,gimTxt:"（仮）5枚ごとに受けるダメージ −30%",phase:{at:0.5,spd:10}},
+ miketsu:{art:"boss2",pal:"elite_downhill",n:"未決",rank:"boss",ally:"NANA",prov:1,hp:300,spd:10,pat:[["atk",18],["multi",7,3],["blk",25],["atk",28]],mirror:0.5,gimTxt:"（仮）防御の半分を次の攻撃に",phase:{at:0.5,spd:10}},
+});
 const AREAS=[
  {key:"street",n:"ストリート",rows:13,pool:["van","bike","sedan","minivan"],easy:["van","bike"],elite:"wraith",boss:"boss1",mid:6,hpMul:1.2,bossMul:1.5,atkMul:1.3},
  {key:"touge",n:"峠",rows:14,pool:["coupe","kei","offbike","rally"],easy:["coupe","offbike"],elite:"downhill",boss:"boss2",mid:6,hpMul:1.4,bossMul:1.1,atkMul:1.3},

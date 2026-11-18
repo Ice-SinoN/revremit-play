@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.2（β2）";
+const VERSION="試作 v0.22.3（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -174,7 +174,7 @@ function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S
 /* ★つづきから */
 function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
   const st=r.stage||{};if(st.s==="battle"&&ENEMIES[st.key]){if(st.j!=null)G.path[G.row]=st.j;startBattleState(st.key);enterBattle()}
-  else if(st.s==="win"){const rk=st.rank;if(rk==="boss"||rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
+  else if(st.s==="win"){const rk=st.rank;if(st.key&&ENEMIES[st.key]&&ENEMIES[st.key].ally){allyBossAfter();return}if(rk==="boss"||rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
   else showMap()}
 function newRun(mode,bring){const ch=curChar();clearRun();newRunState(mode,ch,(bring||[]).map(normMinicar).filter(Boolean),loadDeck(ch),runOpts());SND.setCar();
   // ★v0.19（text.md v0.7 10-1）：初めてのラン＝チュートリアル → 導入 prologue → オープニング op → ROAD に入る op_road → エリアの入り口 → マップ。
@@ -214,7 +214,10 @@ function enterNode(j){SND.se("map_select");
   if(n.k==="hidden"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};
     if(!seenGet().hidden_in){const l=TEXT.hiddenLast[G.char];TEXT.scenes.hidden_in.lines=TEXT.scenes.hidden_in.lines.slice(0,2).concat(l?[l]:[]);showScene("hidden_in",go)}else go()}
   else if(n.k==="battle"||n.k==="elite"){const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()}
-  else if(n.k==="boss"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};showScene(AREAS[n.a].boss+"_pre",go)}
+  else if(n.k==="boss"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};
+    /* ★v0.22.3 その子のボス（零号の前に連戦）。まだ倒していなければ、先に「○○_boss_pre」→ その子のボス */
+    const ab=allyBossOf(n);if(ab){showScene(G.char.toLowerCase()+"_boss_pre",()=>{saveRun({s:"battle",key:ab,j});startBattleState(ab);enterBattle()});return}
+    showScene(AREAS[n.a].boss+"_pre",go)}
   else if(n.k==="shop")showShop(n);
   else if(n.k==="sim")showSim();
   else if(n.k==="lucky"){partsChoice("ラッキー！パーツを1つ選ぶ",nextRow);setBg("lucky")}
@@ -240,7 +243,7 @@ function onIdle(){if(S.pending&&!busy()){const f=S.pending;S.pending=null;f()}}
 setInterval(onIdle,50);
 /* 押したら、モーションの残りを飛ばす */
 function uiSkip(){flushAnim();onIdle()}
-function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="boss3"){S.toastQ=(TEXT.scenes[sceneKey("boss3_phase")]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
+function afterAct(r,rpm0){A.pv=null;const phK=B.key==="boss3"?sceneKey("boss3_phase"):ENEMIES[B.key]&&ENEMIES[B.key].ally?G.char.toLowerCase()+"_boss_phase":null;if(B.ev.some(e=>e.k==="phase")&&phK){S.toastQ=(TEXT.scenes[phK]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
   // エンジン音：回転数が変わったら約2秒だけ（★08:20）。ブローは SND.blow が鳴らす
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
@@ -337,7 +340,7 @@ function onUpIcons(){const k={};B.onUp.forEach(o=>{const t=o[0]==="genHand"?"晶
 /* ---- 勝った ---- */
 function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();SND.jingle("hidden_win");setTimeout(()=>SND.se("card_unlock"),900)}else SND.jingle(!B.enemyActed?"one_turn_kill":"win")}
   setScreen("win");setScene("dim");closeModal();
-  const w=winRewards();S.win=w;saveRun({s:"win",rank:w.rank});
+  const w=winRewards();S.win=w;saveRun({s:"win",rank:w.rank,key:w.key});
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
   S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank);
@@ -350,7 +353,11 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();
 }
 const LAMP_X=[156,319,483];
 function takeCard(id){if(id)G.deck.push(inst(id));afterWin()}
-function afterWin(){const r=S.win.rank;if(r==="boss")partsChoice("ボス撃破！パーツを1つ選ぶ",nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
+/* その子のボス：サーキットのボスのマスで、その子で走っていて、まだ倒していないとき */
+function allyBossOf(n){const ab=typeof ALLY_BOSS!=="undefined"&&ALLY_BOSS[G.char];return ab&&ENEMIES[ab]&&AREAS[n.a].boss==="boss3"&&!G.allyBossDone?ab:null}
+/* その子のボスに勝ったあと：パーツ → 「○○_boss_post」→ 同じマスで零号へ（段は進めない） */
+function allyBossAfter(){G.allyBossDone=true;const n=G.map[G.row][G.path[G.row]||0];partsChoice("ボス撃破！パーツを1つ選ぶ",()=>showScene(G.char.toLowerCase()+"_boss_post",()=>enterNode(G.path[G.row]||0)))}
+function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")partsChoice("ボス撃破！パーツを1つ選ぶ",nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
 
 /* ---- パーツの3択 ---- */
 function partsChoice(title,done){
