@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.7（β2）";
+const VERSION="試作 v0.22.8（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -288,6 +288,8 @@ function setPreview(i){A.pv=null;if(i<0||!B.hand[i])return;const c=B.hand[i],p=p
 function renderBattle(){
   if(!B)return;setScreen("battle");
   const e=B.e,full=!canDraw(),locked=B.over,L=RES;
+  /* ★v0.22.8 design 10-7：予告が変わった瞬間に1回だけ enemy_attack_warn（大きな攻撃・貫通） */
+  {const k=`${G.st.battles}|${B.key}|${e.phased?1:0}|${e.mi||0}|${e.pi||0}`;if(k!==S.warnKey){S.warnKey=k;if(!locked&&e.hp>0&&bigIntent(e))SND.se("enemy_attack_warn")}}
   const tl=timeline().map((x,i)=>`<span class="${x}">${i===0?"今 ":""}${x==="p"?esc(G.char):esc(e.n.slice(0,6))}</span>`).join("");
   const isBoss=e.rank==="boss",LB=L.boss;
   const tag=e.rank==="elite"?"エリート":e.rank==="boss"?"ボス":"",form=formOf(e);

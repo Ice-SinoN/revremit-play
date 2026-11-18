@@ -19,9 +19,9 @@ const CHARS={
      join：その夜を初めてクリアしたら加わる（NIGHTS の open.chars）。絵はまだないので YUKI の絵で出す（仮） */
   HINA:{
     name:"HINA",carName:"モンキー125",weapon:"ピストンハンマー",type:"速攻",join:1,
-    car:{type:"mt",gears:5,mult:[1,1.3,1.6,1.9,2.2],/* ★v0.22.7 design 10-3 */
+    car:{type:"mt",gears:5,mult:[1,1.35,1.7,2.05,2.4],/* ★v0.22.7 design 10-3・★v0.22.8 10-6（仮）5速 2.4 */
       red:7500,limit:8500,band:[4500,5500],core:[4800,5200],
-      idle:1000,brake:3000,hp:60,spd:16,minShift:3000,
+      idle:1000,brake:3000,hp:60,spd:15,minShift:3000,
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1500,3500],M:[3500,6000],R:[7500,8500]}},
     deck:[["h_youda",3],["h_gouda",2],["h_kagerou",2],["h_kneegrip",2],["h_hidamari",2],["h_sunrise",1],["h_kickstart",2],["braking",2],["qshift",2],["slip",1],["blip",1]],
@@ -34,8 +34,8 @@ const CHARS={
       idle:1000,brake:3000,hp:75,spd:14,minShift:3000,
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1000,2500],M:[2500,4000],R:[6800,8000]}},
-    deck:[["m_touka",4],["m_rinjin",2],["m_hanawa",2],["m_softtop",1],["m_hanaakari",1],["m_kinen",2],["m_hougou",1],["braking",2],["qshift",2],["slip",1],["blip",2]],
-    pool:null,skill:"m_hougou",rule:{chainStep:0.15,chainBlk:10},ruleTxt:"チェインのボーナスが1つ +15%（ほかは +10%）・ターンの終わりにチェインの数だけ防御（10まで）",
+    deck:[["m_touka",4],["m_rinjin",2],["m_hanawa",2],["m_softtop",1],["m_hanaakari",1],["m_kinen",2],["m_hougou",1],["braking",2],["qshift",2],["slip",2],["blip",1]],/* ★v0.22.8 10-6 ブリッピング1枚をスリップに */
+    pool:null,skill:"m_hougou",rule:{chainStep:0.15,chainBlk:20,chainBlkMul:2},ruleTxt:"チェインのボーナスが1つ +15%（ほかは +10%）・ターンの終わりにチェイン×2 の防御（20まで）",
   },
   NANA:{
     name:"NANA",carName:"GR スープラ",weapon:"ストレートシックス",type:"シフト連打",join:3,
