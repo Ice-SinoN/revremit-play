@@ -495,7 +495,7 @@ null,
 ],
 [
 2,
-"ending_garage|opening"
+"ending_hina|ending_garage|opening"
 ]
 ]
 },
@@ -536,7 +536,7 @@ null,
 "……次は、もっと先まで。"
 ]
 ],
-"bg": "ending_garage|opening"
+"bg": "ending_hina|ending_garage|opening"
 },
 "rest_first_hina": {
 "lines": [
@@ -1119,7 +1119,7 @@ null,
 ],
 [
 2,
-"ending_garage|opening"
+"ending_momo|ending_garage|opening"
 ],
 [
 9,
@@ -1127,7 +1127,7 @@ null,
 ],
 [
 10,
-"ending_garage|opening"
+"ending_momo|ending_garage|opening"
 ]
 ]
 },
@@ -1168,7 +1168,7 @@ null,
 "……次の夜も、みんなで。"
 ]
 ],
-"bg": "ending_garage|opening"
+"bg": "ending_momo|ending_garage|opening"
 },
 "rest_first_momo": {
 "lines": [
@@ -1766,7 +1766,7 @@ null,
 ],
 [
 2,
-"ending_garage|opening"
+"ending_nana|ending_garage|opening"
 ]
 ]
 },
@@ -1807,7 +1807,7 @@ null,
 "……こゆきさん。<br>次の夜も、負けませんわ。"
 ]
 ],
-"bg": "ending_garage|opening"
+"bg": "ending_nana|ending_garage|opening"
 },
 "rest_first_nana": {
 "lines": [

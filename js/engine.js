@@ -366,7 +366,7 @@ function playCard(i,shift){
     nr=Math.round(nr*drop/100)*100;B.rpm=nr;
     addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear});
     if(g==="perfect"){addLog(drawN(1)?"パーフェクト：1枚引いた":"パーフェクト：手札がいっぱい");if(has("lsd")){B.block+=8;addLog("LSD：防御 +8")}}
-    if(g==="good"&&has("clutch")&&!B.clutchT){B.clutchT=true;if(drawN(1))addLog("強化クラッチ：1枚引いた")}// BUG-14：1ターン1回
+    if(g==="good"&&has("clutch")&&!B.clutchT&&!(G.mode==="AT"&&B.clutchAT)){B.clutchT=true;if(G.mode==="AT")B.clutchAT=true;if(drawN(1))addLog("強化クラッチ：1枚引いた")}// BUG-14：1ターン1回／★design 10-8（チーフ決め）：AT は1戦に1回
     if(G.mode==="AT"&&B.atShiftDraw>0){B.atShiftDraw--;if(drawN(1))addLog("クラッチ蹴り：1枚引いた")}
     onShiftUp(g);
   }else B.rpm=nr;
