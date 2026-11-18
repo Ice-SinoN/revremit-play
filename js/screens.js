@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.1（β2）";
+const VERSION="試作 v0.22.2（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -198,7 +198,7 @@ function showMap(){
   rows.forEach(([r,i],ci)=>{const x=10+ci*step;
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
       const st=i<G.row?"done":i===G.row?"now":"later",hidQ=n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
-      const ic=MAP_ICON(n.k==="shop"&&n.feat?"shopF":n.k==="hidden"?"elite":n.k,i<G.row?"done":i===G.row?"on":"off");
+      const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
       const inner=artHave(ic)?`<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab}</span>`;
       h+=i===G.row?`<button class="node k-${n.k} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
@@ -212,24 +212,26 @@ function showDeckList(){const c={};G.deck.forEach(x=>{const k=CD(x).n+(x.up?"+":
 function enterNode(j){SND.se("map_select");
   const n=G.map[G.row][j];if(!n)return;G.path[G.row]=j;SND.se("map_select");
   if(n.k==="hidden"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};
-    if(!seenGet().hidden_in){const l=TEXT.hiddenLast[G.char]||TEXT.hiddenLast.YUKI;TEXT.scenes.hidden_in.lines=TEXT.scenes.hidden_in.lines.slice(0,2).concat([l]);showScene("hidden_in",go)}else go()}
+    if(!seenGet().hidden_in){const l=TEXT.hiddenLast[G.char];TEXT.scenes.hidden_in.lines=TEXT.scenes.hidden_in.lines.slice(0,2).concat(l?[l]:[]);showScene("hidden_in",go)}else go()}
   else if(n.k==="battle"||n.k==="elite"){const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()}
   else if(n.k==="boss"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};showScene(AREAS[n.a].boss+"_pre",go)}
   else if(n.k==="shop")showShop(n);
   else if(n.k==="sim")showSim();
   else if(n.k==="lucky"){partsChoice("ラッキー！パーツを1つ選ぶ",nextRow);setBg("lucky")}
-  else if(n.k==="garage"){if(!seenGet().rest_first)showScene("rest_first",showRest);else showRest()}// ★v0.19：休憩に初めて入ったとき（text.md 10-20）
+  else if(n.k==="garage"){if(sceneKey("rest_first")&&!seenGet()[sceneKey("rest_first")])showScene("rest_first",showRest);else showRest()}// ★v0.19：休憩に初めて入ったとき（text.md 10-20）
 }
 function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
-  if(r==="clear"){showScene(AREAS[prev.a].boss+"_post",()=>showScene("ed1",()=>showScene("roadlog_001",()=>showScene("ed1_after",()=>showResult(true)))));return}
+  if(r==="clear"){const ally=G.char!=="YUKI"&&seenGet()[sceneKey("ed1")];/* ★v0.22.2 仲間のエンディング・ROAD LOG はその子での初クリアだけ（story 7-7） */
+    showScene(AREAS[prev.a].boss+"_post",()=>ally?showResult(true):showScene("ed1",()=>showScene("roadlog_001",()=>showScene("ed1_after",()=>showResult(true)))));return}
   if(r==="area"){showScene(AREAS[prev.a].boss+"_post",()=>areaIntro(areaIdx(),showMap));return}
   showMap()}
 
 /* ---- 戦闘 ---- */
 function enterBattle(){
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
-  A.bgKey=AREA_BG[curArea().key]||"street";
-  const E=ENEMIES[B.key],own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
+  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";
+  const E=Object.assign({},ENEMIES[B.key]);if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
+  const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
   Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
   takeEvents();syncDisp();renderBattle();SND.redOn=true;SND.red(B.rpm);SND.areaBgm("battle");
 }
@@ -243,13 +245,13 @@ function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="bos
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
   if(window.TUTORIAL_ON){if(r==="dead"){G.hp=1}S.pending=null;renderBattle();tutAfter(r);return}
-  if(r==="win")S.pending=()=>{if(!seenGet().first_remit)showScene("first_remit",showWin);else showWin()};else if(r==="dead")S.pending=()=>showResult(false);
+  if(r==="win")S.pending=()=>{if(sceneKey("first_remit")&&!seenGet()[sceneKey("first_remit")])showScene("first_remit",showWin);else showWin()};else if(r==="dead")S.pending=()=>showResult(false);
   else if(r==="escape")S.pending=()=>{SND.engineStop();SND.jingle("hidden_escape");toast2(TEXT.ui.hidden_lose.replace(/<br>/g,""));nextRow()};
   renderBattle();
 }
 function doPlay(i,shift,ok){if(B.over||!tutAllow("play",{i,shift}))return;
   if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){SND.se("blow_warn");S.blowGo=()=>{SND.se("ui_ok");seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
-    modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">いちばん上のギアで リミットをこえると、エンジンブロー（このランは終わり）</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="SND.se('ui_cancel');closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
+    modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">エンジンが止まって、このランは終わります。</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="SND.se('ui_cancel');closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
 function doEndTurn(){if(B.over||!tutAllow("end"))return;flushAnim();const r0=B.rpm;SND.se("turn_end");afterAct(endTurn(),r0)}
 function doDownShift(){if(B.over||!tutAllow("down"))return;flushAnim();const r0=B.rpm,g0=B.gear;afterAct(downShift(),r0);if(B.gear<g0)TUTS.downs++;tutAfter("down")}
 function doParking(){if(B.over)return;flushAnim();const r0=B.rpm;afterAct(parking(),r0)}
@@ -480,19 +482,24 @@ function whoName(who){if(!who||who==="REC")return"";if(who.startsWith("GHOST:"))
 /* ★v0.22：仲間で走っているときは、場面の ID に "_hina" などがあればそれ。なければ YUKI の話の場面（ボスの前後・エンディングなど）は出さない（その子の話は他班が書いている途中） */
 const YUKI_ONLY=/^(first_remit|area[123]|boss[123]_(pre|post|phase)|ed1|roadlog_001|ed1_after|rest_first)$/;
 function sceneKey(key){const ch=G&&G.char;if(!ch||ch==="YUKI")return key;const lc=ch.toLowerCase(),k2=key+"_"+lc;if(TEXT.scenes[k2])return k2;return YUKI_ONLY.test(key)?null:key}
-function showScene(key,done){const k0=sceneKey(key);if(k0!==key){if(!k0){done&&done();return}key=k0}
+function showScene(key,done){const bk=key,k0=sceneKey(key);if(k0!==key){if(!k0){done&&done();return}key=k0}
   const sc=TEXT.scenes[key];if(!sc){done&&done();return}
   setScreen("scene");setScene(A.mode==="battle"&&!sc.under?"battle":"dim");closeModal();if(sc.under)setBg(sc.under);
-  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(key==="ed1"||key==="ed1_after"?"ending":key==="roadlog_001"?"pzlog":key==="__t"||key==="run_start"||key==="rest_first"||/^area/.test(key)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
+  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(bk==="ed1"||bk==="ed1_after"?"ending":bk==="roadlog_001"?"pzlog":bk==="__t"||/^run_start/.test(bk)||bk==="rest_first"||/^area/.test(bk)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
   sceneLine()}
 function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/g,"\n"):""}
 /* ★v0.22 QA の指摘：MIO が絵にいないのに話す場面（ROAD の中など）は、帯に「通信」の印と通信の音（audio.js v0.6 の comm_open・comm_blip）。
    MIO がその場にいるのは、ガレージの場面（導入・オープニング・エンディングの6行目から・加わる話）だけ */
-const MIO_HERE=/^(prologue|op|ed1_after|join_\w+)$/;
-function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;if(s.key==="ed1")return i<5;if(s.key==="hina_op")return i>=5;return!MIO_HERE.test(s.key)}
+const MIO_HERE=/^(prologue|op|ed1_after\w*|join_\w+|next_sora)$/;
+/* ★v0.22.2 仲間の編：エンディングは「.50 CAL のガレージ」の行から、○○_op は「ROAD。」の行までがガレージ */
+function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;const L=s.sc.lines,at=re=>L.findIndex(x=>re.test(x[1]||""));
+  if(/^ed1/.test(s.key)&&!/after/.test(s.key)){const g=at(/^\.50 CAL のガレージ/);return g<0||i<g}
+  if(/_op$/.test(s.key)){const r=at(/^ROAD。/);return r>=0&&i>=r}
+  return!MIO_HERE.test(s.key)}
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
   if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");if(!comm&&s.i>0&&mioComm(s,s.i-1))SND.se("comm_close");
-  if(/^起動音。/.test(full)){SND.bgmStop();SND.se("gate_boot")}// ★v0.22.1 CROSS GATE の起動音（audio-list 6-2）
+  if(/^カシャ/.test(full))SND.se("photo_shutter");// ★v0.22.2 MOMO 編の写真の音
+  if(/^起動音/.test(full)){SND.bgmStop();SND.se("gate_boot")}// ★v0.22.1 CROSS GATE の起動音（audio-list 6-2）
   if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se(comm?"comm_blip":"text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
   renderScene()}
 /* ★v0.18.2（ちかちかの直し）：絵（一枚絵・立ち絵）は変わったときだけ入れかえる。
@@ -503,7 +510,7 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
   /* ★v0.20.1：キャラが描いてある一枚絵（opening_road・ending_garage）の上には立ち絵を出さない（2人が重なるため）。名前は帯に出る */
   const bgHasChars=/revremit_story_(opening_road|ending_garage)\.png/.test(bgp);
   const comm=mioComm(s,s.i);
-  const bw0=!bgHasChars&&(who==="YUKI"||who==="MIO"||who==="YUKI_IN")?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
+  const bwho=who&&who.replace(/_IN$/,""),bw0=!bgHasChars&&/^(YUKI|MIO|HINA|MOMO|NANA)$/.test(bwho||"")?STORY_ART.bust(bwho,faceOf(l)):null,/* ★v0.22.2 仲間の立ち絵（あれば） */bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");
   if(!root||root.dataset.key!==s.key){
     u.innerHTML=`<div class="scroot" data-key="${esc(s.key)}"><div class="scbgw"></div><div class="scbw"></div><div class="tap" ${at(0,0,640,360)} onclick="sceneTap()"></div>
@@ -525,7 +532,7 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
   const band=root.querySelector(".scband");if(band){const name=whoName(who),txt=sceneText().slice(0,s.shown);
     band.classList.toggle("comm",comm);band.className=`scband${comm?" comm":""}${who&&who!=="REC"?"":" nar"}${who==="FILE"?" file":""}${who==="REC"?" rec":""}${who&&who.startsWith("GHOST:")?" ghost":""}${!who&&l[2]==="tag"?" tag":""}`;
     const nm=band.querySelector(".scname");nm.innerHTML=(comm?'<span class="commk">通信</span>':"")+esc(name);nm.style.display=name?"":"none";
-    band.querySelector(".sctext").textContent=who==="YUKI_IN"?"（"+txt+"）":txt;
+    band.querySelector(".sctext").textContent=/_IN$/.test(who||"")?"（"+txt+"）":txt;
     band.querySelector(".scnext").textContent=s.shown>=sceneText().length?"▼":""}}
 function sceneTap(){const s=S.sc;if(!s)return;const full=sceneText();
   if(s.shown<full.length){s.shown=full.length;clearInterval(s.t);renderScene();return}
@@ -534,7 +541,7 @@ function sceneSkip(){SND.se("ui_cancel");sceneEnd()}
 function sceneEnd(){const s=S.sc;if(!s)return;clearInterval(s.t);if(mioComm(s,s.i)||mioComm(s,s.i-1))SND.se("comm_close");S.sc=null;seenSet(s.key);s.done&&s.done()}
 /* エリアの入り口（初めてのときだけ一言。2回目からはエリア名だけ） */
 function areaIntro(ai,done){const k="area"+(ai+1),sc=TEXT.scenes[k];if(!sc){done();return}
-  if(seenGet()[k]||!sceneKey(k)){TEXT.scenes.__t.title=sc.title||"";showScene("__t",done);return}showScene(k,done)}
+  if(!sceneKey(k)||seenGet()[sceneKey(k)]){TEXT.scenes.__t.title=sc.title||"";showScene("__t",done);return}showScene(k,done)}
 TEXT.scenes.__t={title:"",lines:[]};
 
 /* ★v0.18.3：戻る／出るボタンは全部の画面で同じ形・同じ場所（右上の角 (532,22) 104×32）。640 の部品のボタン・太字・黒とライムの縁取りで背景から浮かせる */
@@ -619,7 +626,7 @@ function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   afterCarShow(got)}
 /* ★v0.22 仲間が加わる話（NIGHT 1・2・3 の初クリア）・β の終わり（NIGHT 4 のクリア＝「次の仲間は……？」） */
 function playJoins(q,done){const c=q.shift();if(!c){done();return}const next=()=>playJoins(q,done);
-  if(c==="__next"){showScene("ally_next",next);return}
+  if(c==="__next"){showScene("ally_next",()=>showScene("next_sora",next));return}/* ★v0.22.2 text 15章 SORA の予告 */
   SND.jingle("ally_join",{who:c.toLowerCase()});const k="join_"+c.toLowerCase();
   if(TEXT.scenes[k])showScene(k,next);
   else{TEXT.scenes["join_tmp"]={light:1,lines:[[null,TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)+"。"]]};showScene("join_tmp",next)}}

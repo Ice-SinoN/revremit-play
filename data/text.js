@@ -4,7 +4,7 @@
    "GHOST:名前"＝ボスの声（名前を灰色）、"REC"＝記録のかけら（名前なし・薄い文字）。<br> は改行。bg の "a|b"＝a がなければ b。under＝絵がないときに後ろに出す背景
    bg：場面の絵（グラフィック班 story\c2 の一枚絵。なければ戦闘の背景を暗くして出す）。face：立ち絵の表情（story\c2）。 */
 const TEXT={
-  names:{YUKI:"こゆき",MIO:"みお",FILE:"",YUKI_IN:"こゆき",HINA:"ひな",HINA_IN:"ひな",MOMO:"ももか",NANA:"ななみ"},
+  names:{YUKI:"こゆき",MIO:"みお",FILE:"",YUKI_IN:"こゆき",HINA:"ひな",HINA_IN:"ひな",MOMO:"もも",MOMO_IN:"もも",NANA:"ななみ",NANA_IN:"ななみ",SORA:"そら"},
   scenes:{
     /* ===== ★v0.19：ストーリー v3（text.md v0.7 10章）===== */
     prologue:{bg:"opening",lines:[
@@ -173,7 +173,7 @@ const TEXT={
     /* 12-1：NIGHT 3 に初めて入るとき（run_start のあと・マップの前・1回だけ）。4行目は走るキャラ（NIGHT3_LAST） */
     night3_first:{under:"street",lines:[
       ["MIO","今夜から、記録の暴れ方が強くなってます。<br>いちばん上のギアに、気をつけてください。","normal"],
-      ["MIO","いちばん上のギアで 8000 をこえると、<br>エンジンブロー。ランが、そこで終わります。","serious"],
+      ["MIO","いちばん上のギアで 8000 をこえると、ブロー。<br>エンジンが止まって、ランはそこで終わりです。","serious"],
       ["MIO","予告に「⚠ブロー」と出たら、<br>打つ前に、回転を下げてくださいね。","normal"]]},
     /* 12-5：裏道のマスに入ったとき。3行目は走るキャラ（HIDDEN_LAST） */
     hidden_in:{under:"street",lines:[
@@ -246,7 +246,7 @@ const TEXT={
   },
   /* ★v0.22 12-1・12-5 の走るキャラの行（MOMO・NANA はそれぞれの編を書くときにシナリオ班が見直す）。裏道の MOMO・NANA の行は text.md にまだないので YUKI の行 */
   night3Last:{YUKI:["YUKI","……ん。やりすぎない。","normal"],HINA:["HINA","了解っス！　回しすぎ注意、ですね！"],MOMO:["MOMO","ふふ、気をつけるね。みおちゃんも、見ててね。"],NANA:["NANA","わたくしが、そんなへまをするとでも？"]},
-  hiddenLast:{YUKI:["YUKI","……5ターンで、返す。","serious"],HINA:["HINA","近道っスね！　行きます！"]},
+  hiddenLast:{YUKI:["YUKI","……5ターンで、返す。","serious"],HINA:["HINA","近道っスね！　行きます！"]},/* MOMO・NANA の行は text.md にまだない → YUKI の行（シナリオ班へ） */
   /* 12-2 夜を選ぶ画面・12-5 裏道 */
   ui:{night_label:"NIGHT {n}",night_last:"LAST NIGHT（最後の夜）",night_lock:"まだ開いていない夜",night_blow:"ブローあり",night_open:"NIGHT {n} が開いた",
     warn_overrev:"⚠オーバーレブ",warn_blow:"⚠ブロー",ally_join:"{name} が、ROAD を走れるようになった",ally_next:"次の仲間は……？",

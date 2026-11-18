@@ -47,7 +47,9 @@ function fxCat(x,y,life){A.fx.push({k:"cat",x,y,t:0,life:life||700})}
 function flash(col,life){const now=A.now||performance.now();if(A.lastFlash&&now-A.lastFlash<350)return;A.lastFlash=now;A.flash={col,t:0,life:life||90}}
 
 /* 立ち位置（足元）から、体のまんなか・手の先 */
-const BODY=()=>SPR.YUKI&&!SPR.YUKI.proc?80:34;// C2 の YUKI は背 約160 → 体のまんなか 80
+/* ★v0.22.2 走るキャラの絵（仲間の絵がなければ YUKI の絵） */
+const PSPR=()=>{const c=typeof G!=="undefined"&&G&&G.char;return c&&SPR[c]&&!SPR[c].proc?SPR[c]:SPR.YUKI};
+const BODY=()=>PSPR()&&!PSPR().proc?80:34;// C2 の YUKI は背 約160 → 体のまんなか 80
 const PC=()=>({x:A.P.x+A.P.dx,y:A.P.y+A.P.dy-BODY()});
 const EC=()=>({x:A.E.x+A.E.dx,y:A.E.y+A.E.dy-(SPR[A.E.set]&&!SPR[A.E.set].proc?(A.E.set.startsWith("boss")?110:80):34)*A.E.scale});
 const FIST=()=>({x:A.P.x+A.P.dx+(BODY()>40?56:38),y:A.P.y+A.P.dy-BODY()});
@@ -63,8 +65,8 @@ function settleE(){A.E.tint=null;A.E.dx=0}
    ジャブの「半歩ふみこむ」などの前後の動きは dx（プログラム側）。絵にないタグは近いタグで代わりに出す（ALIAS）。 */
 const TAG_ALIAS={/* C2 のタグ */atk_light:"atk_l",atk_heavy:"atk_h",atk_finisher:"super",charge:"super",kneel:"hit",stop:"hit",
   /* 前の絵 */atk_h:"atk_light",super:"charge",atk_finisher:"charge",debuff:"atk_l",rev:"stand",draw:"debuff",skill:"guard",blow:"hit",win:"stand"};
-function ytag(tag){const set=SPR.YUKI;let t=tag,k=0;while(set&&!set.tags[t]&&TAG_ALIAS[t]&&k++<4)t=TAG_ALIAS[t];return set&&set.tags[t]?t:"stand"}
-function yfi(tag,p){const n=tagLen(SPR.YUKI,tag)||1;return Math.round(Math.max(0,Math.min(1,p))*(n-1))}
+function ytag(tag){const set=PSPR();let t=tag,k=0;while(set&&!set.tags[t]&&TAG_ALIAS[t]&&k++<4)t=TAG_ALIAS[t];return set&&set.tags[t]?t:"stand"}
+function yfi(tag,p){const n=tagLen(PSPR(),tag)||1;return Math.round(Math.max(0,Math.min(1,p))*(n-1))}
 /* 段を作る：{tag,p,dx,dy,d,on2(), up(k)} */
 function ys(tag,p,o){const t=ytag(tag);return{d:o.d,on(){A.P.tag=t;A.P.fi=yfi(t,p);if(o.dx!=null)A.P.dx=o.dx;if(o.dy!=null)A.P.dy=o.dy;if(o.on)o.on()},up:o.up,end:o.end}}
 const MOTIONS={
@@ -198,9 +200,9 @@ function drawBattle(g){
   // 足元の影（2段の楕円・graphics-hq の基準）
   const sh=(x,w)=>{g.fillStyle="rgba(0,0,0,.28)";g.fillRect(Math.round(x-w/2),PX.FLOOR-2,Math.round(w),4);g.fillStyle="rgba(0,0,0,.22)";g.fillRect(Math.round(x-w*0.35),PX.FLOOR-3,Math.round(w*0.7),6)};
   sh(A.P.x+A.P.dx,BODY()>40?64:32);sh(A.E.x+A.E.dx,(BODY()>40?(A.E.set.startsWith("boss")?96:64):36)*A.E.scale);
-  const ei=idlePose(SPR[A.E.set]||SPR.van,A.E,1.7),pi=idlePose(SPR.YUKI,A.P,0);
+  const ei=idlePose(SPR[A.E.set]||SPR.van,A.E,1.7),pi=idlePose(PSPR(),A.P,0);
   drawSprite(g,SPR[A.E.set]||SPR.van,ei.tag,ei.fi,A.E.x+A.E.dx,A.E.y+A.E.dy+ei.dy,{pal:A.E.pal,tint:A.E.tint,alpha:A.E.alpha,scale:A.E.scale,glitch:A.E.glitch});
-  drawSprite(g,SPR.YUKI,pi.tag,pi.fi,A.P.x+A.P.dx,A.P.y+A.P.dy+pi.dy,{tint:A.P.tint,alpha:A.P.alpha});
+  drawSprite(g,PSPR(),pi.tag,pi.fi,A.P.x+A.P.dx,A.P.y+A.P.dy+pi.dy,{tint:A.P.tint,alpha:A.P.alpha});
   // 体力のバー（★C2 v2 の見本どおり、頭の上）
   const bw=RES.bars.w,by=RES.bars.y;
   bar(g,A.P.x-bw/2,by,bw,A.disp.php,A.disp.pmax,"#C5FF45",A.disp.pblk);

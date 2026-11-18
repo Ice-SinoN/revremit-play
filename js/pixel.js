@@ -29,6 +29,9 @@ const ART_SRC={
 /* ★エリア2・3 の敵とボス2・3（グラフィック班 2026-11-07）。枠 224／ボス 288 */
 ["coupe","kei","offbike","rally","downhill","touring","formula","gtcar","safety","wrecker","boss2","boss3"].forEach(k=>{const b=k.startsWith("boss"),f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;
   ART_SRC[k]={sheet:f+".png",json:f+".json",foot:b?[144,284]:[112,220]}});
+/* ★v0.22.2 グラフィック班 区切り2・ラウンド16：仲間の戦闘（YUKI と同じ形・枠 224）・裏道のロストライン（エリートの色変え） */
+["HINA","MOMO","NANA"].forEach(c=>{const f=`assets/c2/characters/${c}/c2/revremit_chr_${c}_c2_sheet`;ART_SRC[c]={sheet:f+".png",json:f+".json",foot:[112,220]}});
+["lost_wraith","lost_downhill","lost_wrecker"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220]}});
 /* 絵がまだない敵のもと（色変えで仮に出す。いまは全部そろったので使われない） */
 const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
@@ -276,7 +279,7 @@ function digitsW(str,s){return String(str).length*4*(s||1)-(s||1)}
 /* ===== ★C2 の背景（bg\c2 の base＋fx json）：ネオンの部品・映りこみのシート・窓のまたたき・車のライト・雪 ===== */
 const STAGE_C2={};
 async function buildStagesC2(have){
-  for(const name of["street","pass","circuit"]){const dir="assets/c2/bg/c2/",js=dir+`revremit_bg_${name}_fx.json`,bp=dir+`revremit_bg_${name}_base.png`;
+  for(const name of["street","pass","circuit","hidden"]){/* ★v0.22.2 裏道の背景（動く層なし） */const dir="assets/c2/bg/c2/",js=dir+`revremit_bg_${name}_fx.json`,bp=dir+`revremit_bg_${name}_base.png`;
     if(!have.has(bp))continue;const base=await loadImg(bp);if(!base)continue;const st={base,neon:[],sheets:[],pixels:null,cars:null,snow:null};
     const j=have.has(js)?await loadJSON(js):null;
     if(j)for(const L of j.layers||[]){
