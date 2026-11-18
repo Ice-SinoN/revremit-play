@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.12（β2）";
+const VERSION="試作 v0.22.13（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -142,14 +142,29 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
   const sc=$("#dkl")?$("#dkl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>デッキを組む（${esc(ch)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
-    return `<div class="dr r-${rarityOf(id)}" title="${esc(descOf(id,false,0))}"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
-     <button class="mini" ${k?"":"disabled"} onclick="deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini" ${k>=lim||n>=RULES.deckSize?"disabled":""} onclick="deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
-  ${backBtn("もどる","S.deck=null;showTitle()")}
-  <div class="sign side" ${at(452,60,180,120)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
-   <div class="small dim">同じカードは<br>コモン${RULES.deckLimit.C}・レア${RULES.deckLimit.R}・エピック${RULES.deckLimit.E}<br>固有スキル${RULES.deckLimit.SK}枚まで</div></div>
-  <div class="col" ${at(452,236,180)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,curChar());S.deck=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
+    return `<div class="dr r-${rarityOf(id)}${S.dkSel===id?" on":S.dkCmp===id?" cmp":""}" onclick="deckPick('${id}')"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
+     <button class="mini" ${k?"":"disabled"} onclick="event.stopPropagation();deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini" ${k>=lim||n>=RULES.deckSize?"disabled":""} onclick="event.stopPropagation();deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
+  ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;showTitle()")}
+  ${deckDetail(dk)}
+  <div class="sign side" ${at(316,262,150,92)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
+   <div class="small dim">同じカードは<br>C${RULES.deckLimit.C}・R${RULES.deckLimit.R}・E${RULES.deckLimit.E}・固有${RULES.deckLimit.SK}枚まで</div></div>
+  <div class="col" ${at(474,262,158)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,curChar());S.deck=null;S.dkSel=S.dkCmp=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
    <button class="u9" onclick="S.deck=defaultDeck(curChar());renderDeck()">最初のデッキ</button></div>`;
   if($("#dkl"))$("#dkl").scrollTop=sc}
+/* ★v0.22.13（★虎雪 20:10「デッキ構築画面でカードの効果が見られない」）：行をタップで選ぶ → 効果を右の窓に。
+   別のカードを続けて選ぶと、前に選んだカードと並べて見せ、「入れ替える」（前のを1枚抜いて、選んだのを1枚入れる） */
+function deckPick(id){if(S.dkSel===id)return;SND.se("ui_ok");if(S.dkSel)S.dkCmp=S.dkSel;S.dkSel=id;renderDeck()}
+function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(id,false,0),
+   du=descOf(id,true,0),dn=descOf(id,false,0);
+  return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
+   <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
+function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
+  if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div></div>`;
+  const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
+  return `<div class="sign dkdet${c?" two":""}" ${at(316,56,316,c?166:200)}>${c?deckCardBox(c,dk,"前に選んだ"):""}${deckCardBox(s,dk,"選んだ")}</div>`+
+   (c?`<button class="u9 dkswap" ${at(316,226,316,32)} ${can?"":"disabled"} onclick="deckSwap()">${can?`入れ替える（${esc(CARDS[c].n)} −1 → ${esc(CARDS[s].n)} ＋1）`:`入れ替えられない（${(dk[c]||0)?esc(CARDS[s].n)+"はもう上限":esc(CARDS[c].n)+"はデッキにない"}）`}</button>`:"")}
+function deckSwap(){const dk=S.deck,s=S.dkSel,c=S.dkCmp;if(!s||!c||!(dk[c]>0)||(dk[s]||0)>=deckLimitOf(s))return;
+  dk[c]--;if(!dk[c])delete dk[c];dk[s]=(dk[s]||0)+1;SND.se("part_swap");renderDeck()}
 function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0||k>deckLimitOf(id))return;if(d>0&&deckCount(dk)>=RULES.deckSize)return;if(k)dk[id]=k;else delete dk[id];renderDeck()}
 
 /* ---- ガレージ（ミニカーを2台まで） ---- */

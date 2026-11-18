@@ -333,3 +333,13 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .chcard{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding-top:12px;text-align:center}
 .chcard .chn{font:16px/20px 'PM12B','PM12'}.chcard.lock{opacity:.55}
 .nblow{display:inline-block;margin-left:6px;font-size:10px;color:#FF6A6A}
+
+/* ★v0.22.13 デッキ：カードの効果の窓 */
+.modal .dkdet,#ui .dkdet{overflow-y:auto;display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;text-align:left;gap:6px;padding:6px 8px}
+.dkdet>.small.dim{line-height:1.6}
+.dkdet .dkc{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere}
+.dkdet .nw{white-space:nowrap}
+.dkdet.two .dkc+.dkc{border-left:1px solid #fff3;padding-left:6px}
+.dkdet .dkd{line-height:1.35}
+.dr.on{box-shadow:inset 0 0 0 2px var(--lime)}
+.dr.cmp{box-shadow:inset 0 0 0 2px #7fd6ff}
