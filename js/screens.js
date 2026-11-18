@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.21（β2）";
+const VERSION="試作 v0.22.22（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -683,8 +683,8 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   const ch=G&&G.char||"YUKI",sl=sRankList(ch),sc=sCountOf(p,ch);
-  if(G&&G.night&&m&&["S","SS","SSS"].includes(m.rank)&&sc<sl.length){if(UNLOCK.chars[ch]){p.unlock.sCountC=Object.assign({},p.unlock.sCountC);p.unlock.sCountC[ch]=sc+1}else p.unlock.sCount=sc+1;
-    const had=new Set(unlockedCards(p));unlockRecalc(p);const id=sl[sc];if(CARDS[id]&&!had.has(id))got.push(`カード：${CARDS[id].n}（S ランク以上のミニカー）`);/* ★design 10-13：もうラボで開けていたら出さない */SAVE.auto()}
+  if(G&&G.night&&m&&["S","SS","SSS"].includes(m.rank)&&sc<sl.length){const had=new Set(unlockedCards(p));/* ★BUG-45：足す前に数える */if(UNLOCK.chars[ch]){p.unlock.sCountC=Object.assign({},p.unlock.sCountC);p.unlock.sCountC[ch]=sc+1}else p.unlock.sCount=sc+1;
+    unlockRecalc(p);const id=sl[sc];if(CARDS[id]&&!had.has(id))got.push(`カード：${CARDS[id].n}（S ランク以上のミニカー）`);/* ★design 10-13：もうラボで開けていたら出さない */SAVE.auto()}
   const jq=(S.joinQ||[]).slice();S.joinQ=[];if(jq.length){playJoins(jq,()=>afterCarShow(got));return}
   afterCarShow(got)}
 /* ★v0.22 仲間が加わる話（NIGHT 1・2・3 の初クリア）・β の終わり（NIGHT 4 のクリア＝「次の仲間は……？」） */
