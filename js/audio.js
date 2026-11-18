@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.9（サウンド班 2026-11-18。claude/revremit-audio.js v0.9 の写し・ゲームに入れたのはプログラム班 v0.22.1）
+/* Rev:Remit audio.js v0.10（サウンド班 2026-11-18。claude/revremit-audio.js v0.10 の写し・ゲームに入れたのはプログラム班 v0.22.4）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -138,12 +138,14 @@ function firingWave(c){let w=PW.get(c);if(w)return w;const N=40,re=new Float32Ar
  for(let n=1;n<N;n++){const a=Math.pow(n,-.75)*(n%2?1:1.35);const ph=r()*Math.PI*2;re[n]=a*Math.cos(ph);im[n]=a*Math.sin(ph);}w=c.createPeriodicWave(re,im);PW.set(c,w);return w;}
 function EngineReal(c,out){
  const g=c.createGain();g.gain.value=0;g.connect(out);
- const load=c.createGain();load.gain.value=.75;load.connect(g);
+ const load=c.createGain();load.gain.value=.75;
  const lp=c.createBiquadFilter();lp.type='lowpass';lp.Q.value=.8;lp.connect(load);
  const pk2=c.createBiquadFilter();pk2.type='peaking';pk2.frequency.value=650;pk2.Q.value=1.4;pk2.gain.value=7;pk2.connect(lp);
  const pk1=c.createBiquadFilter();pk1.type='peaking';pk1.frequency.value=160;pk1.Q.value=1.1;pk1.gain.value=6;pk1.connect(pk2);
  const sh=c.createWaveShaper();const cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(x*2.6);}sh.curve=cv;sh.connect(pk1);
  const pre=c.createGain();pre.gain.value=.85;pre.connect(sh);
+ // ブローの直前の「ガラガラ」：爆発の半分の速さで音量を細かく切る（7500 回転から深く）
+ const rat=c.createGain();rat.gain.value=1;const ratO=c.createOscillator();ratO.type='square';const ratD=c.createGain();ratD.gain.value=0;ratO.connect(ratD).connect(rat.gain);
  const o1=c.createOscillator();o1.setPeriodicWave(firingWave(c));const g1=c.createGain();g1.gain.value=.5;o1.connect(g1).connect(pre);
  const o2=c.createOscillator();o2.type='sine';const g2=c.createGain();g2.gain.value=.38;o2.connect(g2).connect(pre);   // 半分の次数（クランク2回転で1周）
  // 回転のゆらぎ（少しだけ不規則に）
@@ -153,13 +155,17 @@ function EngineReal(c,out){
  const ns=c.createBufferSource();ns.buffer=noiseBuf(c);ns.loop=true;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;bp.frequency.value=1600;
  const am=c.createGain();am.gain.value=.05;ns.connect(bp).connect(am).connect(lp);
  const mo=c.createOscillator();mo.type='square';const mg=c.createGain();mg.gain.value=.05;mo.connect(mg).connect(am.gain);
- const srcs=[o1,o2,jn,ns,mo];let prev=1000,vol=.34;
+ load.connect(rat).connect(g);
+ const srcs=[o1,o2,jn,ns,mo,ratO];let prev=1000,vol=.34;
  const ff=r=>Math.max(8,r/30);
  return{start(t,v=.34){vol=v;srcs.forEach(s=>s.start(t));g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.05);},
   set(rpm,t,glide=.3){const f=ff(rpm),tc=glide?glide/3:0;
    const S=(p,v)=>glide?p.setTargetAtTime(v,t,tc):p.setValueAtTime(v,t);
-   S(o1.frequency,f);S(o2.frequency,f/2);S(mo.frequency,f);S(lp.frequency,350+rpm*.6);S(bp.frequency,1200+rpm*.15);
-   if(glide){if(rpm>prev+300){load.gain.setTargetAtTime(1.15,t,.03);load.gain.setTargetAtTime(.75,t+glide+.25,.25);lp.frequency.setTargetAtTime(900+rpm*.8,t,.03);lp.frequency.setTargetAtTime(350+rpm*.6,t+glide+.2,.3);}
+   const rg=Math.max(0,Math.min(1,(rpm-6800)/1200)),r2=Math.max(0,Math.min(1,(rpm-7400)/500));
+   S(o1.frequency,f);S(o2.frequency,f/2);S(mo.frequency,f);S(ratO.frequency,f/2);S(lp.frequency,350+rpm*.6+rg*1800);S(bp.frequency,1200+rpm*.15);
+   // レッド（6800〜）で荒く：ひずみ・ゆらぎ・吸気・650Hz の共鳴が増える。7500〜で「ガラガラ」
+   S(pre.gain,.85+rg*1.6);S(jg.gain,180+rg*520);S(am.gain,.05+rg*.22);S(mg.gain,.05+rg*.1);S(pk2.gain,7+rg*5);S(ratD.gain,r2*.5);S(rat.gain,1-rg*.5);
+   if(glide){if(rpm>prev+300){load.gain.setTargetAtTime(1.15,t,.03);load.gain.setTargetAtTime(.75,t+glide+.25,.25);lp.frequency.setTargetAtTime(900+rpm*.8,t,.03);lp.frequency.setTargetAtTime(350+rpm*.6+rg*1800,t+glide+.2,.3);}
     else if(rpm<prev-800){load.gain.setTargetAtTime(.55,t,.08);const r=rng(Math.round(t*1000));for(let i=0;i<3;i++)nz(c,g,t+.15+r()*.6,{ft:'lowpass',f:1400,dur:.03,g:.9});}}
    prev=rpm;},
   cut(t,d=.03){g.gain.setValueAtTime(vol,t);g.gain.linearRampToValueAtTime(vol*.12,t+.005);g.gain.setValueAtTime(vol*.12,t+d);g.gain.linearRampToValueAtTime(vol,t+d+.005);},
@@ -255,6 +261,7 @@ function renderBar(c,o,id,b,T){
  const v=BGM[id],sg=SONGS[v.s],st=60/sg.bpm/4,n=sg.ch.length,i=b%n,pass=Math.floor(b/n)%2,tr=(v.tr||0)+(pass===1&&sg.pass2==='keyup'?2:0);
  const cn=sg.ch[i],ch=CHD[cn].map(x=>x+tr),rt=ROOT[cn]+tr,r=rng(b*97+7);
  const brk=pass===1&&sg.pass2==='break'&&i<4, dbl=pass===1&&sg.pass2==='double', up=pass===1&&sg.pass2==='up'?12:0;
+ const cyc=Math.floor(b/n)%3, rest=sg.rest&&cyc===2&&i<4; // 息つぎ（3周目の前半は主旋律とアルペジオを休む）
  const at=s=>T+s*st;
  // ドラム（80年代のドラムマシン風）
  const fz=freezeCut(sg,i),lim=fz?8:16;
@@ -279,17 +286,17 @@ function renderBar(c,o,id,b,T){
  // エレピの刻み（ショップ）
  if(sg.ep)[2,6,10,14].forEach(s=>ch.forEach(x=>{tone(c,o,at(s),{f:mf(x+12),dur:st*1.6,g:.06,a:.005});tone(c,o,at(s),{f:mf(x+24),dur:st*.6,g:.015});}));
  // アルペジオ（チップの音）
- if(sg.arpHi||sg.soft||brk)for(let s=0;s<lim;s+=sg.soft?2:1)tone(c,o,at(s),{wave:.125,f:mf(ch[s%3]+(sg.arpHi?24:12)),dur:st*.9,g:sg.soft?.035:.045});
+ if((sg.arpHi||sg.soft||brk)&&!rest)for(let s=0;s<lim;s+=sg.soft?2:1)tone(c,o,at(s),{wave:.125,f:mf(ch[s%3]+(sg.arpHi?24:12)),dur:st*.9,g:(sg.soft?.035:.045)*(sg.arpG||1)});
  // 雪の鈴
  if(sg.bells||v.bells){const f=mf(ch[2]+24);tone(c,o,at(14),{f,dur:.5,g:.06});tone(c,o,at(14),{f:f*2.76,dur:.18,g:.015});if(sg.soft||v.bells){tone(c,o,at(6),{f:mf(ch[1]+24),dur:.5,g:.045});}}
  // 主旋律（チップのリード／サーキットはブラス風）
  const ld=sg.ld[i]||[];
- if(!brk)ld.forEach(([s,m,l])=>{const t=at(s),d=l*st,f=mf(m+tr+up);
+ if(!brk&&!rest)ld.forEach(([s,m,l])=>{const t=at(s),d=l*st,f=mf(m+tr+up);
   const lt=sg.lead||(sg.brass?'brass':sg.soft?'soft':'pulse');
   if(lt==='brass'){tone(c,o,t,{type:'sawtooth',f,dur:d*.95,g:.09,a:.02,hold:d*.6,lp:2600});tone(c,o,t,{wave:.25,f,det:6,dur:d*.95,g:.08,hold:d*.6});}
   else if(lt==='soft')tone(c,o,t,{f,dur:d*.95,g:.14,a:.01,hold:d*.4}),tone(c,o,t,{f:f*2.76,dur:.2,g:.02});
   else if(lt==='bell')tone(c,o,t,{f,dur:Math.max(.6,d),g:.12}),tone(c,o,t,{f:f*2.76,dur:.3,g:.03}),tone(c,o,t,{f:f*5.4,dur:.12,g:.01});
-  else tone(c,o,t,{wave:.25,f,dur:d*.95,g:sg.soft?.12:.17,hold:d*.6});
+  else tone(c,o,t,{wave:.25,f,dur:d*.95,g:(sg.soft?.12:.17)*(sg.ldG||1),hold:d*.6});
   if(lt==='pulse'||lt==='brass')tone(c,o,t+st*3,{wave:.25,f,dur:d*.8,g:.04,hold:d*.4}); // こだま
  });
  // ボス：敵のフレーズ（半音で下がる低い声）とぶつける
@@ -323,17 +330,17 @@ Object.assign(CHD,{Bb:[53,58,62],Ab:[56,60,63],Aaug:[57,61,65],Baug:[59,63,67],G
 Object.assign(ROOT,{Bb:46,Ab:44,Aaug:45,Baug:47,Gaug:43,Faug:41});
 Object.assign(SONGS,{
  // HINA（モンキー125・体育会系の後輩・速攻）：明るい D メジャー、速い8ビート、16分で駆け上がる。シリーズのフレーズを長調に
- theme_hina:{bpm:172,dr:'drive',lead:'pulse',arpHi:true,pass2:'keyup',
+ theme_hina:{bpm:172,dr:'drive',lead:'pulse',arpHi:true,arpG:.55,ldG:.8,rest:true,pass2:'keyup',
   ch:['D','A','Bm','G','D','A','G','A'],
   ld:[[[0,74,2],[2,78,2],[4,81,4],[8,86,4],[12,81,4]],[[0,79,6],[6,78,2],[8,76,8]],[[0,78,2],[2,79,2],[4,81,2],[6,83,2],[8,86,8]],[[0,83,4],[4,81,4],[8,79,4],[12,78,4]],
       [[0,74,2],[2,78,2],[4,81,4],[8,86,4],[12,90,4]],[[0,88,4],[4,86,4],[8,85,8]],[[0,83,4],[4,85,4],[8,86,4],[12,88,4]],[[0,90,8],[8,88,4],[12,85,4]]]},
  // MOMO（ND ロードスター・お姉さんで甘えんぼ・大連鎖で逆転）：F メジャーのディスコ寄り、はねるベースとエレピ、鈴
- theme_momo:{bpm:124,dr:'funk',lead:'pulse',ep:true,bells:true,pass2:'keyup',
+ theme_momo:{bpm:124,dr:'funk',lead:'pulse',ep:true,bells:true,rest:true,pass2:'keyup',
   ch:['F','Dm','Bb','C','F','Am','Bb','C'],
   ld:[[[0,69,4],[4,72,4],[8,76,8]],[[0,74,6],[6,72,2],[8,69,8]],[[0,70,4],[4,74,4],[8,77,4],[12,74,4]],[[0,72,12],[12,67,4]],
       [[0,69,4],[4,72,4],[8,77,6],[14,76,2]],[[0,76,4],[4,74,4],[8,72,8]],[[0,74,4],[4,77,4],[8,81,8]],[[0,79,8],[8,76,8]]]},
  // NANA（GR スープラ・高飛車お嬢様・最大のライバル）：C マイナーの華やかなブラスと速いアルペジオ（チェンバロ風）
- theme_nana:{bpm:158,dr:'drive',lead:'brass',arpHi:true,
+ theme_nana:{bpm:158,dr:'drive',lead:'brass',arpHi:true,arpG:.75,rest:true,
   ch:['Cm','Ab','Eb','Bb','Cm','Ab','G','G'],
   ld:[[[0,75,4],[4,79,4],[8,84,8]],[[0,82,6],[6,80,2],[8,79,8]],[[0,79,4],[4,82,4],[8,87,4],[12,82,4]],[[0,86,12],[12,82,4]],
       [[0,84,2],[2,86,2],[4,87,4],[8,91,4],[12,87,4]],[[0,86,4],[4,84,4],[8,80,8]],[[0,79,4],[4,83,4],[8,86,4],[12,89,4]],[[0,91,8],[8,86,4],[12,83,4]]]},
@@ -444,6 +451,11 @@ Object.assign(JINGLES,{
   tone(c,o,t+1.0,{wave:.25,f:mf(77),dur:.9,g:.06,hold:.2});}},
 });
 Object.assign(LVJ,{hidden_win:1,hidden_escape:1.6});
+// v0.10：β の終わり「次の仲間は……？」（text 12-2 ally_next・15章 next_sora の前）。ally_join のファンファーレの頭だけ鳴って、決めの音の手前で止まる（問いかけ）
+Object.assign(JINGLES,{ally_next:{dur:2.6,fn:(c,o,t)=>{[[0,69],[.1,72],[.2,76],[.45,74],[.55,72]].forEach(([d,m])=>tone(c,o,t+d,{wave:.25,f:mf(m+2),dur:.12,g:.15}));
+ tone(c,o,t+.7,{wave:.25,f:mf(80),dur:.9,g:.1,hold:.2});[69,73,77].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.7,{type:'sawtooth',f:mf(m),det:d,dur:1.8,g:.035,a:.3,hold:.6,lp:1600})));
+ [0,.18,.36].forEach((d,i)=>tone(c,o,t+1.3+d,{f:mf(88+i*2),dur:.6,g:.04}));}}});
+Object.assign(LVJ,{ally_next:3.5});
 Object.assign(BGM,{lab:{s:'upgrade'}}); // 強化ショップ「みおのラボ」（text.md 12-4）。upgrade と同じ曲。どちらで呼んでもよい
 
 // ---------- v0.8（2026-11-18）：写真の「カシャ」（text.md 13-6 momo_boss_post 3行目・13-8 momo_ed 21行目） ----------
@@ -454,7 +466,10 @@ Object.assign(LV,{photo_shutter:.8});
 // ---------- v0.9（2026-11-18）：CROSS GATE の起動音・ブローの確認 ----------
 // 起動音：セルモーターの「キュキュキュ」→ エンジンがかかる（本物寄りのエンジン音で 900→1400）→ シリーズのフレーズ「ラ・ド・ミ｜レ・ド・シ♭」がベルで鳴り、白い光のように広がる
 // （story：起動音がエンジンの始動音に似ている＝YUKI のひみつ。ROAD LOG No.001「波形がぴったり重なる」）。text の「起動音。白い光。」の行で1回
-SE.push({id:'gate_boot',name:'CROSS GATE の起動音（エンジンの始動音に似ている）',dur:3.2,fn:(c,o,t)=>{
+SE.push({id:'gate_boot',name:'CROSS GATE の起動音（エンジンの始動音に似ている。{rec:true} で録った音を小さく流す＋奥の細い旋律）',dur:3.2,fn:(c,o,t,p)=>{
+ if(p&&p.rec){const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1400;bp.Q.value=.6;const gg=c.createGain();gg.gain.value=.7;bp.connect(gg).connect(o);o=bp;
+  // そらの未公開の曲（text 15章 9行目「起動音の奥に、細い旋律」）：細い 12.5% の音で、高く小さく
+  [[0,76],[.16,78],[.32,83],[.64,81],[.8,78],[.96,76],[1.28,73],[1.6,78]].forEach(([d,m])=>tone(c,gg,t+.9+d,{wave:.125,f:mf(m+12),dur:.3,g:.045,hold:.08}));nz(c,gg,t,{ft:'highpass',f:3000,dur:3,g:.015,a:.05,hold:2.6});}
  for(let i=0;i<6;i++){tone(c,o,t+i*.1,{type:'square',f:70+i*4,dur:.08,g:.12,lp:900});nz(c,o,t+i*.1,{f:1200,dur:.05,g:.12,q:2});}
  burst(c,o,t+.6,900,1400,'real',{dur:1.8});
  [[0,69],[.18,72],[.36,76],[.62,74],[.8,72],[.98,70]].forEach(([d,m])=>{tone(c,o,t+1.0+d,{f:mf(m+12),dur:1.1,g:.07});tone(c,o,t+1.0+d,{f:mf(m+12)*2.76,dur:.3,g:.018});});
@@ -502,8 +517,9 @@ function engineBurst(from,to,opt){
  const dur=opt.dur||(to<from?1.6:2.0);
  cur=burst(c,BUS.engine,c.currentTime+.01,from,to,engType,{dur,car,limiter:opt.limiter});
  // レッドの警告は SE として別に（2秒の間に2〜3回。リミットに近いほど速く）
- if(to>=car.red&&!opt.limiter){const k=Math.min(1,(to-car.red)/Math.max(1,car.limit-car.red)),gap=420-260*k;
-  for(let i=0;i<3;i++){const d=300+i*gap;if(d<dur*1000-200)warnT.push(setTimeout(()=>playSE('redzone_warn',{vol:.5}),d));}}
+ if(to>=car.red&&!opt.limiter){const k=Math.min(1,(to-car.red)/Math.max(1,car.limit-car.red)),gap=opt.top?160:420-260*k,n=opt.top?5:3;
+  // {top:true}＝いちばん上のギア（ブローがある）：警告を速く・少し大きく
+  for(let i=0;i<n;i++){const d=300+i*gap;if(d<dur*1000-200)warnT.push(setTimeout(()=>playSE('redzone_warn',{vol:opt.top?.75:.5}),d));}}
 }
 
 // BGM（ループは小節ごとに先読みで並べる）
@@ -522,7 +538,7 @@ function jingle(id){const c=ok();if(!c)return;const j=JINGLES[id];if(!j){console
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05);}
 
 window.AUDIO={
- VERSION:'0.9',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.10',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},

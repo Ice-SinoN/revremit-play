@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.3（β2）";
+const VERSION="試作 v0.22.4（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -506,7 +506,9 @@ function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;con
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
   if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");if(!comm&&s.i>0&&mioComm(s,s.i-1))SND.se("comm_close");
   if(/^カシャ/.test(full))SND.se("photo_shutter");// ★v0.22.2 MOMO 編の写真の音
-  if(/^起動音/.test(full)){SND.bgmStop();SND.se("gate_boot")}// ★v0.22.1 CROSS GATE の起動音（audio-list 6-2）
+  if(s.key==="next_sora"){/* ★v0.22.4 audio-list 6-0：始まりで BGM を止める・9行目 そらが録った起動音・15行目 起動音 */
+    if(s.i===0)SND.bgmStop();if(s.i===8)SND.se("gate_boot",{rec:true});if(s.i===14)SND.se("gate_boot")}
+  else if(/^起動音/.test(full)){SND.bgmStop();SND.se("gate_boot")}// ★v0.22.1 CROSS GATE の起動音（audio-list 6-2）
   if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se(comm?"comm_blip":"text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
   renderScene()}
 /* ★v0.18.2（ちかちかの直し）：絵（一枚絵・立ち絵）は変わったときだけ入れかえる。
@@ -633,7 +635,7 @@ function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   afterCarShow(got)}
 /* ★v0.22 仲間が加わる話（NIGHT 1・2・3 の初クリア）・β の終わり（NIGHT 4 のクリア＝「次の仲間は……？」） */
 function playJoins(q,done){const c=q.shift();if(!c){done();return}const next=()=>playJoins(q,done);
-  if(c==="__next"){showScene("ally_next",()=>showScene("next_sora",next));return}/* ★v0.22.2 text 15章 SORA の予告 */
+  if(c==="__next"){showScene("ally_next",()=>showScene("next_sora",next));SND.jingle("ally_next");return}/* ★v0.22.2 text 15章 SORA の予告・★v0.22.4 札でジングル ally_next（会話の曲は止まる） */
   SND.jingle("ally_join",{who:c.toLowerCase()});const k="join_"+c.toLowerCase();
   if(TEXT.scenes[k])showScene(k,next);
   else{TEXT.scenes["join_tmp"]={light:1,lines:[[null,TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)+"。"]]};showScene("join_tmp",next)}}

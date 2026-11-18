@@ -1,6 +1,6 @@
 "use strict";
 /* ===== 音のつなぎ（α3・プログラム班）=====
-   音そのものはサウンド班の js/audio.js v0.9（window.AUDIO。合成・ファイルなし）。ここは「いつ鳴らすか」だけ。
+   音そのものはサウンド班の js/audio.js v0.10（window.AUDIO。合成・ファイルなし）。ここは「いつ鳴らすか」だけ。
    つなぎ方は revremit-audio-list.md 6章の表のとおり。
    ★音の方向 B・エンジン音は本物寄り・SE は試聴ページのまま（虎雪 08:19）。
    ★エンジン音は回転数が変わったあと約2秒だけ（AUDIO.engineBurst。続けて呼ぶと前を切る）。 */
@@ -12,7 +12,9 @@ const SND={on:true,
   setCar(){SND.call(A=>A.setCar(SND.car()))},
   se(id,o){SND.call(A=>A.se(id,o))},
   attack(v){SND.call(A=>A.attack(v))},
-  engineBurst(from,to){if(from===to)return;SND.call(A=>{A.setCar(SND.car());A.engineBurst(from,to)});SND.red(to)},
+  /* ★v0.22.4 audio v0.10：ブローのある夜（NIGHT 3〜）で、いちばん上のギアなら {top:true}（レッドの警告が速く） */
+  engineTop(){return!!(G&&B&&!B.over&&typeof isTopGear==="function"&&isTopGear()&&!noBlow())},
+  engineBurst(from,to){if(from===to)return;const top=SND.engineTop();SND.call(A=>{A.setCar(SND.car());A.engineBurst(from,to,top?{top:true}:undefined)});SND.red(to)},
   engineStop(){SND.call(A=>A.engineStop())},
   limiter(){SND.call(A=>A.overrev())},
   blow(){SND.call(A=>A.blow())},
