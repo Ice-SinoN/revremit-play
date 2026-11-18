@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.21（β1）";
+const VERSION="試作 v0.22（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -80,8 +80,8 @@ function titleLogo(){const f=window.ART_HAVE?[...ART_HAVE].filter(p=>/\/revremit
   return `<div class="t2">${esc(GAME_TITLE).replace(/:R/,':<span class="rr">R</span>')}</div>`}
 function showTitle(){
   setScreen("title");setScene("dim");closeModal();SND.bgm("title");
-  const mc=loadMinicars(),dk=loadDeck("YUKI");
-  ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・YUKI・3エリア</div></div>
+  const ch=curChar(),mc=loadMinicars(),dk=loadDeck(ch);
+  ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(ch)}・3エリア</div></div>
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
    <button class="${loadRun()?"":"main"}" onclick="showMinicarGarage('MT')">MT ではしる</button>
@@ -91,32 +91,34 @@ function showTitle(){
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
   <button class="mini dataBtn" ${at(8,8,132,28)} onclick="showData()">データ：スロット${SAVE.slot}</button>
   ${nightMaxAvail()>1?`<button class="mini nightBtn" ${at(8,40,132,28)} onclick="pickNight()">夜：NIGHT ${curNight()} ▼</button>`:""}
-  ${labOpen()?`<button class="mini labBtn" ${at(8,72,132,28)} onclick="showLab()">強化ショップ（ログ ${SAVE.cur.profile.log}）</button>`:""}
+  ${charsOpen().length>1?`<button class="mini charBtn" ${at(8,72,132,28)} onclick="showChars()">キャラ：${esc(ch)} ▼</button>`:""}
+  ${labOpen()?`<button class="mini labBtn" ${at(8,charsOpen().length>1?104:72,132,28)} onclick="showLab()">強化ショップ（ログ ${SAVE.cur.profile.log}）</button>`:""}
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
   <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
 /* ===== ★v0.20 データ（3スロット＋オートセーブ）。tech-notes 1-10 ===== */
 function dataName(k){return k==="auto"?"オートセーブ":"スロット"+k}
-/* ★v0.21 データ：1スロット＝1人の進み具合（遊ぶと自動でそのスロットに書く）。オートセーブ＝最後に遊んだスロットの最後の状態（もどす用） */
+/* ★v0.22 データ：1スロット＝1人の進み具合（遊ぶと自動でそのスロットに書く）。オートセーブはスロットごと（BUG-28 案①：遊んだぶんは今のスロットに残る） */
 function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal();SND.bgm("title");const L=SAVE.list();
   ui().innerHTML=`<div class="hdr" ${at(40,22,300,18)}>データ</div>
-  <div class="small dhint" ${at(352,24,170,24)}>遊ぶと自動でセーブ。<br>オートセーブは最後の写し。</div>
+  <div class="small dhint" ${at(352,24,170,24)}>遊ぶと自動でセーブ。<br>オートセーブもスロットごと。</div>
   ${backBtn("もどる","showTitle()")}
-  ${L.map((r,i)=>{const y=58+i*62,cur=r.k!=="auto"&&SAVE.slot===r.k,nm=dataName(r.k);
+  ${L.map((r,i)=>{const y=60+i*84,cur=SAVE.slot===r.k,nm=dataName(r.k);
     const sub=r.broken?"読めないデータ（消さずに別の名前で保管しました）":SAVE.label(r.d);
-    const note=r.d?(SAVE.when(r.d)+(r.k==="auto"&&r.d.slot?`・スロット${r.d.slot} の最後の状態`:"")+(r.d.newer?"・新しい版のデータ":"")):"";
-    const b1=r.k==="auto"?(r.d?`<button class="u9 ld" ${at(472,13,84,32)} onclick="dataRestore()">もどす</button>`:"")
-      :cur?"":r.broken?"":`<button class="u9 main sv" ${at(472,13,84,32)} onclick="dataUse(${r.k})">${r.d?"あそぶ":"はじめる"}</button>`;
-    const b2=r.k!=="auto"&&(r.d||r.broken)?`<button class="u9 ld" ${at(cur?472:384,13,84,32)} onclick="dataErase(${r.k})">消す</button>`:"";
-    return `<div class="slot${cur?" cur":""}" ${at(40,y,560,58)}><div class="sn">${nm}${cur?'<span class="now">いま遊んでいるデータ</span>':""}</div>
-      <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div>${b1}${b2}</div>`}).join("")}`}
+    const note=r.d?(SAVE.when(r.d)+(r.d.newer?"・新しい版のデータ":"")):"";
+    const an=r.auto?`オートセーブ ${SAVE.when(r.auto)}`:"オートセーブ なし",canR=!!r.auto&&(r.broken||!r.d||(r.auto.at||0)>(r.d.at||0));
+    const b1=cur||r.broken?"":`<button class="u9 main sv" ${at(472,10,84,32)} onclick="dataUse(${r.k})">${r.d?"あそぶ":"はじめる"}</button>`;
+    const b2=r.d||r.broken?`<button class="u9 ld" ${at(cur||r.broken?472:384,10,84,32)} onclick="dataErase(${r.k})">消す</button>`:"";
+    const b3=canR?`<button class="u9 ld" ${at(384,44,172,28)} onclick="dataRestore(${r.k})">オートセーブからもどす</button>`:"";
+    return `<div class="slot${cur?" cur":""}" ${at(40,y,560,78)}><div class="sn">${nm}${cur?'<span class="now">いま遊んでいるデータ</span>':""}</div>
+      <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div><div class="ss dim">${esc(an)}</div>${b1}${b2}${b3}</div>`}).join("")}`}
 function dataUse(n){if(SAVE.use(n)){S.deck=null;S.mcSel=[];showTitle();toast2(`スロット${n}で遊びます`)}else showData()}
 function dataErase(n){S.dataGo=()=>{SAVE.erase(n);closeModal();showData();toast2(`スロット${n}を消しました`)};
   modal(`<div class="h">スロット${n}を消しますか？</div><div class="small">ミニカー・解放・ログもいっしょに消えます。もとにはもどせません。</div>
   <div class="row"><button class="warn" onclick="S.dataGo()">消す</button><button onclick="closeModal()">やめる</button></div>`)}
-function dataRestore(){const a=SAVE.list().find(x=>x.k==="auto");if(!a||!a.d)return;const n=a.d.slot||SAVE.slot;
-  S.dataGo=()=>{const k=SAVE.restore();closeModal();showTitle();toast2(`スロット${k}をオートセーブの状態にもどしました`)};
-  modal(`<div class="h">スロット${n}をオートセーブの状態にもどしますか？</div><div class="small">${esc(SAVE.label(a.d))}<br>${esc(SAVE.when(a.d))}</div>
+function dataRestore(n){const r=SAVE.list().find(x=>x.k===n);if(!r||!r.auto)return;
+  S.dataGo=()=>{const k=SAVE.restore(n);closeModal();showTitle();toast2(`スロット${k}をオートセーブの状態にもどしました`)};
+  modal(`<div class="h">スロット${n}をオートセーブの状態にもどしますか？</div><div class="small">${esc(SAVE.label(r.auto))}<br>${esc(SAVE.when(r.auto))}</div>
   <div class="row"><button class="main" onclick="S.dataGo()">もどす</button><button onclick="closeModal()">やめる</button></div>`)}
 function showHowto(){const C=CHARS.YUKI.car;
   modal(`<div class="h">あそびかた</div><div class="scroll" style="height:180px">
@@ -133,19 +135,19 @@ function showHowto(){const C=CHARS.YUKI.car;
   <div class="row"><button class="main" onclick="closeModal()">とじる</button></div>`)}
 
 /* ---- デッキを組む（上限 C4・R2・E1・SK1・20枚） ---- */
-function showDeck(){SND.bgm("title");setScreen("deck");setScene("dim");S.deck=S.deck||loadDeck("YUKI");renderDeck()}
+function showDeck(){SND.bgm("title");setScreen("deck");setScene("dim");S.deck=S.deck||loadDeck(curChar());renderDeck()}
 /* ★v0.16：背景 garage。左の棚の前に一覧の窓、右の工具の壁の前に枚数とボタン（真ん中の車は見せる） */
-function renderDeck(){const dk=S.deck,pool=deckPool("YUKI").sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c),err=deckErrors(dk,"YUKI"),n=deckCount(dk);
+function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c),err=deckErrors(dk,ch),n=deckCount(dk);
   const sc=$("#dkl")?$("#dkl").scrollTop:0;
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>デッキを組む（YUKI）</div><div class="sign" ${at(8,26,300,328)}></div>
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>デッキを組む（${esc(ch)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
     return `<div class="dr r-${rarityOf(id)}" title="${esc(descOf(id,false,0))}"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
      <button class="mini" ${k?"":"disabled"} onclick="deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini" ${k>=lim||n>=RULES.deckSize?"disabled":""} onclick="deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
   ${backBtn("もどる","S.deck=null;showTitle()")}
   <div class="sign side" ${at(452,60,180,120)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
    <div class="small dim">同じカードは<br>コモン${RULES.deckLimit.C}・レア${RULES.deckLimit.R}・エピック${RULES.deckLimit.E}<br>固有スキル${RULES.deckLimit.SK}枚まで</div></div>
-  <div class="col" ${at(452,236,180)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,'YUKI');S.deck=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
-   <button class="u9" onclick="S.deck=defaultDeck('YUKI');renderDeck()">最初のデッキ</button></div>`;
+  <div class="col" ${at(452,236,180)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,curChar());S.deck=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
+   <button class="u9" onclick="S.deck=defaultDeck(curChar());renderDeck()">最初のデッキ</button></div>`;
   if($("#dkl"))$("#dkl").scrollTop=sc}
 function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0||k>deckLimitOf(id))return;if(d>0&&deckCount(dk)>=RULES.deckSize)return;if(k)dk[id]=k;else delete dk[id];renderDeck()}
 
@@ -174,11 +176,13 @@ function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;
   const st=r.stage||{};if(st.s==="battle"&&ENEMIES[st.key]){if(st.j!=null)G.path[G.row]=st.j;startBattleState(st.key);enterBattle()}
   else if(st.s==="win"){const rk=st.rank;if(rk==="boss"||rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
   else showMap()}
-function newRun(mode,bring){clearRun();newRunState(mode,"YUKI",(bring||[]).map(normMinicar).filter(Boolean),loadDeck("YUKI"),runOpts());SND.setCar();
+function newRun(mode,bring){const ch=curChar();clearRun();newRunState(mode,ch,(bring||[]).map(normMinicar).filter(Boolean),loadDeck(ch),runOpts());SND.setCar();
   // ★v0.19（text.md v0.7 10-1）：初めてのラン＝チュートリアル → 導入 prologue → オープニング op → ROAD に入る op_road → エリアの入り口 → マップ。
   //   2回目からは run_start（ROAD OPEN と2行）→ エリア名 → マップ。v0.18 までに op を見た人も、導入は1回出る（話が新しくなったため）
-  const run=G,go=()=>{G=run;B=null;areaIntro(0,showMap)},
-    op=()=>{G=run;B=null;if(!seenGet().prologue)showScene("prologue",()=>showScene("op",()=>showScene("op_road",go)));else showScene("run_start",go)};
+  //   ★v0.22：仲間で走るときは、その子の場面（hina_op・run_start_hina）。ブローが入る夜に初めて入るときは night3_first（text 12-1）をマップの前に
+  const run=G,go=()=>{G=run;B=null;blowIntro(()=>areaIntro(0,showMap))},
+    op=()=>{G=run;B=null;if(ch!=="YUKI"){const lc=ch.toLowerCase();if(!seenGet()[lc+"_op"]&&TEXT.scenes[lc+"_op"])showScene(lc+"_op",go);else showScene(TEXT.scenes["run_start_"+lc]?"run_start_"+lc:"run_start_ally",go);return}
+      if(!seenGet().prologue)showScene("prologue",()=>showScene("op",()=>showScene("op_road",go)));else showScene("run_start",go)};
   if(!tutDone())startTutorial(op);else op()}
 
 /* ---- 上の帯 ---- */
@@ -207,7 +211,9 @@ function showDeckList(){const c={};G.deck.forEach(x=>{const k=CD(x).n+(x.up?"+":
   modal(`<div class="h">デッキ ${G.deck.length}枚</div><div class="scroll" style="height:170px">${Object.entries(c).map(([k,n])=>`${esc(k)} ×${n}`).join("<br>")}</div><div class="row"><button class="main" onclick="closeModal()">とじる</button></div>`)}
 function enterNode(j){SND.se("map_select");
   const n=G.map[G.row][j];if(!n)return;G.path[G.row]=j;SND.se("map_select");
-  if(n.k==="battle"||n.k==="elite"||n.k==="hidden"){const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()}
+  if(n.k==="hidden"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};
+    if(!seenGet().hidden_in){const l=TEXT.hiddenLast[G.char]||TEXT.hiddenLast.YUKI;TEXT.scenes.hidden_in.lines=TEXT.scenes.hidden_in.lines.slice(0,2).concat([l]);showScene("hidden_in",go)}else go()}
+  else if(n.k==="battle"||n.k==="elite"){const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()}
   else if(n.k==="boss"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};showScene(AREAS[n.a].boss+"_pre",go)}
   else if(n.k==="shop")showShop(n);
   else if(n.k==="sim")showSim();
@@ -232,22 +238,24 @@ function onIdle(){if(S.pending&&!busy()){const f=S.pending;S.pending=null;f()}}
 setInterval(onIdle,50);
 /* 押したら、モーションの残りを飛ばす */
 function uiSkip(){flushAnim();onIdle()}
-function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="boss3"){S.toastQ=TEXT.scenes.boss3_phase.lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
+function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="boss3"){S.toastQ=(TEXT.scenes[sceneKey("boss3_phase")]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
   // エンジン音：回転数が変わったら約2秒だけ（★08:20）。ブローは SND.blow が鳴らす
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
   if(window.TUTORIAL_ON){if(r==="dead"){G.hp=1}S.pending=null;renderBattle();tutAfter(r);return}
   if(r==="win")S.pending=()=>{if(!seenGet().first_remit)showScene("first_remit",showWin);else showWin()};else if(r==="dead")S.pending=()=>showResult(false);
-  else if(r==="escape")S.pending=()=>{toast2("裏道のゴーストは逃げていった");nextRow()};
+  else if(r==="escape")S.pending=()=>{toast2(TEXT.ui.hidden_lose.replace(/<br>/g,""));nextRow()};
   renderBattle();
 }
-function doPlay(i,shift){if(B.over||!tutAllow("play",{i,shift}))return;flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
+function doPlay(i,shift,ok){if(B.over||!tutAllow("play",{i,shift}))return;
+  if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){S.blowGo=()=>{seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
+    modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">いちばん上のギアで リミットをこえると、エンジンブロー（このランは終わり）</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
 function doEndTurn(){if(B.over||!tutAllow("end"))return;flushAnim();const r0=B.rpm;SND.se("turn_end");afterAct(endTurn(),r0)}
 function doDownShift(){if(B.over||!tutAllow("down"))return;flushAnim();const r0=B.rpm,g0=B.gear;afterAct(downShift(),r0);if(B.gear<g0)TUTS.downs++;tutAfter("down")}
 function doParking(){if(B.over)return;flushAnim();const r0=B.rpm;afterAct(parking(),r0)}
 /* カードの「打ち方」：[ラベル, shift, 種類] の並び。いちばん上がおすすめ */
 function cardActions(i){const c=B.hand[i],p=preview(c);if(!p.ok)return[];
-  if(G.mode==="AT")return[["打つ",false,"main"]];
+  if(G.mode==="AT")return p.paddle?[["打つ",false,"main"],["パドルで上げて打つ",true,""]]:[["打つ",false,"main"]];
   if(CD(c).shiftCard&&p.canShift)return[["シフトアップ",true,"main"]];
   if(p.canShift){const g=p.grade,up=[`シフトして打つ（${GRADE_JP[g]}${g==="perfect"?" +0.3・1枚":g==="good"?" +0.1":""}）`,true,g==="perfect"||g==="good"?"main":""],
       no=[`${B.gear+1}速のまま打つ${p.danger==="over"?"（オーバーレブ）":""}`,false,p.danger==="over"?"warn":""];
@@ -331,7 +339,7 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;SND.jingle(!B.enemyActed?"one_
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">カードを1枚もらう（デッキに足す）</div></div>`;
   S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank);
-  if(w.rank==="hidden")h+=(w.hidCard?cardBig(w.hidCard,{art:true,cls:"lit",attrs:`${at(LAMP_X[1]-70,52,140,184)}`})+`<div class="sign" ${at(170,240,300,40)}><div class="h">裏道のカード「${esc(CARDS[w.hidCard].n)}」を開いた</div><div class="small">デッキに1枚入った（次のランからも報酬に出る）</div></div>`
+  if(w.rank==="hidden")h+=(w.hidCard?cardBig(w.hidCard,{art:true,cls:"lit",attrs:`${at(LAMP_X[1]-70,52,140,184)}`})+`<div class="sign" ${at(170,240,300,40)}><div class="h">裏道のカード「${esc(CARDS[w.hidCard].n)}」を開いた</div><div class="small"><span class="commk">通信</span>みお：${esc(TEXT.ui.hidden_win.replace(/<br>/g,""))}</div><div class="small">デッキに1枚入った（次のランからも報酬に出る）</div></div>`
     :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(270,300,100,28)} onclick="takeCard(null)">つぎへ</button>`;
   h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
    backBtn("もらわない","takeCard(null)")+
@@ -469,13 +477,22 @@ function toastNow(){const q=S.toastQ;if(!q||!q.length)return"";const i=Math.floo
 function storyBg(k){if(!k)return"";for(const x of String(k).split("|")){const p=STORY_ART.bg(x);if(artHave(p))return p}return""}
 /* 話す人：GHOST:名前＝ボスの声（名前を灰色）・REC＝記録のかけら（名前なし）。文の〈 〉は text.md の文に入っている */
 function whoName(who){if(!who||who==="REC")return"";if(who.startsWith("GHOST:"))return who.slice(6);return TEXT.names[who]||""}
-function showScene(key,done){const sc=TEXT.scenes[key];if(!sc){done&&done();return}
+/* ★v0.22：仲間で走っているときは、場面の ID に "_hina" などがあればそれ。なければ YUKI の話の場面（ボスの前後・エンディングなど）は出さない（その子の話は他班が書いている途中） */
+const YUKI_ONLY=/^(first_remit|area[123]|boss[123]_(pre|post|phase)|ed1|roadlog_001|ed1_after|rest_first)$/;
+function sceneKey(key){const ch=G&&G.char;if(!ch||ch==="YUKI")return key;const lc=ch.toLowerCase(),k2=key+"_"+lc;if(TEXT.scenes[k2])return k2;return YUKI_ONLY.test(key)?null:key}
+function showScene(key,done){const k0=sceneKey(key);if(k0!==key){if(!k0){done&&done();return}key=k0}
+  const sc=TEXT.scenes[key];if(!sc){done&&done();return}
   setScreen("scene");setScene(A.mode==="battle"&&!sc.under?"battle":"dim");closeModal();if(sc.under)setBg(sc.under);
   S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(key==="ed1"||key==="ed1_after"?"ending":key==="roadlog_001"?"pzlog":key==="__t"||key==="run_start"||key==="rest_first"||/^area/.test(key)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
   sceneLine()}
 function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/g,"\n"):""}
-function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText();
-  if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se("text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
+/* ★v0.22 QA の指摘：MIO が絵にいないのに話す場面（ROAD の中など）は、帯に「通信」の印と通信の音（audio.js v0.6 の comm_open・comm_blip）。
+   MIO がその場にいるのは、ガレージの場面（導入・オープニング・エンディングの6行目から・加わる話）だけ */
+const MIO_HERE=/^(prologue|op|ed1_after|join_\w+)$/;
+function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;if(s.key==="ed1")return i<5;if(s.key==="hina_op")return i>=5;return!MIO_HERE.test(s.key)}
+function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
+  if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");
+  if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se(comm?"comm_blip":"text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
   renderScene()}
 /* ★v0.18.2（ちかちかの直し）：絵（一枚絵・立ち絵）は変わったときだけ入れかえる。
    前は1文字出すたび（30ms ごと）に #ui を丸ごと作り直し、<img> も毎回作り直していたので、スマホで絵が一瞬消えて点滅していた */
@@ -484,6 +501,7 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
   const bgp=storyBg(bgk);
   /* ★v0.20.1：キャラが描いてある一枚絵（opening_road・ending_garage）の上には立ち絵を出さない（2人が重なるため）。名前は帯に出る */
   const bgHasChars=/revremit_story_(opening_road|ending_garage)\.png/.test(bgp);
+  const comm=mioComm(s,s.i);
   const bw0=!bgHasChars&&(who==="YUKI"||who==="MIO"||who==="YUKI_IN")?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");
   if(!root||root.dataset.key!==s.key){
@@ -504,8 +522,8 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
       const put=()=>{if(bww.dataset.f===bk){bww.innerHTML="";bww.appendChild(im)}};
       if(im.complete&&im.naturalWidth)put();else if(im.decode)im.decode().then(put,put);else im.onload=put}}
   const band=root.querySelector(".scband");if(band){const name=whoName(who),txt=sceneText().slice(0,s.shown);
-    band.className=`scband${who&&who!=="REC"?"":" nar"}${who==="FILE"?" file":""}${who==="REC"?" rec":""}${who&&who.startsWith("GHOST:")?" ghost":""}${!who&&l[2]==="tag"?" tag":""}`;
-    const nm=band.querySelector(".scname");nm.textContent=name;nm.style.display=name?"":"none";
+    band.classList.toggle("comm",comm);band.className=`scband${comm?" comm":""}${who&&who!=="REC"?"":" nar"}${who==="FILE"?" file":""}${who==="REC"?" rec":""}${who&&who.startsWith("GHOST:")?" ghost":""}${!who&&l[2]==="tag"?" tag":""}`;
+    const nm=band.querySelector(".scname");nm.innerHTML=(comm?'<span class="commk">通信</span>':"")+esc(name);nm.style.display=name?"":"none";
     band.querySelector(".sctext").textContent=who==="YUKI_IN"?"（"+txt+"）":txt;
     band.querySelector(".scnext").textContent=s.shown>=sceneText().length?"▼":""}}
 function sceneTap(){const s=S.sc;if(!s)return;const full=sceneText();
@@ -515,7 +533,7 @@ function sceneSkip(){SND.se("ui_cancel");sceneEnd()}
 function sceneEnd(){const s=S.sc;if(!s)return;clearInterval(s.t);S.sc=null;seenSet(s.key);s.done&&s.done()}
 /* エリアの入り口（初めてのときだけ一言。2回目からはエリア名だけ） */
 function areaIntro(ai,done){const k="area"+(ai+1),sc=TEXT.scenes[k];if(!sc){done();return}
-  if(seenGet()[k]){showScene("__t",done);return}showScene(k,done)}
+  if(seenGet()[k]||!sceneKey(k)){TEXT.scenes.__t.title=sc.title||"";showScene("__t",done);return}showScene(k,done)}
 TEXT.scenes.__t={title:"",lines:[]};
 
 /* ★v0.18.3：戻る／出るボタンは全部の画面で同じ形・同じ場所（右上の角 (532,22) 104×32）。640 の部品のボタン・太字・黒とライムの縁取りで背景から浮かせる */
@@ -549,28 +567,62 @@ SAVE.boot();
 /* ===================== ★v0.21 β：夜・解放・ログ・強化ショップ（design 9章・tech-notes 1-15）===================== */
 const PRF=()=>SAVE.cur.profile;
 function deckUL(){return SAVE&&SAVE.cur?unlockedCards(PRF()):null}
-function nightMaxAvail(){return Math.min(NIGHTS.length,(PRF().unlock.nightMax||0)+1)}
+function nightMaxAvail(){return Math.min(typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length,NIGHTS.length,(PRF().unlock.nightMax||0)+1)}
 function curNight(){const n=+PRF().night||nightMaxAvail();return Math.max(1,Math.min(n,nightMaxAvail()))}
 function labOpen(){return(PRF().unlock.nightMax||0)>=1||PRF().log>0}
 function runOpts(){const p=PRF();return{night:curNight(),ul:{cards:unlockedCards(p),parts:unlockedParts(p)},hidden:(p.unlock.nightMax||0)>=1}}
-function pickNight(){const mx=nightMaxAvail(),cur=curNight();
+function pickNight(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length;
   modal(`<div class="h">夜をえらぶ</div><div class="small dim">決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く</div><div class="scroll nlist" style="height:190px">`+
-    NIGHTS.slice(0,mx).map(x=>`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();showTitle()"><b>NIGHT ${x.n}</b>　<span class="small">${esc(x.add)}</span></button>`).join("")+
+    NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
+      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();showTitle()"><b>${esc(lab)}</b>${bl}　<span class="small">${esc(x.add)}</span></button>`
+        :`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+
     `</div><div class="row"><button onclick="closeModal()">とじる</button></div>`)}
+/* ★v0.22 ブローが入る夜に初めて入るとき（design 8-6・text 12-1）。どのキャラでも1回だけ。4行目は走るキャラ */
+function blowIntro(done){if(!G||G.night<3||noBlow()||seenGet().night3_first){done();return}
+  const sc=TEXT.scenes.night3_first;sc.lines=sc.lines.slice(0,3).concat([TEXT.night3Last[G.char]||TEXT.night3Last.YUKI]);showScene("night3_first",done)}
+/* ===== ★v0.22 キャラ選び（design 9-10・text 12-2）。加わる話を見たら選べる。スロットごと ===== */
+function charsOpen(){const u=PRF().unlock;return CHAR_ORDER.filter(c=>c==="YUKI"||(u.chars||[]).includes(c))}
+function curChar(){const c=PRF().char;return charsOpen().includes(c)?c:"YUKI"}
+function showChars(){setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");S.chSel=S.chSel||curChar();renderChars()}
+function renderChars(){const op=charsOpen(),sel=S.chSel;
+  let h=`<div class="hdr" ${at(8,6,300,18)}>キャラをえらぶ</div>${backBtn("もどる","showTitle()")}`;
+  CHAR_ORDER.forEach((c,i)=>{const C=CHARS[c],on=op.includes(c),x=16+i*152;
+    h+=`<button class="u9 chcard${sel===c?" main":""}${on?"":" lock"}" ${at(x,60,144,150)} ${on?`onclick="S.chSel='${c}';SND.se('ui_ok');renderChars()"`:"disabled"}>
+      <div class="chn">${esc(c)}</div><div class="small">${esc(TEXT.names[c]||"")}</div><div class="small dim">${esc(C.carName)}</div>
+      ${on?`<div class="small">${esc(C.type)}</div><div class="small dim">${C.car.gears}速・耐久 ${C.car.hp}</div>`:`<div class="small dim">NIGHT ${C.join} を<br>クリアで加わる</div>`}</button>`});
+  const C=CHARS[sel];
+  h+=`<div class="sign" ${at(16,220,456,96)}><div class="h">${esc(sel)}（${esc(TEXT.names[sel]||"")}）　${esc(C.carName)} → ${esc(C.weapon||"")}</div>
+    <div class="small">型：${esc(C.type)}　${C.car.gears}速・レッド ${C.car.red}・リミット ${C.car.limit}・耐久 ${C.car.hp}</div>
+    <div class="small">${esc(C.ruleTxt||"キャラの決まりなし（基準）")}</div><div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
+    <button class="main u9" ${at(484,232,140,40)} onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showTitle();toast2(S.chSel+' で走ります')">${esc(sel)} で走る</button>`;
+  ui().innerHTML=h}
 /* ランの終わり：解放・夜・ログをスロットに書く（1ランに1回）。戻り値＝このランのログ */
 function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;const p=PRF(),u=p.unlock,got=[];
   if(!G.night){S.runEndLog=0;return 0}// 夜なし（テスト・α の道）は数えない
   const beforeC=new Set(unlockedCards(p)),beforeP=new Set(unlockedParts(p));
-  const area=a=>{if(!u.areas.includes(a))u.areas.push(a)};if(G.st.bosses>=1)area("a1");if(G.st.bosses>=2)area("a2");if(clear)area("clear");
+  const area=a=>{[a,G.char+":"+a].forEach(k=>{if(!u.areas.includes(k))u.areas.push(k)})};if(G.st.bosses>=1)area("a1");if(G.st.bosses>=2)area("a2");if(clear)area("clear");
+  S.joinQ=[];
   (G.hiddenWon||[]).forEach(id=>{if(!u.cards.includes(id))u.cards.push(id)});
-  if(clear&&G.night>(u.nightMax||0)){u.nightMax=G.night;const o=NIGHTS[G.night-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c))u.chars.push(c)});(o.story||[]).forEach(c=>{if(!u.story.includes(c))u.story.push(c)});
-    if(G.night<NIGHTS.length)got.push(`NIGHT ${G.night+1}`);(o.chars||[]).forEach(c=>got.push(`仲間：${c}（話はこれから）`))}
+  if(clear&&G.night>(u.nightMax||0)){u.nightMax=G.night;const o=NIGHTS[G.night-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);S.joinQ.push(c)}});(o.story||[]).forEach(c=>{if(!u.story.includes(c))u.story.push(c)});
+    if(G.night<Math.min(NIGHTS.length,typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99))got.push("夜："+TEXT.ui.night_open.replace("{n}",G.night+1));(o.chars||[]).forEach(c=>got.push(`仲間：${TEXT.ui.ally_join.replace("{name}",c)}`));
+    if(o.next&&typeof BETA_NIGHTS==="number"&&G.night>=BETA_NIGHTS)S.joinQ.push("__next")}
   unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push("カード："+CARDS[id].n));
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();return lg.total}
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
-  if(G&&G.night&&m&&["S","SS","SSS"].includes(m.rank)&&(p.unlock.sCount||0)<UNLOCK.sRank.length){p.unlock.sCount=(p.unlock.sCount||0)+1;unlockRecalc(p);const id=UNLOCK.sRank[p.unlock.sCount-1];if(CARDS[id])got.push(`カード：${CARDS[id].n}（S ランク以上のミニカー）`);SAVE.auto()}
+  const ch=G&&G.char||"YUKI",sl=sRankList(ch),sc=sCountOf(p,ch);
+  if(G&&G.night&&m&&["S","SS","SSS"].includes(m.rank)&&sc<sl.length){if(UNLOCK.chars[ch]){p.unlock.sCountC=Object.assign({},p.unlock.sCountC);p.unlock.sCountC[ch]=sc+1}else p.unlock.sCount=sc+1;
+    unlockRecalc(p);const id=sl[sc];if(CARDS[id])got.push(`カード：${CARDS[id].n}（S ランク以上のミニカー）`);SAVE.auto()}
+  const jq=(S.joinQ||[]).slice();S.joinQ=[];if(jq.length){playJoins(jq,()=>afterCarShow(got));return}
+  afterCarShow(got)}
+/* ★v0.22 仲間が加わる話（NIGHT 1・2・3 の初クリア）・β の終わり（NIGHT 4 のクリア＝「次の仲間は……？」） */
+function playJoins(q,done){const c=q.shift();if(!c){done();return}const next=()=>playJoins(q,done);
+  if(c==="__next"){showScene("ally_next",next);return}
+  SND.jingle("ally_join",{who:c.toLowerCase()});const k="join_"+c.toLowerCase();
+  if(TEXT.scenes[k])showScene(k,next);
+  else{TEXT.scenes["join_tmp"]={light:1,lines:[[null,TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)+"。"]]};showScene("join_tmp",next)}}
+function afterCarShow(got){const p=PRF();
   S.runGot=null;if(!got.length&&!S.runEndLog){showTitle();return}
   /* 種類ごとに1行にまとめる（初めてのクリアは20こ近く開くため） */
   const grp={};got.forEach(t=>{const k=t.includes("：")?t.split("：")[0]:"";(grp[k]=grp[k]||[]).push(k?t.slice(k.length+1):t)});

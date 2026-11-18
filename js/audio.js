@@ -312,6 +312,16 @@ const JINGLES={
   [[1.1,64],[1.5,62],[2.0,60],[2.6,57]].forEach(([d,m])=>tone(c,o,t+d,{wave:.25,f:mf(m),dur:.6,g:.1,hold:.25}));tone(c,o,t+2.0,{f:mf(81),dur:1.5,g:.04});}},
 };
 
+// ---------- ★v0.22 プログラム班：サウンド班 audio.js v0.6 の「MIO の通信」の SE 4本だけを先に入れた（v0.6 の全体の差しかえは次の版で）----------
+SE.push(
+{id:'comm_open',name:'通信が入った（MIO）',dur:.5,fn:(c,o,t)=>{nz(c,o,t,{f:2500,dur:.09,g:.25,q:.6});tone(c,o,t+.1,{wave:.5,f:mf(88),dur:.07,g:.1,hold:.03});tone(c,o,t+.19,{wave:.5,f:mf(93),dur:.1,g:.1,hold:.04});nz(c,o,t+.1,{f:3500,dur:.3,g:.02,a:.02,hold:.15,q:.5});}},
+{id:'comm_close',name:'通信が切れた',dur:.4,fn:(c,o,t)=>{tone(c,o,t,{wave:.5,f:mf(93),dur:.06,g:.09,hold:.02});tone(c,o,t+.08,{wave:.5,f:mf(86),dur:.08,g:.09,hold:.02});nz(c,o,t+.17,{f:2200,f2:600,dur:.12,g:.2,q:.7});}},
+{id:'comm_blip',name:'通信の文字送り（1文字・text_blip より少しこもる）',dur:.05,fn:(c,o,t)=>{tone(c,o,t,{wave:.5,f:mf(84),dur:.025,g:.05,lp:2400});nz(c,o,t,{f:3000,dur:.015,g:.03,q:.8});}},
+{id:'comm_glitch',name:'通信が乱れた（ボスの前など）',dur:.7,fn:(c,o,t)=>{const r=rng(91);for(let i=0;i<7;i++){const d=r()*.5;nz(c,o,t+d,{f:1000+r()*4000,dur:.04,g:.22,q:1.5});if(r()<.5)tone(c,o,t+d,{type:'square',f:400+r()*2000,dur:.03,g:.04});}
+ tone(c,o,t+.05,{wave:.5,f:mf(88),f2:mf(76),dur:.4,g:.05,lin:true});}},
+);
+Object.assign(LV,{comm_open:2.6,comm_close:2.4,comm_blip:4,comm_glitch:2});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -338,7 +348,7 @@ function applyVol(){if(!C)return;M.gain.value=muted?0:vol.master*.6;Object.keys(
 function ok(){const c=ctx();if(!c)return null;if(c.state==='suspended')c.resume();return c;}
 function playSE(id,o){
  id=ALIAS[id]||id;const s=BYID[id];if(!s){console.warn('AUDIO: SE がない',id);return;}
- const c=ok();if(!c)return;const n=(live[id]||0);if(n>=(id==='text_blip'?8:id==='chain_up'?6:3))return;live[id]=n+1;setTimeout(()=>live[id]--,(s.dur+.1)*1000);
+ const c=ok();if(!c)return;const n=(live[id]||0);if(n>=(id==='text_blip'||id==='comm_blip'?8:id==='chain_up'?6:3))return;live[id]=n+1;setTimeout(()=>live[id]--,(s.dur+.1)*1000);
  const g=c.createGain();g.gain.value=(LV[id]||1)*((o&&o.vol!=null)?o.vol:1);g.connect(BUS.se);s.fn(c,g,c.currentTime+.01,o||{});
 }
 

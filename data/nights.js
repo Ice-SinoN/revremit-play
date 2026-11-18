@@ -6,7 +6,7 @@ const NIGHTS=[
  {n:1, add:"（基準）ブローなし",                         open:{chars:["HINA"],story:["n1"]}},
  {n:2, add:"エリートのマスが出やすい",                   open:{chars:["MOMO"],story:["n2"],parts:["drysump","forged"]}},
  {n:3, add:"ブローあり",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
- {n:4, add:"敵の体力 +10%",                              open:{chars:["SORA"],story:["n4"],parts:["studless","spike"]}},
+ {n:4, add:"敵の体力 +10%",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
  {n:5, add:"ボスのあとの回復 30% → 10%",                 open:{chars:["KAEDE"],story:["n5"],parts:["subcon","qrelease"]}},
  {n:6, add:"エリートの体力・攻撃 +20%",                  open:{chars:["RIN"],story:["n6"],parts:["dashcam","etc","aero"]}},
  {n:7, add:"敵の攻撃 +10%",                              open:{chars:["LUNA"],story:["n7"]}},
@@ -15,6 +15,8 @@ const NIGHTS=[
  {n:10,add:"初めのデッキに泥はね1枚",                    open:{story:["n10"]}},
  {n:11,add:"エンジン耐久の最大 −10",                     open:{story:["n11"]}},
 ];
+/* ★v0.22 β は NIGHT 4 まで（design 9-10・チーフ 11-18 10:26）。NIGHT 4 のクリアで「次の仲間は……？」だけ見せる */
+const BETA_NIGHTS=4;
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）
   eliteW:n>=2?20:null,        // エリートの重み 12 → 20

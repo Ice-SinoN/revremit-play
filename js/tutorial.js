@@ -13,7 +13,7 @@ function tutMark(){try{if(!SAVE.cur.profile.tutorial){SAVE.cur.profile.tutorial=
 /* はじめる。done：終わったら（スキップでも）呼ぶ */
 function startTutorial(done){
   TUTS.done=done;TUTS.i=-1;TUTS.ph="lines";TUTS.li=0;TUTS.turns=0;TUTS.downs=0;window.TUTORIAL_ON=true;tutMark();
-  newRunState("MT","YUKI",[]);ENEMIES.__tut=Object.assign({},TUT.enemy);
+  newRunState("MT","YUKI",[]);G.practice=true;/* ★v0.22 練習の戦闘はブローなし（design 8-5 practice.noBlow） */ENEMIES.__tut=Object.assign({},TUT.enemy);
   startBattleState("__tut");if(TUT.noAreaMul){B.e.hp=B.e.maxhp=TUT.enemy.hp;B.am=1}// design 8-5：エリアの倍率をかけない
   B.hand=TUT.hand.map(id=>inst(id));B.draw=TUT.draw.slice().reverse().map(id=>inst(id));B.disc=[];B.rpm=TUT.rpm;B.gear=TUT.gear;
   B.log=[];addLog("練習の戦闘");enterBattle();SND.bgm("tutorial");tutRender();

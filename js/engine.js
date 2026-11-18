@@ -20,8 +20,10 @@ const nightOf=n=>typeof nightRules==="function"?nightRules(n||0):NIGHT_NONE;
 const NR=()=>nightOf(G&&G.night||0);
 const cardOK=id=>!G||!G.ul||G.ul.cards.includes(id);
 const partOK=id=>!G||!G.ul||G.ul.parts.includes(id);
-function noBlow(){return NR().noBlow||has("forged")}
-function shiftCapNow(){return RULES.shiftCap+(has("synchro")?1:0)}
+function noBlow(){return NR().noBlow||has("forged")||!!(G&&G.practice)}
+/* ★v0.22 キャラの決まり（design 9-10-1）：CHARS[c].rule */
+function RULE(){return G&&CHARS[G.char]&&CHARS[G.char].rule||{}}
+function shiftCapNow(){return(RULE().shiftCap||RULES.shiftCap)+(has("synchro")?1:0)}
 
 /* ---- カードの読みかた ---- */
 function CD(c){const d=CARDS[c.id||c];if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
@@ -135,7 +137,7 @@ function startBattleState(key){
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
      curAdd:0,curDouble:false,wideAdd:0,cards:0,atks:0,atkDown:0,atShiftDraw:0,gas:0,charge:0,chain5:false,chain:0,chainBefore:0,turnDmg:0,
      onUp:[],perfTwice:false,atkTwice:false,htTurn:false,htBonus:0,clutchT:false,launchUsed:false,frozeTotal:0,apPen:0,
-     redT:0,limitGuard:false,atkAdd:0,dryT:0,spikeUsed:false,chainCarry:0,qrN:0,qrT:0,studUid:null,playRed:false,
+     redT:0,limitGuard:false,turnAtkAdd:0,ftStep:0,ftAcc:0,openAir:0,chainNext2:false,jinbaT:false,nextGas:0,paddleT:false,lastGrade:null,perfStreak:0,onPerf:[],phoenix:0,phoenixUsed:false,retry:false,lastHitRaw:0,lastHitThru:0,atkAdd:0,dryT:0,spikeUsed:false,chainCarry:0,qrN:0,qrT:0,studUid:null,playRed:false,
      enemyActed:false,log:[],ev:[],over:false,result:null};
   G.st.battles++;
   if(hid){B.e.n="裏道の"+E.n;addLog(`裏道：${UNLOCK.hiddenTurns}ターン以内に倒す（こえたら逃げられる）`)}
@@ -169,7 +171,7 @@ function bandRangeOf(c){const d=CD(c);if(!d.band)return null;if(d.band==="R")ret
 function inBand(c){const r=bandRangeOf(c);if(!r)return false;return B.rpm>=r[0]&&(CD(c).band==="R"?B.rpm<=r[1]:B.rpm<r[1])}
 function inRed(){return B.rpm>=redLo()&&B.rpm<=limit()}
 /* ★チェイン（design 0-2） */
-function chainStep(){return RULES.chainStep+(has("slick")?0.05:0)}
+function chainStep(){return(RULE().chainStep||RULES.chainStep)+(has("slick")?0.05:0)}
 function chainMul(n){return 1+chainStep()*Math.min(n==null?B.chain:n,RULES.chainMax)}
 function isTopGear(){return B.gear>=car().gears-1}
 function shiftLeft(){return B.shiftsT<shiftCapNow()}
@@ -177,9 +179,12 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
   B.block=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
-  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
+  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
-  if(first)drawN(RULES.hand0+(has("hook")?1:0));
+  if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
+  if(first&&RULE().firstGas){B.gas+=RULE().firstGas;addLog(`最初のターン：ガソリン +${RULE().firstGas}`)}
+  if(has("h_wheelie")&&B.gear===0){B.gas*=2;addLog("ウィリー：ガソリン2倍")}
+  if(first)drawN(RULES.hand0+(has("hook")?1:0)+(has("h_12inch")?2:0));
   else if(B.hand.length===0&&drawN(1))addLog("手札がないので1枚引いた（救済）");
   // AT：番のはじめに回転が低ければ自動で1段シフトダウン（design 0-7）
   if(!first&&G.mode==="AT"&&RULES.atAutoDown&&B.gear>0&&B.rpm<RULES.atAutoDown){B.gear--;B.rpm=Math.round(B.rpm/car().downDiv/100)*100;addLog(`自動シフトダウン → ${B.gear+1}速`);ev({k:"down"})}
@@ -191,27 +196,30 @@ function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGe
 function preview(c){
   const d=CD(c),C=car(),cost=costOf(c),rs=inRed()?d.fx.find(f=>f[0]==="redStay"):null,nr=B.rpm+cost-(rs?rs[1]:0),L=limit();
   if(d.redOnly&&!inRed())return{ok:false,txt:"レッドゾーンでないと打てない"};
+  if(d.topOnly&&!isTopGear())return{ok:false,txt:"最大ギアでないと打てない"};
+  if(d.atShift&&G.mode==="AT"&&(isTopGear()||!shiftLeft()))return{ok:false,txt:isTopGear()?"もう最大ギア（シフトできない）":`シフトアップは1ターン${shiftCapNow()}回まで`};
   if(B.cards>=RULES.cardCap)return{ok:false,txt:`このターンはもう打てない（${RULES.cardCap}枚まで）`};
   const g=gasOf(c);if(g>B.gas)return{ok:false,txt:d.charge&&g>maxGas()?`大技：あと ${g-B.gas} 目盛り（条件で減る）`:`ガソリンが足りない（${g}目盛り）`};
   if(d.t==="atk"&&B.e.cap&&B.atks>=B.e.cap)return{ok:false,txt:`このターンはもうアタックできない（${B.e.cap}枚まで）`};
   if(d.shiftCard&&G.mode==="MT"&&isTopGear())return{ok:false,txt:"もう最大ギア（シフトできない）"};// BUG-04
   if(d.shiftCard&&G.mode==="MT"&&!shiftLeft())return{ok:false,txt:`シフトアップは1ターン${shiftCapNow()}回まで`};
   const canShift=G.mode==="MT"&&!isTopGear()&&shiftLeft()&&((nr>=C.minShift&&cost>0)||!!d.shiftCard);
-  const auto=wouldAutoShift(c,nr);
+  const auto=wouldAutoShift(c,nr)||(G.mode==="AT"&&!!d.atShift);
+  const paddle=G.mode==="AT"&&!auto&&has("n_paddleshifter")&&!B.paddleT&&!isTopGear()&&shiftLeft()&&cost>0&&nr>=car().minShift;
   const after=Math.max(0,nr-revDownOf(c));// BUG-05・BUG-16
   let txt=`→ ${after}回転`;let danger=null;
   if(G.mode==="MT"){
     if(canShift)txt+=`　シフト可（${GRADE_JP[grade(nr)]}）`;
     if(nr>L&&B.limitGuard)txt+="　リミットで止まる";
     else if(nr>L){if(isTopGear()&&!noBlow()){danger="blow";txt+="　⚠ブロー"}else{danger="over";txt+=canShift&&!isTopGear()?"　（シフトしないとオーバーレブ）":"　⚠オーバーレブ"}}
-  }else{if(auto)txt+="　自動シフト";else if(nr>L)txt+="　リミッター（火力 半分）"}
+  }else{if(auto)txt+="　自動シフト";else if(paddle)txt+="　パドルでシフトできる";else if(nr>L)txt+="　リミッター（火力 半分）"}
   txt+=`　ガソリン\u00a0−${g}`;// BUG-22：「−2」だけ折り返さない
-  return{ok:true,txt,canShift,auto,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
+  return{ok:true,txt,canShift,auto,paddle,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
 }
 /* 効果の手助け */
 function mkCtx(m){return{
   attack(v,raw){let d=raw?v:v*m*(1+0.1*G.tune.ecu+(G.atkBonus||0));
-    if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0}
+    if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0;d+=B.turnAtkAdd}
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
   blockRaw(v){B.block+=v;addLog(`防御 +${v}`);ev({k:"pblk",v})},
@@ -255,14 +263,43 @@ const OPS={
  atkShatter:(x,v)=>{const k=Math.min(60,B.frozeTotal*v);x.attack(k,true);B.frozeTotal=0;addLog("凍結の合計が 0 にもどった")},
  chainAdd:(x,a)=>{B.chain+=a;G.st.maxChain=Math.max(G.st.maxChain,B.chain);addLog(`チェイン +${a}`);if(B.chain>=5&&!B.chain5){B.chain5=true;addCharge("チェイン5")}},
  atkHitsChain:(x,v)=>{const k=Math.min(10,B.chain);for(let i=0;i<k;i++)x.attack(v)},
+ // ★v0.22 仲間3人（design 9-10）
+ nextTurnAtk:(x,a)=>{B.nextTurnAdd+=a;addLog(`次の番の最初のアタック +${a}`)},
+ retryIfBlocked:()=>{if(B.lastHitRaw>0&&B.lastHitThru===0&&B.e.hp>0){B.retry=true;addLog("全部受けられた：手札にもどる")}},
+ gearUp2:()=>{let k=0;while(k<2&&!isTopGear()&&shiftLeft()){B.gear++;B.shifts++;G.st.shiftTry++;G.st.perfect++;B.lastGrade="perfect";k++;ev({k:"shift",g:"perfect",gear:B.gear});onShiftUp("perfect")}
+   addLog(k?`ギア +${k} → ${B.gear+1}速`:"もうギアを上げられない")},
+ turnAtkAdd:(x,a)=>{B.turnAtkAdd+=a;addLog(`この番のアタック +${a}`)},
+ atkFirstTurn:(x,a)=>x.attack(B.pTurns===0?a*2:a),
+ revUp:(x,a)=>{B.rpm=Math.min(limit(),B.rpm+a);addLog(`回転 +${a}（今 ${B.rpm}）`)},
+ atkAtks:(x,k)=>{const n=Math.max(0,B.atks-1);if(n)x.attack(k*n)},
+ tutorAtk:()=>{let bi=-1,bv=-1;B.draw.forEach((c,i)=>{const d=CD(c);if(d.t==="atk"){const v=cardVal(c);if(v>bv){bv=v;bi=i}}});
+   if(bi>=0&&B.hand.length<RULES.handMax){const c=B.draw.splice(bi,1)[0];B.hand.push(c);addLog(`整備メモ：「${CD(c).n}」を手札に`);ev({k:"draw",n:1})}else addLog("整備メモ：山札にアタックがない")},
+ fullThrottle:(x,a)=>{B.ftStep=Math.round((B.ftStep+a)*100)/100;addLog(`このターン、アタックのたびに倍率 +${a}`)},
+ atkIfChain:(x,v,n,add)=>x.attack(v+(B.chain>=n?add:0)),
+ atkChainNow:(x,k)=>x.attack(k*Math.min(B.chain,RULES.chainMax)),
+ atkHitsChain3:(x,v)=>{const k=2+Math.floor(Math.min(B.chain,RULES.chainMax)/3);for(let i=0;i<k;i++)x.attack(v)},
+ chainDouble:()=>{B.chainNext2=true;addLog("次のカードはチェインを2つ数える")},
+ blkChain:(x)=>{if(B.chain>0)x.blockRaw(Math.min(B.chain,RULES.chainMax))},
+ atkLowHp:(x,a)=>x.attack(G.hp<=G.maxhp/2?a*2:a),
+ openAir:(x,a)=>{B.openAir+=a;addLog(`このターン、補助のカードを打つたびに ${a}ダメージ`)},
+ hanami:(x,n)=>{let k=0;for(let i=B.disc.length-1;i>=0&&k<n;i--){const c=B.disc[i];if(baseCost(c,undefined,B.gear)===0&&B.hand.length<RULES.handMax&&c.uid!==B.playUid){B.hand.push(B.disc.splice(i,1)[0]);k++}}addLog(k?`捨て札から${k}枚手札に`:"捨て札に回転0のカードがない");if(k)ev({k:"draw",n:k})},
+ blkIfGear:(x,g,a)=>{if(B.gear>=g)x.block(a)},
+ atkIfPerf:(x,a)=>x.attack(B.lastGrade==="perfect"?a*2:a),
+ phoenix:(x,a)=>{if(!B.phoenixUsed){B.phoenix=a;addLog(`この戦闘で1回、耐久 ${a} で耐える`)}},
+ atkShiftsN:(x,k)=>{const n=Math.min(B.shifts,shiftCapNow());if(n)x.attack(k*n)},
+ onPerf:(x,op,...a)=>{B.onPerf.push([op,...a]);addLog("この戦闘の間、パーフェクトのたびに効く");ev({k:"onset"})},
+ clearBlock:()=>{if(B.e.block){addLog(`相手の防御 ${B.e.block} を0に`);B.e.block=0}},
+ atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
+ drawIfShift:(x,a)=>{if(B.shifts>0)x.draw(a)},
 };
-function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;
+function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
 function checkPhase(){const e=B.e;if(e.phase&&!e.phased&&e.hp>0&&e.hp<=e.maxhp*e.phase.at){e.phased=true;e.spd=e.phase.spd;
   if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}addLog(`${e.n} の形がくずれていく……`);ev({k:"phase",pal:e.phase.pal||null,glitch:!!e.phase.glitch})}}
 function overRev(){const dmg=has("oilcool")?RULES.overDmgCool:RULES.overDmg;G.hp-=dmg;B.rpm=limit();addLog(`オーバーレブ！エンジン耐久 −${dmg}`);ev({k:"over",v:dmg});return dead()}
 /* ロールケージ：ランに1回、1で耐える */
-function dead(){if(G.hp<=0&&has("cage")&&!G.cageUsed){G.cageUsed=true;G.hp=1;addLog("ロールケージ：耐久1で耐えた");ev({k:"cage"})}return G.hp<=0}
+function dead(){if(G.hp<=0&&B&&B.phoenix&&!B.phoenixUsed){B.phoenixUsed=true;G.hp=B.phoenix;B.phoenix=0;addLog(`クリムゾン・フェニックス：耐久 ${G.hp} で耐えた`);ev({k:"cage"});return false}
+  if(G.hp<=0&&has("cage")&&!G.cageUsed){G.cageUsed=true;G.hp=1;addLog("ロールケージ：耐久1で耐えた");ev({k:"cage"})}return G.hp<=0}
 /* ★シフトアップで起きること（1ターン shiftCap 回まで・design 0-1・0-4） */
 function onShiftUp(g){
   B.shiftsT++;if(B.shiftsT>shiftCapNow())return;
@@ -271,6 +308,8 @@ function onShiftUp(g){
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
   if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});
     B.onUp.forEach(([op,...a])=>{if(OPS[op])OPS[op](x,...a)})}
+  if(g==="perfect"&&B.onPerf.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);B.onPerf.forEach(([op,...a])=>{if(OPS[op])OPS[op](x,...a)})}
+  if(has("n_activediff")){if(g==="perfect"){B.perfStreak++;if(B.perfStreak>=3){B.perfStreak=0;B.curDouble=true;addLog("アクティブデフ：次のアタック2倍")}}else B.perfStreak=0}
   if(B.perfTwice&&(g==="perfect"||G.mode==="AT")){B.perfTwice=false;B.atkTwice=true;addLog("次のアタックは2回当たる")}
 }
 /* ---- カードの面の数字・予告（★虎雪 2026-11-06 14:47）----
@@ -297,7 +336,7 @@ function playCard(i,shift){
   const c=B.hand[i];if(!c)return"ok";
   const p=preview(c);if(!p.ok)return"ok";
   const d=CD(c),C=car(),cost=costOf(c);
-  if(G.mode==="AT")shift=p.auto;else shift=!!shift&&p.canShift;
+  if(G.mode==="AT"){const pd=!p.auto&&!!shift&&p.paddle;if(pd){B.paddleT=true;addLog("パドルシフター")}shift=p.auto||pd}else shift=!!shift&&p.canShift;
   const band=p.band,red=inRed();// ★打つ前の回転で判定
   if(has("drysump")&&d.band==="R"&&band&&gasBase(c)>p.gas&&B.dryT<2)B.dryT++;
   B.gas-=p.gas;B.hand.splice(i,1);B.cards++;if(d.t==="atk")B.atks++;B.playUid=c.uid;B.playRed=red;if(red)B.redT++;
@@ -310,7 +349,7 @@ function playCard(i,shift){
   ev({k:"card",id:c.id,up:!!c.up,t:d.t,mo:motionOf(c),band,chain:B.chain+1,shift:shift?(G.mode==="AT"?"good":grade(nr)):null});
   if(shift){
     const g=G.mode==="AT"?"good":grade(nr);B.forcePerfect=false;B.launchUsed=true;
-    const drop=g==="early"?C.earlyDrop:has("flywheel")?0.5:C.upDrop;
+    const drop=g==="early"?C.earlyDrop:d.halfDrop?0.5:has("flywheel")?0.5:C.upDrop;B.lastGrade=g;
     B.gear++;G.st.shiftTry++;B.shifts++;
     if(g==="perfect"){bonus=0.3;G.st.perfect++}else if(g==="good"){bonus=0.1;G.st.good++}
     nr=Math.round(nr*drop/100)*100;B.rpm=nr;
@@ -323,6 +362,8 @@ function playCard(i,shift){
   let m=C.mult[B.gear]+bonus;
   m+=B.nextBonus;B.nextBonus=0;
   if(has("turbo")&&B.gear>=2)m+=0.5;
+  if(has("h_bigbore")&&B.gear===3)m+=0.4;
+  if(d.t==="atk"&&B.ftStep){m+=B.ftAcc;B.ftAcc=Math.min(0.5,Math.round((B.ftAcc+B.ftStep)*100)/100)}
   if(d.t==="atk"&&has("nitro")&&!B.nitroUsed){m+=1;B.nitroUsed=true;addLog("ニトロ！倍率 +1.0")}
   if(G.mode==="AT")m*=RULES.atMult;
   const L=limit();
@@ -334,8 +375,9 @@ function playCard(i,shift){
   }
   m*=chainMul();// ★チェイン
   m=Math.min(m,RULES.multCap);// ★最終倍率の上限
-  B.chain++;G.st.maxChain=Math.max(G.st.maxChain,B.chain);
+  B.chain++;if(B.chainNext2&&!d.fx.some(f=>f[0]==="chainDouble")){B.chainNext2=false;B.chain++;addLog("結び目：チェイン +2")}G.st.maxChain=Math.max(G.st.maxChain,B.chain);
   if(B.chain>=5&&!B.chain5){B.chain5=true;addCharge("チェイン5")}
+  if(has("m_jinba")&&B.chain>=10&&!B.jinbaT){B.jinbaT=true;B.nextGas+=2;addLog("人馬一体：次の番のガソリン +2")}
   if(red)addCharge("レッドゾーン");
   if(d.sup&&has("carbon")){B.block+=2;ev({k:"pblk",v:2})}
   if(d.t==="atk"&&band&&d.band==="R"&&has("pipe")){B.e.burn+=2;ev({k:"burn",v:2})}
@@ -343,10 +385,13 @@ function playCard(i,shift){
   let v=cardVal(c);if(band)v=rnum(v*(d.bm||RULES.bandMul),v);// ★帯
   const x=mkCtx(m);
   const runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v)))});
-  runFx();
+  B.retry=false;runFx();
+  if(d.sup&&B.openAir&&!d.fx.some(f=>f[0]==="openAir")){addLog("オープンエア");hitEnemy(B.openAir)}
+  if(has("m_light")&&cost===0){B.rpm=Math.max(0,B.rpm-300)}
   if(d.t==="atk"&&B.atkTwice&&!c.temp){B.atkTwice=false;addLog("もう1回！");runFx()}// ★パーフェクトのあと2回
   G.st.maxTurnDmg=Math.max(G.st.maxTurnDmg,B.turnDmg);
-  if(!c.temp&&!d.exile)B.disc.push(c);
+  if(B.retry&&B.hand.length<RULES.handMax){B.retry=false;B.hand.push(c)}
+  else if(!c.temp&&!d.exile)B.disc.push(c);
   if(has("qrelease")&&cost===0&&B.qrT<2){B.qrN++;if(B.qrN%3===0){B.qrT++;if(drawN(1))addLog("クイックリリース：1枚引いた")}}
   if(B.e.hp<=0)return finish("win");
   if(G.hp<=0&&dead())return finish("dead");
@@ -376,6 +421,7 @@ function endTurn(){return turnEnd()}
 function turnEnd(gasout){
   if(B.over)return B.result;
   if(has("subcon")&&!gasout&&B.chain>1){B.chainCarry=Math.floor(B.chain/2);addLog(`サブコン：チェイン ${B.chainCarry} が残る`)}
+  if(has("m_horo")&&B.chain>=5){B.block+=5;addLog("幌：防御 +5");ev({k:"pblk",v:5})}
   B.pTurns++;
   if(B.hidden&&B.pTurns>=UNLOCK.hiddenTurns&&B.e.hp>0){addLog("裏道のゴーストは逃げていった");ev({k:"escape"});return finish("escape")}
   B.rpm=Math.max(car().idle,B.rpm-car().brake-(has("icool")?2000:0));
@@ -393,7 +439,7 @@ function eAtk(e,v){return Math.max(0,Math.round(v*B.am)+e.atkUp-e.noise)}
 function intent(e){const p=curAct(e);
   switch(p[0]){case"atk":return`攻撃 ${eAtk(e,p[1])}`;case"multi":return`攻撃 ${eAtk(e,p[1])}×${p[2]}`;case"prc":return`貫通 ${eAtk(e,p[1])}`;
    case"blk":return`防御 ${p[1]}`;case"buf":return`攻撃アップ ${p[1]}`;case"rev":return`回転 +${p[1]}`;case"jam":return`ジャマ（${CARDS[p[1]].n}×${p[2]}）`;case"apd":return"ガソリン −1";}return""}
-function enemyHit(v,pierce){const e=B.e;let d=eAtk(e,v)+(e.mAdd||0);e.mAdd=0;const tire=Math.floor(B.gear*(0.5+0.25*G.tune.tire));d=Math.max(0,d-tire);
+function enemyHit(v,pierce){const e=B.e;let d=eAtk(e,v)+(e.mAdd||0);e.mAdd=0;const tire=Math.floor(B.gear*(0.5+0.25*G.tune.tire));d=Math.max(0,d-tire-(has("n_seat")&&B.gear>=5?2:0));
   const blk=pierce?0:Math.min(B.block,d);B.block-=blk;const hp=d-blk;G.hp-=hp;if(has("widebody")&&hp>0)B.wideAdd+=Math.floor(hp/2);ev({k:"phit",v:hp,blk});
   addLog(`${e.n} の${pierce?"貫通":"攻撃"}：${hp}ダメージ${blk?`（防御 −${blk}）`:""}${tire?`（タイヤ −${tire}）`:""}`)}
 const ENEMY_OPS={
@@ -433,7 +479,7 @@ function winRewards(){
   const key=B.key,E=ENEMIES[key],gd=RULES.gold;
   let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);gold=Math.round(gold*NR().goldMul);if(has("cat"))gold+=gd.cat;
   if(E.rank==="elite"&&!B.hidden)G.st.elites++;
-  let hidCard=null;if(B.hidden){G.st.hidden++;const left=UNLOCK.hidden.filter(id=>CARDS[id]&&!(G.ul&&G.ul.cards.includes(id))&&!G.hiddenWon.includes(id));
+  let hidCard=null;if(B.hidden){G.st.hidden++;const left=hiddenList(G.char).filter(id=>CARDS[id]&&!(G.ul&&G.ul.cards.includes(id))&&!G.hiddenWon.includes(id));
     if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;

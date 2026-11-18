@@ -84,12 +84,18 @@ function normSave(o){
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
 function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
-function readSave(which){const raw=lsGet(SAVE_KEYS[which]);if(raw==null)return{d:null,broken:false};
+function autoKey(n){return"revremit_save_auto_"+n}/* ★v0.22 BUG-28 案①：オートセーブはスロットごと */
+function readKey(key,tag){const raw=lsGet(key);if(raw==null)return{d:null,broken:false};
   let o=null;try{o=JSON.parse(raw)}catch(e){}const d=normSave(o);
-  if(!d){const bk=`revremit_save_broken_${which}_${Date.now()}`;if(!lsGet(bk))lsSet(bk,raw);return{d:null,broken:true}}return{d,broken:false}}
+  if(!d){/* ★v0.22 BUG-27：保管は1回だけ（同じ中身の保管があれば書かない） */
+    const pre=`revremit_save_broken_${tag}_`;let dup=false;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(pre)&&localStorage.getItem(k)===raw){dup=true;break}}}catch(e){}
+    if(!dup)lsSet(pre+Date.now(),raw);return{d:null,broken:true}}return{d,broken:false}}
+function readSave(which){return readKey(SAVE_KEYS[which],which)}
+function readAuto(n){return readKey(autoKey(n),"auto"+n)}
 function packSave(d,slot){const o=Object.assign({},d,{at:Date.now(),game:VERSION_NO(),slot});delete o.newer;return JSON.stringify(o)}
 /* 書くのは「新しい中身を作ってから1回で setItem」（途中で閉じても、前の中身か新しい中身のどちらか） */
-function writeSave(which,d,slot){const ok=lsSet(SAVE_KEYS[which],packSave(d,slot));
+const LAST_KEY="revremit_save_last";
+function writeSave(which,d,slot,raw){const ok=lsSet(raw?which:SAVE_KEYS[which],packSave(d,slot));
   if(!ok&&!SAVE.warned){SAVE.warned=1;try{window.toast2&&toast2("セーブできませんでした（ブラウザの保存がいっぱい・オフ）")}catch(e){}}return ok}
 /* v0.19 までのデータ（キーがばらばら）を1つにまとめる。元のキーは消さない */
 function fromOldKeys(){const g=k=>lsGet(OLD_KEYS[k]);if(["minicars","deck","seen","run","tutorial"].every(k=>g(k)==null))return null;
@@ -109,20 +115,24 @@ const SAVE={cur:null,slot:1,warned:0,
       if(!(n>=1&&n<=3)){n=[1,2,3].find(k=>!slots[k].d&&!slots[k].broken)||0}
       if(n&&(!slots[n].d||(a.d.at||0)>=(slots[n].d.at||0))){slots[n]={d:a.d,broken:false};writeSave(n,a.d,n)}
       [1,2,3].forEach(k=>{if(slots[k].d&&k!==n)writeSave(k,slots[k].d,k)});this.migrated="v0.20";if(n){this.slot=n;this.cur=slots[n].d;this.auto();return}}
+    // ★v0.22：v0.21 のオートセーブ（1つだけ）は、そのスロットのオートへ写す（1回だけ）
     const n=+(a.d&&(a.d.slot||a.d.from));
+    if(a.d&&n>=1&&n<=3&&lsGet(autoKey(n))==null)writeSave(autoKey(n),a.d,n,true);
+    const last=+lsGet(LAST_KEY);
+    if(last>=1&&last<=3&&slots[last].d){this.slot=last;const au=readAuto(last).d;this.cur=au&&(au.at||0)>(slots[last].d.at||0)?au:slots[last].d;return}
     if(n>=1&&n<=3&&slots[n].d){this.slot=n;this.cur=(a.d.at||0)>(slots[n].d.at||0)?a.d:slots[n].d;return}
     const k=[1,2,3].find(k=>slots[k].d);if(k){this.slot=k;this.cur=slots[k].d;return}
     this.cur=a.d||blankSave();this.slot=[1,2,3].find(k=>!slots[k].broken)||1},
   /* 区切りごと：今のスロットとオートセーブの両方に書く */
-  auto(){if(!this.cur)return;writeSave(this.slot,this.cur,this.slot);writeSave("auto",this.cur,this.slot)},
-  list(){return["auto",1,2,3].map(k=>{const r=readSave(k);return{k,d:r.d,broken:r.broken}})},
+  auto(){if(!this.cur)return;writeSave(this.slot,this.cur,this.slot);writeSave(autoKey(this.slot),this.cur,this.slot,true);lsSet(LAST_KEY,String(this.slot))},
+  list(){return[1,2,3].map(k=>{const r=readSave(k),a=readAuto(k);return{k,d:r.d,broken:r.broken,auto:a.d}})},
   /* スロットをえらぶ（あそぶ）。空なら新しいデータ（チュートリアル済みは引きつぐ） */
   use(n){const r=readSave(n);if(r.broken)return false;if(r.d){this.cur=r.d;this.cur.plays=(this.cur.plays||0)+1}
     else{const t=this.cur&&this.cur.profile?this.cur.profile.tutorial:false;this.cur=blankSave();this.cur.profile.tutorial=t}
     this.slot=n;this.auto();return true},
   /* オートセーブ（最後の状態）を、そのスロットにもどす */
-  restore(){const a=readSave("auto");if(!a.d)return false;const n=+(a.d.slot||a.d.from)||this.slot;this.cur=a.d;this.slot=n;this.auto();return n},
-  erase(n){lsDel(SAVE_KEYS[n]);if(this.slot===n){this.cur=blankSave();this.cur.profile.tutorial=true}},
+  restore(n){n=+n||this.slot;const a=readAuto(n);if(!a.d)return false;this.cur=a.d;this.slot=n;this.auto();return n},
+  erase(n){lsDel(SAVE_KEYS[n]);lsDel(autoKey(n));if(this.slot===n){this.cur=blankSave();this.cur.profile.tutorial=true}},
   /* 解放を足す（減らす関数は作らない） */
   unlock(kind,id){const u=this.cur.profile.unlock;if(!UNLOCK_LISTS.includes(kind))return false;id=String(id);if(u[kind].includes(id))return false;u[kind].push(id);this.auto();return true},
   label(d){if(!d)return"（空き）";const p=d.profile,mc=normMinicars(p.minicars),u=p.unlock;
