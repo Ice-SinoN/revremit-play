@@ -16,12 +16,22 @@
   {
    "id": "boss3_after",
    "file": "revremit_story_boss3_after.png",
-   "text": "ed1 の1〜4行（零号がほどける〜白い光に包まれる）"
+   "text": "boss3 撃破直後（予備。text v3 では ed1 前半は ending）"
   },
   {
    "id": "ending",
    "file": "revremit_story_ending.png",
-   "text": "ed1 の5〜9行（ガレージ・ミニカー）"
+   "text": "ed1 の1〜5行（零号がほどける〜白い光）。6行目からは ending_garage"
+  },
+  {
+   "id": "opening_road",
+   "file": "revremit_story_opening_road.png",
+   "text": "op_road 全部（ROAD に入る・キーが光になって手甲に）"
+  },
+  {
+   "id": "ending_garage",
+   "file": "revremit_story_ending_garage.png",
+   "text": "ed1 の6〜25行と ed1_after（夜明け前のガレージ）"
   }
  ],
  "dialog_window": [

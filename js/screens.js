@@ -474,7 +474,9 @@ function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneT
 function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const sc=s.sc,l=sc.lines[s.i]||[null,""],who=l[0];
   let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// 行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
   const bgp=storyBg(bgk);
-  const bw0=who==="YUKI"||who==="MIO"||who==="YUKI_IN"?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
+  /* ★v0.20.1：キャラが描いてある一枚絵（opening_road・ending_garage）の上には立ち絵を出さない（2人が重なるため）。名前は帯に出る */
+  const bgHasChars=/revremit_story_(opening_road|ending_garage)\.png/.test(bgp);
+  const bw0=!bgHasChars&&(who==="YUKI"||who==="MIO"||who==="YUKI_IN")?STORY_ART.bust(who==="YUKI_IN"?"YUKI":who,faceOf(l)):null,bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");
   if(!root||root.dataset.key!==s.key){
     u.innerHTML=`<div class="scroot" data-key="${esc(s.key)}"><div class="scbgw"></div><div class="scbw"></div><div class="tap" ${at(0,0,640,360)} onclick="sceneTap()"></div>
