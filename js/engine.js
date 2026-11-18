@@ -13,6 +13,15 @@ let G=null,B=null,uidN=1;
 const inst=(id,up=false)=>({id,up,uid:uidN++});
 const has=p=>!!G&&G.parts.includes(p);
 const car=()=>G.car;
+/* ★v0.21 夜・解放（design 9-4・9-5）。G.night：0＝夜なし（チュートリアル・α の道）。G.ul：このランで使えるカード・パーツ（null＝全部） */
+/* data/nights.js を読まない道具（v14 のボットなど）でも動くように：ないときは「夜なし」 */
+const NIGHT_NONE={noBlow:false,eliteW:null,hpMul:1,areaHeal:null,eliteMul:1,atkMul:1,money0:null,goldMul:1,bossMul:1,startJam:[],maxHp:0};
+const nightOf=n=>typeof nightRules==="function"?nightRules(n||0):NIGHT_NONE;
+const NR=()=>nightOf(G&&G.night||0);
+const cardOK=id=>!G||!G.ul||G.ul.cards.includes(id);
+const partOK=id=>!G||!G.ul||G.ul.parts.includes(id);
+function noBlow(){return NR().noBlow||has("forged")}
+function shiftCapNow(){return RULES.shiftCap+(has("synchro")?1:0)}
 
 /* ---- カードの読みかた ---- */
 function CD(c){const d=CARDS[c.id||c];if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
@@ -33,7 +42,7 @@ function canUpgrade(c){const d=CD(c);if(c.up||d.gen)return false;return descOf(c
 function motionOf(c){const d=CD(c);return d.mo||TYPE_MOTION[d.t]||"rev"}
 function rarityOf(c){return CARDS[c.id||c].r||"C"}
 /* ---- デッキ（ラン前に組む：上限 C4・R2・E1・SK1、20枚） ---- */
-function deckPool(charId){return Object.keys(CARDS).filter(id=>!CARDS[id].gen&&(CARDS[id].own==="N"||CARDS[id].own===(charId||"YUKI")))}
+function deckPool(charId){const ok=typeof deckUL==="function"?deckUL():null;return Object.keys(CARDS).filter(id=>!CARDS[id].gen&&(CARDS[id].own==="N"||CARDS[id].own===(charId||"YUKI"))&&(!ok||ok.includes(id)))}
 function defaultDeck(charId){const out={};CHARS[charId||"YUKI"].deck.forEach(([id,n])=>{out[id]=(out[id]||0)+n});return out}
 function deckCount(dk){return Object.values(dk).reduce((a,b)=>a+b,0)}
 function deckLimitOf(id){return RULES.deckLimit[rarityOf(id)]||1}
@@ -49,46 +58,55 @@ function genMap(){
       if(r===0)row=[{k:"battle"},{k:"battle"}];
       else if(r===a.rows-1)row=[{k:"garage"}];
       else{const n=rnd(2,4);row=[];let prevElite=false;
-        for(let i=0;i<n;i++){const w=NODE_W.filter(x=>r>=x[2]);const t=w.reduce((s,x)=>s+x[1],0);let q=Math.random()*t,k="battle";
+        for(let i=0;i<n;i++){const ew=NR().eliteW,w=NODE_W.filter(x=>r>=x[2]).map(x=>x[0]==="elite"&&ew?[x[0],ew,x[2]]:x);const t=w.reduce((s,x)=>s+x[1],0);let q=Math.random()*t,k="battle";
           for(const x of w){q-=x[1];if(q<0){k=x[0];break}}row.push({k})}
         if(r===a.mid&&!row.some(n=>n.k==="shop"||n.k==="sim"))row[0]={k:Math.random()<0.5?"shop":"sim"};}
       row.forEach(n=>{n.a=ai;n.r=r;if(n.k==="shop"){n.feat=Math.random()<RULES.featRate;n.sale=Math.random()<RULES.saleRate}});
       map.push(row)}
+    // ★裏道（design 9-6）：NIGHT 1 を初めてクリアしたあと。エリアに入ったとき 35% で、4〜9段目のどこかに1つ
+    if(G&&G.hiddenOn&&Math.random()<UNLOCK.hiddenRate){const base=map.length-a.rows,r=rnd(UNLOCK.hiddenRows[0],Math.min(UNLOCK.hiddenRows[1],a.rows-2)),row=map[base+r];
+      const j=row.length<4?row.length:rnd(0,row.length-1),n={k:"hidden",a:ai,r};if(j<row.length&&(row[j].k==="shop"||row[j].k==="sim")&&r===a.mid)row.push(n);else row[j]=n}
     map.push([{k:"boss",a:ai,r:a.rows}]);
   });return map}
-function newRunState(mode,charId,bring,dk){
-  charId=charId||"YUKI";const ch=CHARS[charId];
+function newRunState(mode,charId,bring,dk,opt){
+  charId=charId||"YUKI";const ch=CHARS[charId];opt=opt||{};G=null;
   if(!dk||deckErrors(dk,charId).length)dk=defaultDeck(charId);
   const deck=[];Object.entries(dk).forEach(([id,n])=>{for(let i=0;i<n;i++)deck.push(inst(id))});
   bring=(Array.isArray(bring)?bring:[]).slice(0,BRING_MAX);
-  G={char:charId,car:JSON.parse(JSON.stringify(ch.car)),mode,hp:ch.car.hp,maxhp:ch.car.hp,money:RULES.money0,tickets:0,
-     tune:{tire:0,shift:0,engine:0,light:0,ecu:0},parts:[],deck,map:genMap(),row:0,path:[],cageUsed:false,seen:{},
-     st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0},bring,atkBonus:0};
+  const night=Math.max(0,+opt.night||0),nr=nightOf(night);
+  nr.startJam.forEach(id=>deck.push(inst(id)));
+  G={char:charId,car:JSON.parse(JSON.stringify(ch.car)),mode,hp:ch.car.hp+nr.maxHp,maxhp:ch.car.hp+nr.maxHp,money:nr.money0!=null?nr.money0:RULES.money0,tickets:0,
+     tune:{tire:0,shift:0,engine:0,light:0,ecu:0},parts:[],deck,map:null,row:0,path:[],cageUsed:false,seen:{},
+     night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
+     st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0};
+  G.map=genMap();
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
-    if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax)G.parts.push(m.part)});
+    if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax)addPart(m.part)});
   return G;
 }
 function mcBonus(m){const i=Math.max(0,RANKS.indexOf(m.rank));return{hp:MC_BONUS.hp[i],atk:MC_BONUS.atk[i]}}
 function areaIdx(){const r=G.map[Math.min(G.row,G.map.length-1)];return r[0].a}
 function curArea(){return AREAS[areaIdx()]}
 /* マスの敵：最初の3段はやさしい雑魚だけ */
-function nodeEnemy(n){const a=AREAS[n.a];if(n.k==="elite")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
+function nodeEnemy(n){const a=AREAS[n.a];if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
 /* 次の段へ。ボスのあとは耐久を 30% 回復（design 付録）。戻り値 "map"｜"area"（次のエリアに入った）｜"clear" */
 function advanceRow(){const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
   if(G.row>=G.map.length){G.st.clear=true;return"clear"}
-  if(prev.k==="boss"){const h=Math.round(G.maxhp*RULES.areaHeal);G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();return"area"}
+  if(prev.k==="boss"){G.st.bosses++;const ah=NR().areaHeal,h=Math.round(G.maxhp*(ah!=null?ah:RULES.areaHeal));G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();return"area"}
   return"map"}
 /* 候補に出るパーツ：共通＋自分の専用＋持ち込んだミニカーのキャラの専用。持っているものは除く */
 function partPool(){const own=new Set([G.char,...G.bring.map(m=>m.char)]);
-  return Object.keys(PARTS).filter(p=>!G.parts.includes(p)&&(PARTS[p].own==="N"||own.has(PARTS[p].own)))}
+  return Object.keys(PARTS).filter(p=>!G.parts.includes(p)&&(PARTS[p].own==="N"||own.has(PARTS[p].own))&&partOK(p))}
 function partOptions(n){return shuffle(partPool()).slice(0,n||3)}
 /* パーツを取る。5つあるときは idx の枠と入れ替える（idx なしで5つなら false） */
-function addPart(p,idx){if(G.parts.length<RULES.partsMax){G.parts.push(p);return true}
-  if(idx==null||idx<0||idx>=G.parts.length)return false;G.parts[idx]=p;return true}
+function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.push(p);
+  else{if(idx==null||idx<0||idx>=G.parts.length)return false;old=G.parts[idx];G.parts[idx]=p}
+  if(old==="forged"){G.maxhp+=10}if(p==="forged"){G.maxhp-=10;G.hp=Math.min(G.hp,G.maxhp)}// 鍛造ピストン：最大 −10（外したらもどす）
+  return true}
 /* 戦闘のあとの3択。先にレア度を C60・R30・E10 で引く。エリートは R 以上を1枚、ボスは E を1枚約束 */
 function rewardOptions(rank){
-  const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK");
+  const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK"&&cardOK(id));
   const out=[];
   const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RULES.rarityW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
     for(const q of rs){x-=RULES.rarityW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
@@ -109,16 +127,19 @@ function restAmount(){return Math.round(G.maxhp*RULES.restRate)}
 
 /* ---- 戦闘 ---- */
 function startBattleState(key){
-  const E=ENEMIES[key];const C=car();const AR=curArea();
-  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1):1));
-  B={key,am:AR.atkMul||1,e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
+  const E=ENEMIES[key];const C=car();const AR=curArea(),nr=NR(),node=G.map&&G.map[G.row]&&G.map[G.row][G.path[G.row]]||null,hid=!!(node&&node.k==="hidden");
+  const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
+  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm);
+  B={key,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?1500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
      curAdd:0,curDouble:false,wideAdd:0,cards:0,atks:0,atkDown:0,atShiftDraw:0,gas:0,charge:0,chain5:false,chain:0,chainBefore:0,turnDmg:0,
      onUp:[],perfTwice:false,atkTwice:false,htTurn:false,htBonus:0,clutchT:false,launchUsed:false,frozeTotal:0,apPen:0,
+     redT:0,limitGuard:false,atkAdd:0,dryT:0,spikeUsed:false,chainCarry:0,qrN:0,qrT:0,studUid:null,playRed:false,
      enemyActed:false,log:[],ev:[],over:false,result:null};
   G.st.battles++;
-  addLog(`${E.n} があらわれた。${E.gimTxt?"（"+E.gimTxt+"）":""}`);
+  if(hid){B.e.n="裏道の"+E.n;addLog(`裏道：${UNLOCK.hiddenTurns}ターン以内に倒す（こえたら逃げられる）`)}
+  addLog(`${B.e.n} があらわれた。${E.gimTxt?"（"+E.gimTxt+"）":""}`);
   if(E.first){addLog(`${E.n} が先に動いた`);const r=enemyStep();if(r)return finish(r),B}
   startPlayerTurn(true);
   return B;
@@ -133,12 +154,13 @@ function canDraw(){return B.hand.length<RULES.handMax&&(B.draw.length+B.disc.len
 function limit(){return car().limit+(has("limiter")?500:0)}
 function bandExt(){return 150*G.tune.shift+(has("closs")?200:0)}
 function bandRange(){const C=car(),x=bandExt();return{lo:C.band[0]-x,hi:C.band[1]+x,clo:C.core[0]-x/2,chi:C.core[1]+x/2}}
-function grade(rpm){const b=bandRange();if(B.forcePerfect)return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
+function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
 /* ★ガソリン（design 0-1） */
 function maxGas(){return RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0)}
 function gasBase(c){const d=CD(c);return c.up&&d.gasu!=null?d.gasu:(d.gas||0)}
-function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;return a}
+function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;
+  if(has("drysump")&&d.band==="R"&&a>0&&B.dryT<2&&inBand(c))a--;return a}
 function addGas(n){B.gas=Math.min(maxGas(),B.gas+n)}
 function addCharge(why){B.charge++;ev({k:"charge",n:B.charge,why});if(B.hand.concat(B.draw,B.disc).some(c=>CD(c).charge))addLog(`大技の条件（${why}）：ガソリン −1`)}
 /* ★回転数の帯（design 0-3）：打つ前の回転で判定 */
@@ -150,12 +172,12 @@ function inRed(){return B.rpm>=redLo()&&B.rpm<=limit()}
 function chainStep(){return RULES.chainStep+(has("slick")?0.05:0)}
 function chainMul(n){return 1+chainStep()*Math.min(n==null?B.chain:n,RULES.chainMax)}
 function isTopGear(){return B.gear>=car().gears-1}
-function shiftLeft(){return B.shiftsT<RULES.shiftCap}
+function shiftLeft(){return B.shiftsT<shiftCapNow()}
 /* 今のギアの倍率（表示用。AT の ×0.9 も入れる：BUG-06） */
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
   B.block=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
-  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.chain5=false;B.chain=0;B.turnDmg=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
+  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(first)drawN(RULES.hand0+(has("hook")?1:0));
   else if(B.hand.length===0&&drawN(1))addLog("手札がないので1枚引いた（救済）");
@@ -167,20 +189,21 @@ function startPlayerTurn(first){
 function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=b.lo&&costOf(c)>0}
 /* カードを打つ前の見込み（打てるか・シフト・危ない）。数字は simulateCard */
 function preview(c){
-  const d=CD(c),C=car(),cost=costOf(c),nr=B.rpm+cost,L=limit();
+  const d=CD(c),C=car(),cost=costOf(c),rs=inRed()?d.fx.find(f=>f[0]==="redStay"):null,nr=B.rpm+cost-(rs?rs[1]:0),L=limit();
   if(d.redOnly&&!inRed())return{ok:false,txt:"レッドゾーンでないと打てない"};
   if(B.cards>=RULES.cardCap)return{ok:false,txt:`このターンはもう打てない（${RULES.cardCap}枚まで）`};
   const g=gasOf(c);if(g>B.gas)return{ok:false,txt:d.charge&&g>maxGas()?`大技：あと ${g-B.gas} 目盛り（条件で減る）`:`ガソリンが足りない（${g}目盛り）`};
   if(d.t==="atk"&&B.e.cap&&B.atks>=B.e.cap)return{ok:false,txt:`このターンはもうアタックできない（${B.e.cap}枚まで）`};
   if(d.shiftCard&&G.mode==="MT"&&isTopGear())return{ok:false,txt:"もう最大ギア（シフトできない）"};// BUG-04
-  if(d.shiftCard&&G.mode==="MT"&&!shiftLeft())return{ok:false,txt:`シフトアップは1ターン${RULES.shiftCap}回まで`};
+  if(d.shiftCard&&G.mode==="MT"&&!shiftLeft())return{ok:false,txt:`シフトアップは1ターン${shiftCapNow()}回まで`};
   const canShift=G.mode==="MT"&&!isTopGear()&&shiftLeft()&&((nr>=C.minShift&&cost>0)||!!d.shiftCard);
   const auto=wouldAutoShift(c,nr);
   const after=Math.max(0,nr-revDownOf(c));// BUG-05・BUG-16
   let txt=`→ ${after}回転`;let danger=null;
   if(G.mode==="MT"){
     if(canShift)txt+=`　シフト可（${GRADE_JP[grade(nr)]}）`;
-    if(nr>L){if(isTopGear()){danger="blow";txt+="　⚠ブロー"}else{danger="over";txt+=canShift?"　（シフトしないとオーバーレブ）":"　⚠オーバーレブ"}}
+    if(nr>L&&B.limitGuard)txt+="　リミットで止まる";
+    else if(nr>L){if(isTopGear()&&!noBlow()){danger="blow";txt+="　⚠ブロー"}else{danger="over";txt+=canShift&&!isTopGear()?"　（シフトしないとオーバーレブ）":"　⚠オーバーレブ"}}
   }else{if(auto)txt+="　自動シフト";else if(nr>L)txt+="　リミッター（火力 半分）"}
   txt+=`　ガソリン\u00a0−${g}`;// BUG-22：「−2」だけ折り返さない
   return{ok:true,txt,canShift,auto,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
@@ -188,11 +211,13 @@ function preview(c){
 /* 効果の手助け */
 function mkCtx(m){return{
   attack(v,raw){let d=raw?v:v*m*(1+0.1*G.tune.ecu+(G.atkBonus||0));
-    if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0}
+    if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0}
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
   blockRaw(v){B.block+=v;addLog(`防御 +${v}`);ev({k:"pblk",v})},
-  freeze(v){const x=Math.round(v*m)*(has("emblem")?2:1);B.frozeTotal+=x;B.e.next+=x*1.5*(B.e.halfFrz?0.5:1);addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x})},
+  freeze(v){const x=Math.round(v*m)*(has("emblem")?2:1);B.frozeTotal+=x;B.frzAll=(B.frzAll||0)+x;B.e.next+=x*1.5*(B.e.halfFrz?0.5:1);addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x});
+    if(x>0&&has("studless")&&B.studUid!==B.playUid){B.studUid=B.playUid;B.block+=2;addLog("スタッドレスタイヤ：防御 +2");ev({k:"pblk",v:2})}
+    if(has("spike")&&!B.spikeUsed&&B.frzAll>=20){B.spikeUsed=true;addLog("スパイクタイヤ：20ダメージ");hitEnemy(20)}},
   burn(v){const x=Math.round(v*m);B.e.burn+=x;addLog(`炎上 +${x}`);ev({k:"burn",v:x})},
   noise(v){const x=Math.round(v*m);B.e.noise+=x;addLog(`ノイズ +${x}`);ev({k:"noise",v:x})},
   heal(v){const x=Math.round(v*m);G.hp=Math.min(G.maxhp,G.hp+x);addLog(`エンジン耐久 +${x}`);ev({k:"heal",v:x})},
@@ -219,6 +244,17 @@ const OPS={
  perfTwice:()=>{B.perfTwice=true},
  heelToe:(x,v)=>{B.htTurn=true;B.htBonus=Math.round((B.htBonus+v)*100)/100;addLog(`このターン、シフトダウン 0目盛り・次の倍率 +${v}`)},
  kickDown:()=>{if(B.gear>0){B.gear--;B.rpm=Math.min(limit(),Math.round(B.rpm/car().downDiv/100)*100);addLog(`キックダウン → ${B.gear+1}速`);ev({k:"down"})}},
+ // ★v0.21 β の10種（design 9-2・9-8）
+ redStay:(x,a)=>{if(B.redStayDone){addLog(`回転 −${B.redStayDone}（レッドに居つづける）`);ev({k:"revdown",v:B.redStayDone});B.redStayDone=0}},
+ atkRedCount:(x,a)=>x.attack(a*B.redT),
+ limitGuard:()=>{B.limitGuard=true;addLog("このターン、回転はリミットで止まる")},
+ atkShifts:(x,v)=>{const k=Math.min(B.shifts,shiftCapNow())+1;for(let i=0;i<k;i++)x.attack(v)},
+ down1:()=>{if(B.gear>0){B.gear--;B.rpm=Math.min(limit(),Math.round(B.rpm/car().downDiv/100)*100);addLog(`シフトダウン → ${B.gear+1}速`);ev({k:"down"})}},
+ nextAtkAdd:(x,a)=>{B.atkAdd+=a;addLog(`次のアタック +${a}（合計 +${B.atkAdd}）`)},
+ blkFrz:(x,r)=>{const k=Math.min(15,Math.floor(B.frozeTotal*r));if(k>0)x.blockRaw(k)},
+ atkShatter:(x,v)=>{const k=Math.min(60,B.frozeTotal*v);x.attack(k,true);B.frozeTotal=0;addLog("凍結の合計が 0 にもどった")},
+ chainAdd:(x,a)=>{B.chain+=a;G.st.maxChain=Math.max(G.st.maxChain,B.chain);addLog(`チェイン +${a}`);if(B.chain>=5&&!B.chain5){B.chain5=true;addCharge("チェイン5")}},
+ atkHitsChain:(x,v)=>{const k=Math.min(10,B.chain);for(let i=0;i<k;i++)x.attack(v)},
 };
 function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
@@ -229,8 +265,8 @@ function overRev(){const dmg=has("oilcool")?RULES.overDmgCool:RULES.overDmg;G.hp
 function dead(){if(G.hp<=0&&has("cage")&&!G.cageUsed){G.cageUsed=true;G.hp=1;addLog("ロールケージ：耐久1で耐えた");ev({k:"cage"})}return G.hp<=0}
 /* ★シフトアップで起きること（1ターン shiftCap 回まで・design 0-1・0-4） */
 function onShiftUp(g){
-  B.shiftsT++;if(B.shiftsT>RULES.shiftCap)return;
-  const k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;addGas(k);
+  B.shiftsT++;if(B.shiftsT>shiftCapNow())return;
+  let k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=RULES.gasPerfect-1;addGas(k);
   if(B.gas>g0){addLog(`ガソリン +${B.gas-g0}`);ev({k:"gas",v:B.gas-g0})}
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
   if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});
@@ -263,10 +299,13 @@ function playCard(i,shift){
   const d=CD(c),C=car(),cost=costOf(c);
   if(G.mode==="AT")shift=p.auto;else shift=!!shift&&p.canShift;
   const band=p.band,red=inRed();// ★打つ前の回転で判定
-  B.gas-=p.gas;B.hand.splice(i,1);B.cards++;if(d.t==="atk")B.atks++;
+  if(has("drysump")&&d.band==="R"&&band&&gasBase(c)>p.gas&&B.dryT<2)B.dryT++;
+  B.gas-=p.gas;B.hand.splice(i,1);B.cards++;if(d.t==="atk")B.atks++;B.playUid=c.uid;B.playRed=red;if(red)B.redT++;
   if(d.t==="atk"&&B.atkDown)B.atkDown=0;
   B.chainBefore=B.chain;
   let nr=B.rpm+cost,bonus=0;
+  // ★氷炎（redStay）：レッドゾーンで打ったら回転 −1000 を「打った回転と一緒に」かける（+1500−1000＝+500）。あとでかけると、7000 から打っても先にリミットをこえてしまうため（design 9-2 の読み方・デザイン班に確認）
+  const rs=red?d.fx.find(f=>f[0]==="redStay"):null;if(rs){nr=Math.max(0,nr-rs[1]);B.redStayDone=rs[1]}else B.redStayDone=0;
   addLog(`▶ ${d.n}${c.up?"+":""}（+${cost}回転・ガソリン ${p.gas}）${band?"　帯！":""}`);
   ev({k:"card",id:c.id,up:!!c.up,t:d.t,mo:motionOf(c),band,chain:B.chain+1,shift:shift?(G.mode==="AT"?"good":grade(nr)):null});
   if(shift){
@@ -287,9 +326,10 @@ function playCard(i,shift){
   if(d.t==="atk"&&has("nitro")&&!B.nitroUsed){m+=1;B.nitroUsed=true;addLog("ニトロ！倍率 +1.0")}
   if(G.mode==="AT")m*=RULES.atMult;
   const L=limit();
-  if(B.rpm>L){// BUG-15：リミットを「こえたら」
+  if(B.rpm>L&&B.limitGuard){B.rpm=L;addLog("フューエルカット：リミットで止まった")}
+  else if(B.rpm>L){// BUG-15：リミットを「こえたら」
     if(G.mode==="AT"){m*=RULES.atLimiter;B.rpm=L;addLog("リミッター：火力が半分")}
-    else if(isTopGear()){B.rpm=L;addLog("エンジンブロー！");ev({k:"blow"});G.hp=0;return finish("dead")}
+    else if(isTopGear()&&!noBlow()){B.rpm=L;addLog("エンジンブロー！");ev({k:"blow"});G.hp=0;return finish("dead")}
     else if(overRev())return finish("dead");
   }
   m*=chainMul();// ★チェイン
@@ -307,13 +347,14 @@ function playCard(i,shift){
   if(d.t==="atk"&&B.atkTwice&&!c.temp){B.atkTwice=false;addLog("もう1回！");runFx()}// ★パーフェクトのあと2回
   G.st.maxTurnDmg=Math.max(G.st.maxTurnDmg,B.turnDmg);
   if(!c.temp&&!d.exile)B.disc.push(c);
+  if(has("qrelease")&&cost===0&&B.qrT<2){B.qrN++;if(B.qrN%3===0){B.qrT++;if(drawN(1))addLog("クイックリリース：1枚引いた")}}
   if(B.e.hp<=0)return finish("win");
   if(G.hp<=0&&dead())return finish("dead");
   return checkAP();
 }
 function finish(r){if(!B.over)ev({k:r});B.over=true;B.result=r;if(r==="dead")G.hp=Math.max(0,G.hp);return r}
 /* ガソリン0で、0目盛りで打てるカードがないなら相手の番 */
-function checkAP(){if(B.gas<=0&&!B.hand.some(c=>gasOf(c)===0&&preview(c).ok)){addLog("ガソリンを使い切った → 相手の番へ");ev({k:"gasout"});return turnEnd()}return"ok"}
+function checkAP(){if(B.gas<=0&&!B.hand.some(c=>gasOf(c)===0&&preview(c).ok)){addLog("ガソリンを使い切った → 相手の番へ");ev({k:"gasout"});return turnEnd(true)}return"ok"}
 function parkCost(){return has("seq")||B.htTurn?RULES.gasPark-1:RULES.gasPark}
 function downCost(){return has("seq")||B.htTurn?0:RULES.gasDown}
 function parking(){
@@ -327,13 +368,16 @@ function downShift(){
   B.gas-=k;B.gear--;B.rpm=downShiftRpm();ev({k:"down"});const n=drawN(1);ev({k:"draw",n});
   addLog(`シフトダウン → ${B.gear+1}速（回転 ${B.rpm}）・1枚引く（ガソリン ${k}）`);
   if(B.htBonus)B.nextBonus=Math.round((B.nextBonus+B.htBonus)*100)/100;
-  if(B.rpm>limit()&&overRev())return finish("dead");
+  if(B.rpm>limit()){if(B.limitGuard)B.rpm=limit();else if(overRev())return finish("dead")}
   return checkAP();
 }
 /* ターン終了（外から呼ぶのは endTurn。中では turnEnd を使う） */
 function endTurn(){return turnEnd()}
-function turnEnd(){
+function turnEnd(gasout){
   if(B.over)return B.result;
+  if(has("subcon")&&!gasout&&B.chain>1){B.chainCarry=Math.floor(B.chain/2);addLog(`サブコン：チェイン ${B.chainCarry} が残る`)}
+  B.pTurns++;
+  if(B.hidden&&B.pTurns>=UNLOCK.hiddenTurns&&B.e.hp>0){addLog("裏道のゴーストは逃げていった");ev({k:"escape"});return finish("escape")}
   B.rpm=Math.max(car().idle,B.rpm-car().brake-(has("icool")?2000:0));
   B.pNext+=curDelay();
   addLog(`ターン終わり：回転 ${B.rpm}`);
@@ -387,15 +431,25 @@ function timeline(){const out=[];let p=B.pNext,e=B.e.next;const pd=100/car().spd
 /* 勝ったあと：お金など。画面は結果だけ受け取る */
 function winRewards(){
   const key=B.key,E=ENEMIES[key],gd=RULES.gold;
-  let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);if(has("cat"))gold+=gd.cat;
+  let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);gold=Math.round(gold*NR().goldMul);if(has("cat"))gold+=gd.cat;
+  if(E.rank==="elite"&&!B.hidden)G.st.elites++;
+  let hidCard=null;if(B.hidden){G.st.hidden++;const left=UNLOCK.hidden.filter(id=>CARDS[id]&&!(G.ul&&G.ul.cards.includes(id))&&!G.hiddenWon.includes(id));
+    if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;
-  return{key,rank:E.rank||"battle",name:E.n,gold,otk,ticket};
+  return{key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard};
 }
+/* ★v0.21 ログ（ラン後のマネー・design 9-7）。負けても突破したエリアのぶんは入る */
+function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};
+  if(st.bosses>=1)parts.a1=L.a1;if(st.bosses>=2)parts.a2=L.a2;if(clear)parts.clear=L.clear;
+  if(st.elites)parts.elite=L.elite*st.elites;if(st.hidden)parts.hidden=L.hidden*st.hidden+(st.hiddenAll?10*st.hiddenAll:0);
+  if(rank)parts.rank=L.rank[rank]||0;
+  const sum=Object.values(parts).reduce((a,b)=>a+b,0),mul=1+L.nightBonus*Math.max(0,(G.night||1)-1);
+  return{parts,total:Math.round(sum*mul),mul}}
 /* リザルト（ミニカーの評価） */
 function calcResult(clear){
   const st=G.st,rate=st.shiftTry?st.perfect/st.shiftTry:0,tuneSum=Object.values(G.tune).reduce((a,b)=>a+b,0),rows=G.map.length;
-  const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0,難易度:0};
+  const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0,難易度:Math.max(0,(G.night||1)-1)*5};
   const total=Object.values(pts).reduce((a,b)=>a+b,0);
   let ri=0;RANK_TH.forEach(t=>{if(total>=t)ri++});ri=Math.min(ri,RANKS.length-1);
   return{pts,total,ri,rank:RANKS[ri],ten:shuffle(G.deck.slice()).slice(0,MC_DRAW)};
