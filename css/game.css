@@ -32,7 +32,7 @@ button.sel,.sel{box-shadow:inset 0 0 0 2px var(--lime)!important}
 .col{display:flex;flex-direction:column;gap:6px}
 .scroll{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--grey) var(--dark)}
 .scroll::-webkit-scrollbar{width:4px}.scroll::-webkit-scrollbar-thumb{background:var(--grey)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-content:start}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px;align-content:start}
 .scroll.cards{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
 .scroll.cards .cb{position:relative;width:113px;height:84px}
 
@@ -368,3 +368,4 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 #ui .dkswap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
 
 #ui button.mini.off{opacity:.4}/* 上限：押すと card_cant（audio-list 11-2） */
+.grid2 .mc{min-width:0}/* ★BUG-42 */

@@ -295,6 +295,7 @@ const OPS={
  atkShiftsN:(x,k)=>{const n=Math.min(B.shifts,shiftCapNow());if(n)x.attack(k*n)},
  onPerf:(x,op,...a)=>{B.onPerf.push([op,...a]);addLog("この戦闘の間、パーフェクトのたびに効く");ev({k:"onset"})},
  clearBlock:()=>{if(B.e.block){addLog(`相手の防御 ${B.e.block} を0に`);B.e.block=0}},
+ taikan:(x,v)=>{if(isTopGear()){OPS.clearBlock(x);x.attack(v)}else x.attack(Math.round(v*0.5*10)/10)},/* ★戴冠（design 10-11）：いつでも打てる・最大ギアでなければ ×0.5（防御は0にしない） */
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
  drawIfShift:(x,a)=>{if(B.shifts>0)x.draw(a)},
 };
