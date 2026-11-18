@@ -245,12 +245,12 @@ const TEXT={
       ["YUKI","……ん。冷めないうちに、戻る。","smile"]]},
   },
   /* ★v0.22 12-1・12-5 の走るキャラの行（MOMO・NANA はそれぞれの編を書くときにシナリオ班が見直す）。裏道の MOMO・NANA の行は text.md にまだないので YUKI の行 */
-  night3Last:{YUKI:["YUKI","……ん。やりすぎない。","normal"],HINA:["HINA","了解っス！　回しすぎ注意、ですね！"],MOMO:["MOMO","ふふ、気をつけるね。みおちゃんも、見ててね。"],NANA:["NANA","わたくしが、そんなへまをするとでも？"]},
-  hiddenLast:{YUKI:["YUKI","……5ターンで、返す。","serious"],HINA:["HINA","近道っスね！　行きます！"]},/* MOMO・NANA の行は text.md にまだない → YUKI の行（シナリオ班へ） */
+  night3Last:{YUKI:["YUKI","……ん。やりすぎない。","normal"],HINA:["HINA","了解っス！　回しすぎ注意、ですね！"],MOMO:["MOMO","ふふ、気をつけるね。みおちゃんも、見ててね。"]},
+  hiddenLast:{YUKI:["YUKI","……5ターンで、返す。","serious"],HINA:["HINA","近道っスね！　行きます！"],MOMO:["MOMO","ふふ、寄り道ね。すぐ戻るから。"],NANA:["NANA","5ターンで、十分ですわ。"]},/* ★v0.22.5 text v0.14 12-5 */
   /* 12-2 夜を選ぶ画面・12-5 裏道 */
   ui:{night_label:"NIGHT {n}",night_last:"LAST NIGHT（最後の夜）",night_lock:"まだ開いていない夜",night_blow:"ブローあり",night_open:"NIGHT {n} が開いた",
-    warn_overrev:"⚠オーバーレブ",warn_blow:"⚠ブロー",ally_join:"{name} が、ROAD を走れるようになった",ally_next:"次の仲間は……？",
-    hidden_win:"記録の中に、カードのかけらが……！<br>新しいカードに、なりました。",hidden_lose:"……逃げられちゃいました。<br>また、どこかで会えるかも。"},
+    warn_overrev:"⚠オーバーレブ",warn_blow:"⚠ブロー",ally_join:"{name}が、ROAD を走れるようになった",ally_next:"次の仲間は……？",
+    hidden_win:"記録の中に、カードのかけらが……！<br>新しいカードに、なりました。",hidden_lose:"みお：……逃げられちゃいました。<br>また、どこかで会えるかも。"},
   run:{run_start:["ROAD OPEN","……今夜も、開いてる。"],run_stop:["ENGINE STOP","……止まった。次の夜、また来る。"],run_blow:["ENGINE BLOW","……やりすぎた。"],
     run_minicar:["","……今夜の走り、入ってる。"],run_lowhp:["MIO","エンジンの数値が……！"]},
 };

@@ -302,6 +302,8 @@ button.sub{padding:0;line-height:12px}
 #ui .lrow{display:flex;align-items:center;gap:6px;text-align:left;padding:0 10px}
 #ui .lrow .ln{flex:1}#ui .lrow .lp{font:12px 'PM12B','PM12'}
 /* ★v0.22 通信の印（MIO が絵にいないとき）・キャラ選び・夜の「ブローあり」 */
+/* ★v0.22.5 ガレージの画面の話す人（通信ではない・text 17-2 #12） */
+.nmtag{display:inline-block;font-size:10px;line-height:12px;padding:0 4px;margin-right:6px;color:#0A0C16;background:#E8ECF4;vertical-align:1px}
 .commk{display:inline-block;font-size:10px;line-height:12px;padding:0 4px;margin-right:6px;color:#0A0C16;background:var(--cyan,#6CE4FF);vertical-align:1px}
 .scband.comm{box-shadow:inset 0 0 0 1px var(--cyan,#6CE4FF),inset 0 0 0 2px #000}
 .chcard{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding-top:12px;text-align:center}

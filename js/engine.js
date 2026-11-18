@@ -141,7 +141,7 @@ function startBattleState(key){
      redT:0,limitGuard:false,turnAtkAdd:0,ftStep:0,ftAcc:0,openAir:0,chainNext2:false,jinbaT:false,nextGas:0,paddleT:false,lastGrade:null,perfStreak:0,onPerf:[],phoenix:0,phoenixUsed:false,retry:false,lastHitRaw:0,lastHitThru:0,atkAdd:0,dryT:0,spikeUsed:false,chainCarry:0,qrN:0,qrT:0,studUid:null,playRed:false,
      enemyActed:false,log:[],ev:[],over:false,result:null};
   G.st.battles++;
-  if(hid){B.e.n="裏道の"+E.n;addLog(`裏道：${UNLOCK.hiddenTurns}ターン以内に倒す（こえたら逃げられる）`)}
+  if(hid){B.e.n="ロストライン";/* ★v0.22.5 text 12-5・17-2 #7 */addLog(`裏道：${UNLOCK.hiddenTurns}ターン以内に倒す（こえたら逃げられる）`)}
   addLog(`${B.e.n} があらわれた。${E.gimTxt?"（"+E.gimTxt+"）":""}`);
   if(E.first){addLog(`${E.n} が先に動いた`);const r=enemyStep();if(r)return finish(r),B}
   startPlayerTurn(true);
@@ -430,7 +430,7 @@ function turnEnd(gasout){
   if(has("subcon")&&!gasout&&B.chain>1){B.chainCarry=Math.floor(B.chain/2);addLog(`サブコン：チェイン ${B.chainCarry} が残る`)}
   if(has("m_horo")&&B.chain>=5){B.block+=5;addLog("幌：防御 +5");ev({k:"pblk",v:5})}
   B.pTurns++;
-  if(B.hidden&&B.pTurns>=UNLOCK.hiddenTurns&&B.e.hp>0){addLog("裏道のゴーストは逃げていった");ev({k:"escape"});return finish("escape")}
+  if(B.hidden&&B.pTurns>=UNLOCK.hiddenTurns&&B.e.hp>0){addLog("ロストラインは逃げていった");ev({k:"escape"});return finish("escape")}
   B.rpm=Math.max(car().idle,B.rpm-car().brake-(has("icool")?(G.mode==="AT"?1000:2000):0));
   B.pNext+=curDelay();
   addLog(`ターン終わり：回転 ${B.rpm}`);
