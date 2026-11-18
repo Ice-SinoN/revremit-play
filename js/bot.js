@@ -19,7 +19,7 @@ const AUTOBOT={
   /* 戦闘の1手：{t:"play",i,shift}｜{t:"end"}｜{t:"down"}｜{t:"park"} */
   battle(kind){
     const acts=[];
-    B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok)return;if(typeof rotTargets==="function"&&CD(c).fx.some(f=>f[0]==="rotate")&&!rotAutoPick(c,B.rpm+costOf(c),cardVal(c)).length)return;/* ★design v0.11.9 11-1：捨てるカードがないローテーションは打たない */
+    B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok)return;if(typeof rotTargets==="function"&&CD(c).fx.some(f=>f[0]==="rotate")&&!rotAutoPick(c,B.rpm+costOf(c),cardVal(c)).length)return;/* ★design v0.11.9 11-1：捨てるカードがないローテーションは打たない。※qa/policy.js では v0.22.22 で外した（LD 11-17）。ここはデザイン班の決めまで残す */
       if(G.mode==="MT"&&p.canShift){acts.push({t:"play",i,shift:true});if(!CD(c).shiftCard)acts.push({t:"play",i,shift:false})}
       else acts.push({t:"play",i,shift:false})});
     if(canDraw()){if(G.mode==="MT"&&B.gear>0&&B.gas>=downCost())acts.push({t:"down"});if(G.mode==="AT"&&B.gas>=parkCost())acts.push({t:"park"})}
