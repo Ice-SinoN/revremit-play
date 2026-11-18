@@ -19,7 +19,7 @@ const AUTOBOT={
   /* 戦闘の1手：{t:"play",i,shift}｜{t:"end"}｜{t:"down"}｜{t:"park"} */
   battle(kind){
     const acts=[];
-    B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok)return;
+    B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok)return;if(typeof rotTargets==="function"&&CD(c).fx.some(f=>f[0]==="rotate")&&!rotTargets(c,B.rpm+costOf(c)).some(x=>!rotKeepForNext(x,B.rpm+costOf(c))))return;/* ★LD 11-15：入れかえて意味のあるカードがないローテーションは打たない */
       if(G.mode==="MT"&&p.canShift){acts.push({t:"play",i,shift:true});if(!CD(c).shiftCard)acts.push({t:"play",i,shift:false})}
       else acts.push({t:"play",i,shift:false})});
     if(canDraw()){if(G.mode==="MT"&&B.gear>0&&B.gas>=downCost())acts.push({t:"down"});if(G.mode==="AT"&&B.gas>=parkCost())acts.push({t:"park"})}
