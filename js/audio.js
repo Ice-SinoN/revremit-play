@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.4（サウンド班 2026-11-07。v0.3 は同日、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.9（サウンド班 2026-11-18。claude/revremit-audio.js v0.9 の写し・ゲームに入れたのはプログラム班 v0.22.1）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -257,7 +257,8 @@ function renderBar(c,o,id,b,T){
  const brk=pass===1&&sg.pass2==='break'&&i<4, dbl=pass===1&&sg.pass2==='double', up=pass===1&&sg.pass2==='up'?12:0;
  const at=s=>T+s*st;
  // ドラム（80年代のドラムマシン風）
- for(let s=0;s<16;s++){const t=at(s);
+ const fz=freezeCut(sg,i),lim=fz?8:16;
+ for(let s=0;s<lim;s++){const t=at(s);
   if(sg.dr==='four'){if(s%4===0)tone(c,o,t,{f:130,f2:42,dur:.26,g:.85});if(s===4||s===12){nz(c,o,t,{f:1800,dur:.18,g:.42,q:.7});tone(c,o,t,{type:'triangle',f:190,f2:150,dur:.1,g:.2});}if(s%4===2)nz(c,o,t,{ft:'highpass',f:9000,dur:.05,g:.13});else if(s%2===1)nz(c,o,t,{ft:'highpass',f:9000,dur:.025,g:.05});}
   if(sg.dr==='dnb'){if(!brk){if(s===0||s===10)tone(c,o,t,{f:120,f2:40,dur:.24,g:.85});if(s===4||s===12||s===15&&i%2)nz(c,o,t,{f:2000,dur:.16,g:s===15?.2:.45,q:.7});}nz(c,o,t,{ft:'highpass',f:9500,dur:s%2?.02:.04,g:s%2?.04:.1});}
   if(sg.dr==='drive'){if(s%4===0||s===6)tone(c,o,t,{f:125,f2:42,dur:.24,g:.85});if(s===4||s===12){nz(c,o,t,{f:1700,dur:.2,g:.45,q:.7});tone(c,o,t,{type:'triangle',f:200,f2:160,dur:.1,g:.2});}if(s%2===0)nz(c,o,t,{ft:'highpass',f:8500,dur:.04,g:.11});}
@@ -272,13 +273,13 @@ function renderBar(c,o,id,b,T){
  if(sg.dr==='funk')[[0,0],[3,12],[6,0],[8,7],[10,12],[13,0]].forEach(([s,d])=>tone(c,o,at(s),{type:'sawtooth',f:mf(rt+d),dur:st*1.6,g:.28,hold:st*.5,lp:700}));
  else if(sg.dr==='pulse')tone(c,o,T,{type:'sawtooth',f:mf(rt-12),dur:barDur(sg),g:.18,a:.05,hold:barDur(sg)*.7,lp:280});
  else if(sg.soft)[0,6,8,14].forEach(s=>tone(c,o,at(s),{type:'sawtooth',f:mf(rt),dur:st*1.8,g:.2,hold:st*.6,lp:420}));
- else for(let s=0;s<16;s+=2)tone(c,o,at(s),{type:'sawtooth',f:mf(rt+(sg.dr==='dnb'&&s%8===6?12:0)),dur:st*1.8,g:.26,hold:st*.8,lp:520+(s%4?0:300)});
+ else for(let s=0;s<lim;s+=2)tone(c,o,at(s),{type:'sawtooth',f:mf(rt+(sg.dr==='dnb'&&s%8===6?12:0)),dur:st*1.8,g:.26,hold:st*.8,lp:520+(s%4?0:300)});
  // 和音（パッド）
- ch.forEach(x=>[-8,8].forEach(d=>tone(c,o,T,{type:'sawtooth',f:mf(x),det:d,dur:barDur(sg),g:sg.soft?.04:.032,a:.25,hold:barDur(sg)*.6,lp:sg.soft?1100:1600})));
+ ch.forEach(x=>[-8,8].forEach(d=>tone(c,o,T,{type:'sawtooth',f:mf(x),det:d,dur:barDur(sg)*(fz?.5:1),g:sg.soft?.04:.032,a:.25,hold:barDur(sg)*.6,lp:sg.soft?1100:1600})));
  // エレピの刻み（ショップ）
  if(sg.ep)[2,6,10,14].forEach(s=>ch.forEach(x=>{tone(c,o,at(s),{f:mf(x+12),dur:st*1.6,g:.06,a:.005});tone(c,o,at(s),{f:mf(x+24),dur:st*.6,g:.015});}));
  // アルペジオ（チップの音）
- if(sg.arpHi||sg.soft||brk)for(let s=0;s<16;s+=sg.soft?2:1)tone(c,o,at(s),{wave:.125,f:mf(ch[s%3]+(sg.arpHi?24:12)),dur:st*.9,g:sg.soft?.035:.045});
+ if(sg.arpHi||sg.soft||brk)for(let s=0;s<lim;s+=sg.soft?2:1)tone(c,o,at(s),{wave:.125,f:mf(ch[s%3]+(sg.arpHi?24:12)),dur:st*.9,g:sg.soft?.035:.045});
  // 雪の鈴
  if(sg.bells||v.bells){const f=mf(ch[2]+24);tone(c,o,at(14),{f,dur:.5,g:.06});tone(c,o,at(14),{f:f*2.76,dur:.18,g:.015});if(sg.soft||v.bells){tone(c,o,at(6),{f:mf(ch[1]+24),dur:.5,g:.045});}}
  // 主旋律（チップのリード／サーキットはブラス風）
@@ -292,11 +293,14 @@ function renderBar(c,o,id,b,T){
   if(lt==='pulse'||lt==='brass')tone(c,o,t+st*3,{wave:.25,f,dur:d*.8,g:.04,hold:d*.4}); // こだま
  });
  // ボス：敵のフレーズ（半音で下がる低い声）とぶつける
- if(sg.enemy){[[0,57],[3,56],[6,55],[9,54]].forEach(([s,m],k)=>tone(c,o,at((s+(i%2?8:0))%16),{wave:.5,f:mf(m+tr-12),dur:st*(k===3?4:2),g:.07,hold:st,lp:900}));}
+ if(sg.enemy){[[0,57],[3,56],[6,55],[9,54]].forEach(([s,m],k)=>((s+(i%2?8:0))%16)<lim&&tone(c,o,at((s+(i%2?8:0))%16),{wave:.5,f:mf(m+tr-12),dur:st*(k===3?4:2),g:.07,hold:st,lp:900}));}
  // 味つけ
  if(v.glitch&&r()<.5){const s=Math.floor(r()*12);for(let k=0;k<4;k++)tone(c,o,at(s)+k*st/2,{type:'square',f:200+r()*2400,dur:st/2.2,g:.05});}
  if(v.wind)nz(c,o,T,{f:900,f2:500,q:.5,dur:barDur(sg),g:.03,a:.6,hold:barDur(sg)*.4});
  if(v.hum)tone(c,o,T,{type:'sawtooth',f:mf(rt+12),dur:barDur(sg),g:.015,a:.5,hold:barDur(sg)*.5,lp:500});
+ if((v.mystic||sg.mystic)&&i%2===1)nz(c,o,T,{ft:'highpass',f:1500,f2:9000,dur:barDur(sg),g:.05,a:barDur(sg)*.85});
+ extraBar(c,o,v,sg,i,ch,T,st);
+ if(fz){nz(c,o,at(8),{ft:'highpass',f:3000,dur:.06,g:.25});tone(c,o,at(8),{f:mf(ch[2]+24),dur:barDur(sg)/2,g:.05});}
  if(v.dark)tone(c,o,T,{type:'square',f:mf(rt-12),dur:barDur(sg)*.9,g:.05,a:.05,hold:barDur(sg)*.5,lp:300});
 }
 // ジングル（1回きり）
@@ -312,7 +316,109 @@ const JINGLES={
   [[1.1,64],[1.5,62],[2.0,60],[2.6,57]].forEach(([d,m])=>tone(c,o,t+d,{wave:.25,f:mf(m),dur:.6,g:.1,hold:.25}));tone(c,o,t+2.0,{f:mf(81),dur:1.5,g:.04});}},
 };
 
-// ---------- ★v0.22 プログラム班：サウンド班 audio.js v0.6 の「MIO の通信」の SE 4本だけを先に入れた（v0.6 の全体の差しかえは次の版で）----------
+const LVJ={win:1,one_turn_kill:1,gameover:1};
+// ---------- β（v0.5・2026-11-18）：仲間3人のテーマ・キャラ選び・強化ショップ・隠しステージ・難易度／解放のジングル・セーブの SE ----------
+// 正本：revremit-progression.md v0.4。仲間はシナリオ班のおすすめ HINA・MOMO・NANA（虎雪に確認中）。
+Object.assign(CHD,{Bb:[53,58,62],Ab:[56,60,63],Aaug:[57,61,65],Baug:[59,63,67],Gaug:[55,59,63],Faug:[53,57,61]});
+Object.assign(ROOT,{Bb:46,Ab:44,Aaug:45,Baug:47,Gaug:43,Faug:41});
+Object.assign(SONGS,{
+ // HINA（モンキー125・体育会系の後輩・速攻）：明るい D メジャー、速い8ビート、16分で駆け上がる。シリーズのフレーズを長調に
+ theme_hina:{bpm:172,dr:'drive',lead:'pulse',arpHi:true,pass2:'keyup',
+  ch:['D','A','Bm','G','D','A','G','A'],
+  ld:[[[0,74,2],[2,78,2],[4,81,4],[8,86,4],[12,81,4]],[[0,79,6],[6,78,2],[8,76,8]],[[0,78,2],[2,79,2],[4,81,2],[6,83,2],[8,86,8]],[[0,83,4],[4,81,4],[8,79,4],[12,78,4]],
+      [[0,74,2],[2,78,2],[4,81,4],[8,86,4],[12,90,4]],[[0,88,4],[4,86,4],[8,85,8]],[[0,83,4],[4,85,4],[8,86,4],[12,88,4]],[[0,90,8],[8,88,4],[12,85,4]]]},
+ // MOMO（ND ロードスター・お姉さんで甘えんぼ・大連鎖で逆転）：F メジャーのディスコ寄り、はねるベースとエレピ、鈴
+ theme_momo:{bpm:124,dr:'funk',lead:'pulse',ep:true,bells:true,pass2:'keyup',
+  ch:['F','Dm','Bb','C','F','Am','Bb','C'],
+  ld:[[[0,69,4],[4,72,4],[8,76,8]],[[0,74,6],[6,72,2],[8,69,8]],[[0,70,4],[4,74,4],[8,77,4],[12,74,4]],[[0,72,12],[12,67,4]],
+      [[0,69,4],[4,72,4],[8,77,6],[14,76,2]],[[0,76,4],[4,74,4],[8,72,8]],[[0,74,4],[4,77,4],[8,81,8]],[[0,79,8],[8,76,8]]]},
+ // NANA（GR スープラ・高飛車お嬢様・最大のライバル）：C マイナーの華やかなブラスと速いアルペジオ（チェンバロ風）
+ theme_nana:{bpm:158,dr:'drive',lead:'brass',arpHi:true,
+  ch:['Cm','Ab','Eb','Bb','Cm','Ab','G','G'],
+  ld:[[[0,75,4],[4,79,4],[8,84,8]],[[0,82,6],[6,80,2],[8,79,8]],[[0,79,4],[4,82,4],[8,87,4],[12,82,4]],[[0,86,12],[12,82,4]],
+      [[0,84,2],[2,86,2],[4,87,4],[8,91,4],[12,87,4]],[[0,86,4],[4,84,4],[8,80,8]],[[0,79,4],[4,83,4],[8,86,4],[12,89,4]],[[0,91,8],[8,86,4],[12,83,4]]]},
+ // キャラ選び：期待が高まる中くらいのテンポ。フレーズを間をあけて
+ select:{bpm:112,dr:'half',soft:true,lead:'pulse',bells:true,
+  ch:['Am','F','C','G','Dm','F','G','E'],
+  ld:[[[0,69,4],[4,72,4],[8,76,8]],[],[[0,74,6],[6,72,2],[8,71,8]],[],[[0,76,4],[4,79,4],[8,81,8]],[],[[0,79,4],[4,77,4],[8,76,4],[12,74,4]],[[0,76,8],[8,80,8]]]},
+ // ラン後の強化ショップ：ガレージで落ち着いて買い物。エレピとやわらかい主旋律
+ upgrade:{bpm:96,dr:'half',soft:true,lead:'soft',ep:true,
+  ch:['C','Am','F','G','C','Am','Dm','G'],
+  ld:[[[0,76,4],[4,79,4],[8,84,8]],[],[[0,81,4],[4,79,4],[8,77,8]],[],[[0,76,4],[4,77,4],[8,79,8]],[],[[0,77,4],[4,76,4],[8,74,8]],[[0,79,8]]]},
+ // 隠しステージ：ふだんの戦闘のノリのまま、全音音階（増三和音）で不思議に。逆回しのようにふくらむ音
+ hidden:{bpm:138,dr:'four',lead:'bell',mystic:true,
+  ch:['Aaug','Baug','Aaug','Gaug','Faug','Gaug','Aaug','Baug'],
+  ld:[[[0,69,4],[4,73,4],[8,77,8]],[[0,75,6],[6,73,2],[8,71,8]],[[0,73,4],[4,77,4],[8,81,8]],[[0,79,12]],
+      [[0,77,4],[4,75,4],[8,73,8]],[[0,71,4],[4,73,4],[8,75,8]],[[0,77,4],[4,81,4],[8,85,4],[12,81,4]],[[0,83,16]]]},
+});
+Object.assign(BGM,{theme_hina:{s:'theme_hina'},theme_momo:{s:'theme_momo'},theme_nana:{s:'theme_nana'},select:{s:'select'},upgrade:{s:'upgrade'},hidden:{s:'hidden'}});
+
+// ジングル（β）。仲間が加わった：{who:'hina'|'momo'|'nana'} でその子の高さ・色に
+const WHO={yuki:0,hina:5,momo:-4,nana:3};
+Object.assign(JINGLES,{
+ night_select:{dur:1.6,fn:(c,o,t,p)=>{const lv=Math.max(1,Math.min(11,(p&&p.lv)||1)),k=lv-1;click(c,o,t,.5);click(c,o,t+.25,.5);tone(c,o,t+.45,{f:mf(33+k),dur:1.0,g:.5,a:.1,hold:.3});
+  [57,60,64].forEach((m,i)=>tone(c,o,t+.5+i*.08,{wave:.25,f:mf(m+12+k),dur:.5,g:.09}));tone(c,o,t+.75,{f:mf(88+k),dur:.8,g:.05});
+  if(lv>=6)tone(c,o,t+.45,{type:'sawtooth',f:mf(33+k-12),dur:1.0,g:.12,a:.05,hold:.3,lp:300});}},
+ night_up:{dur:2.8,fn:(c,o,t,p)=>{const lv=Math.max(1,Math.min(11,(p&&p.lv)||1)),k=lv-1;[45,48,52,57,60,64].forEach((m,i)=>tone(c,o,t+i*.09,{type:'sawtooth',f:mf(m+12+k),dur:.25,g:.08,lp:2400}));
+  nz(c,o,t,{f:400,f2:5000,dur:.6,g:.2,a:.5,q:.7});tone(c,o,t+.6,{f:110,f2:38,dur:.5,g:.9});nz(c,o,t+.6,{f:1600,dur:.3,g:.4,q:.6});
+  [57,59,60,64].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.6,{type:'sawtooth',f:mf(m+k),det:d,dur:2,g:.04,a:.02,hold:.9,lp:1800})));if(lv>=6)tone(c,o,t+.6,{type:'sawtooth',f:mf(33+k),dur:1.6,g:.15,a:.03,hold:.6,lp:320});
+  const r=rng(77);for(let i=0;i<6;i++)tone(c,o,t+1.0+r()*.9,{type:'square',f:300+r()*2500,dur:.03,g:.05});}},
+ story_unlock:{dur:3.2,fn:(c,o,t)=>{[65,69,72,76,79,84].forEach((m,i)=>{tone(c,o,t+i*.12,{f:mf(m+12),dur:1.2,g:.08});tone(c,o,t+i*.12,{f:mf(m+12)*2.76,dur:.3,g:.02});});
+  [53,57,60,64].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.3,{type:'sawtooth',f:mf(m),det:d,dur:2.6,g:.03,a:.8,hold:1,lp:1400})));
+  for(let i=0;i<10;i++)tone(c,o,t+.9+i*.06,{wave:.125,f:mf(84+(i%4)*3),dur:.04,g:.05});tone(c,o,t+1.6,{wave:.25,f:mf(81),dur:1,g:.1,hold:.4});}},
+ ally_join:{dur:3.2,fn:(c,o,t,p)=>{const k=WHO[(p&&p.who)||'yuki']||0;
+  [[0,69],[.1,72],[.2,76],[.45,74],[.55,72],[.65,76]].forEach(([d,m])=>tone(c,o,t+d,{wave:.25,f:mf(m+k),dur:.12,g:.16}));
+  tone(c,o,t+.85,{f:130,f2:42,dur:.3,g:.85});nz(c,o,t+.85,{f:1800,dur:.25,g:.4,q:.7});
+  [69,73,76].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.85,{type:'sawtooth',f:mf(m+k),det:d,dur:2,g:.05,a:.02,hold:1,lp:2400})));
+  tone(c,o,t+.85,{wave:.25,f:mf(81+k),dur:1.6,g:.15,hold:.7});[93,97,100].forEach((m,i)=>tone(c,o,t+1.0+i*.08,{f:mf(m+k),dur:.6,g:.05}));}},
+});
+Object.assign(LVJ,{night_select:1,night_up:1,story_unlock:2.5,ally_join:1});
+
+SE.push(
+{id:'upgrade_buy',name:'強化ショップで買った（マネーを払う）',dur:.8,fn:(c,o,t)=>{const r=rng(55);for(let i=0;i<7;i++)tone(c,o,t+r()*.25,{f:2600+r()*1800,dur:.18,g:.07});
+ tone(c,o,t+.28,{f:2637,dur:.3,g:.12});tone(c,o,t+.34,{f:3520,dur:.35,g:.1});nz(c,o,t,{ft:'highpass',f:4000,dur:.25,g:.08});}},
+{id:'card_unlock',name:'カードが解放された',dur:1.1,fn:(c,o,t)=>{nz(c,o,t,{f:1000,f2:6000,dur:.18,g:.25,a:.04,q:.8});
+ [76,81,84,88,93].forEach((m,i)=>tone(c,o,t+.12+i*.05,{wave:.25,f:mf(m),dur:.12,g:.13}));tone(c,o,t+.4,{f:mf(100),dur:.6,g:.07});tone(c,o,t+.4,{f:mf(100)*2.76,dur:.2,g:.02});
+ [69,76,81].forEach(m=>tone(c,o,t+.4,{type:'sawtooth',f:mf(m),dur:.6,g:.03,a:.02,hold:.2,lp:2400}));}},
+{id:'save_ok',name:'セーブした',dur:.55,fn:(c,o,t)=>{click(c,o,t,.35);[72,76,79].forEach((m,i)=>tone(c,o,t+.04+i*.06,{wave:.25,f:mf(m+12),dur:.1,g:.13}));tone(c,o,t+.22,{f:mf(91),dur:.3,g:.06});}},
+{id:'load_ok',name:'ロードした',dur:.6,fn:(c,o,t)=>{nz(c,o,t,{f:5000,f2:1200,dur:.18,g:.18,q:.8});[91,86,84].forEach((m,i)=>tone(c,o,t+.08+i*.07,{wave:.25,f:mf(m),dur:.1,g:.12}));tone(c,o,t+.3,{f:mf(72),dur:.3,g:.12});}},
+{id:'overwrite_warn',name:'上書きの確認（「上書きしますか？」が出たとき）',dur:.45,fn:(c,o,t)=>{[0,.17].forEach(d=>{tone(c,o,t+d,{wave:.5,f:mf(81),dur:.07,g:.1,hold:.03});tone(c,o,t+d+.07,{wave:.5,f:mf(76),dur:.08,g:.1,hold:.03});});}},
+{id:'autosave',name:'オートセーブ（小さく）',dur:.2,fn:(c,o,t)=>{tone(c,o,t,{wave:.25,f:mf(84),dur:.04,g:.06});tone(c,o,t+.05,{wave:.25,f:mf(91),dur:.06,g:.05});}},
+);
+Object.assign(LV,{upgrade_buy:2,card_unlock:2.8,save_ok:2.6,load_ok:2.6,overwrite_warn:3,autosave:2});
+
+// ---------- v0.6（2026-11-18）：仲間の話のボス3体（その子のテーマのボス・アレンジ）・MIO の通信の SE ----------
+// 正本：revremit-story.md 7-4（HINA＝空転・MOMO＝散花・NANA＝未決）。★チーフ 11-18：その子の話のボスだけ、その子のテーマのアレンジでよい。
+Object.assign(CHD,{Fm:[56,60,65],Db:[56,61,65],Bbm:[53,58,61],Csus:[55,60,65]});
+Object.assign(ROOT,{Fm:41,Db:49,Bbm:46,Csus:48});
+Object.assign(SONGS,{
+ // 空転（くうてん）：HINA のテーマを D マイナーに。タイヤが空回りするように、同じ2音の16分がぐるぐる回りつづける（spin）。2周目はキックが倍
+ boss_kuuten:{bpm:176,dr:'boss',enemy:true,spin:true,lead:'pulse',pass2:'double',
+  ch:['Dm','Dm','Bb','A','Dm','Dm','Bb','A'],
+  ld:[[[0,74,2],[2,77,2],[4,81,4],[8,86,4],[12,81,4]],[[0,79,6],[6,77,2],[8,76,8]],[[0,77,2],[2,79,2],[4,81,2],[6,82,2],[8,86,8]],[[0,85,8],[8,81,8]],
+      [[0,74,2],[2,77,2],[4,81,4],[8,74,2],[10,77,2],[12,81,4]],[[0,74,2],[2,77,2],[4,81,4],[8,74,2],[10,77,2],[12,81,4]],[[0,82,4],[4,81,4],[8,79,4],[12,77,4]],[[0,76,8],[8,73,8]]]},
+ // 散花（さんか）：MOMO のテーマを F マイナーに。解散したクラブの最後のツーリング。はねるベースは残して、鈴とさみしい和音。2周目の前半はブレイク
+ boss_sanka:{bpm:128,dr:'boss',enemy:true,ep:true,bells:true,lead:'pulse',pass2:'break',
+  ch:['Fm','Db','Bbm','C','Fm','Db','Bbm','C'],
+  ld:[[[0,68,4],[4,72,4],[8,77,8]],[[0,75,6],[6,73,2],[8,68,8]],[[0,70,4],[4,73,4],[8,77,4],[12,73,4]],[[0,72,12],[12,67,4]],
+      [[0,68,4],[4,72,4],[8,77,6],[14,75,2]],[[0,75,4],[4,73,4],[8,72,8]],[[0,73,4],[4,77,4],[8,80,8]],[[0,79,8],[8,76,8]]]},
+ // 未決（みけつ）：NANA のテーマのブラスを、止まった決勝の時計の「チッ、チッ」の上で（clock）。4小節ごとに一瞬止まる（freeze）
+ boss_miketsu:{bpm:162,dr:'boss',enemy:true,lead:'brass',arpHi:true,clock:true,freeze:true,
+  ch:['Cm','Ab','Eb','G','Cm','Ab','Csus','G'],
+  ld:[[[0,75,4],[4,79,4],[8,84,8]],[[0,82,6],[6,80,2],[8,79,8]],[[0,79,4],[4,82,4],[8,87,4],[12,82,4]],[[0,86,8]],
+      [[0,84,2],[2,86,2],[4,87,4],[8,91,4],[12,87,4]],[[0,86,4],[4,84,4],[8,80,8]],[[0,84,4],[4,82,4],[8,79,4],[12,77,4]],[[0,79,8]]]},
+});
+Object.assign(BGM,{boss_kuuten:{s:'boss_kuuten'},boss_sanka:{s:'boss_sanka'},boss_miketsu:{s:'boss_miketsu'}});
+// 味つけ（renderBar の最後で呼ぶ）
+function extraBar(c,o,v,sg,i,ch,T,st){const at=s=>T+s*st;
+ if(sg.spin)for(let s=0;s<16;s++)tone(c,o,at(s),{wave:.125,f:mf(ch[0]+(s%2?26:24)),dur:st*.7,g:.03});
+ if(sg.spin&&i%2===1)nz(c,o,T+st*8,{f:600,f2:2400,dur:st*8,g:.05,a:st*6,q:2});
+ if(sg.clock)for(let s=0;s<16;s+=4){if(sg.freeze&&i%4===3&&s>=8)break;nz(c,o,at(s),{ft:'highpass',f:6000,dur:.02,g:.14});tone(c,o,at(s),{type:'square',f:s?2400:3200,dur:.012,g:.05});}
+}
+// 4小節目の後半を止める（未決）：その小節は 8 の位置で全部切る
+function freezeCut(sg,i){return sg.freeze&&i%4===3;}
+
+// MIO の通信（会話の場面。MIO 編では YUKI の通信にも使う）
 SE.push(
 {id:'comm_open',name:'通信が入った（MIO）',dur:.5,fn:(c,o,t)=>{nz(c,o,t,{f:2500,dur:.09,g:.25,q:.6});tone(c,o,t+.1,{wave:.5,f:mf(88),dur:.07,g:.1,hold:.03});tone(c,o,t+.19,{wave:.5,f:mf(93),dur:.1,g:.1,hold:.04});nz(c,o,t+.1,{f:3500,dur:.3,g:.02,a:.02,hold:.15,q:.5});}},
 {id:'comm_close',name:'通信が切れた',dur:.4,fn:(c,o,t)=>{tone(c,o,t,{wave:.5,f:mf(93),dur:.06,g:.09,hold:.02});tone(c,o,t+.08,{wave:.5,f:mf(86),dur:.08,g:.09,hold:.02});nz(c,o,t+.17,{f:2200,f2:600,dur:.12,g:.2,q:.7});}},
@@ -322,10 +428,46 @@ SE.push(
 );
 Object.assign(LV,{comm_open:2.6,comm_close:2.4,comm_blip:4,comm_glitch:2});
 
+// ---------- v0.7（2026-11-18）：裏道（ロストライン）のジングル・みおのラボ ----------
+// 正本：revremit-design.md 9-6・text.md 12-5。勝つ＝不思議な全音音階から明るい和音へほどける（このあと card_unlock）。
+// 逃げられた＝負けではないので暗くしない。全音音階が下りながら遠ざかり、ほどけないまま消える
+Object.assign(JINGLES,{
+ hidden_win:{dur:2.6,fn:(c,o,t)=>{[69,71,73,75,77,79].forEach((m,i)=>{tone(c,o,t+i*.06,{f:mf(m+12),dur:.6,g:.07});tone(c,o,t+i*.06,{f:mf(m+12)*2.76,dur:.2,g:.015});});
+  nz(c,o,t,{ft:'highpass',f:1500,f2:9000,dur:.45,g:.08,a:.4});
+  tone(c,o,t+.45,{f:130,f2:42,dur:.3,g:.8});nz(c,o,t+.45,{f:1800,dur:.25,g:.4,q:.7});
+  [69,73,76].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.45,{type:'sawtooth',f:mf(m),det:d,dur:1.8,g:.05,a:.02,hold:.8,lp:2400})));
+  [[.45,81],[.57,85],[.69,88]].forEach(([d,m])=>tone(c,o,t+d,{wave:.25,f:mf(m),dur:.14,g:.15}));tone(c,o,t+.81,{wave:.25,f:mf(93),dur:1.2,g:.14,hold:.5});
+  tone(c,o,t+.9,{f:mf(100),dur:.9,g:.05});}},
+ hidden_escape:{dur:2.6,fn:(c,o,t)=>{nz(c,o,t,{f:4000,f2:500,dur:1.2,g:.2,a:.15,q:.7});
+  [81,79,77,75,73,71].forEach((m,i)=>tone(c,o,t+.1+i*.12,{f:mf(m),dur:.7,g:.08-i*.008}));
+  [57,61,65].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+.4,{type:'sawtooth',f:mf(m),det:d,dur:2,g:.035,a:.3,hold:.6,lp:1200})));
+  tone(c,o,t+1.0,{wave:.25,f:mf(77),dur:.9,g:.06,hold:.2});}},
+});
+Object.assign(LVJ,{hidden_win:1,hidden_escape:1.6});
+Object.assign(BGM,{lab:{s:'upgrade'}}); // 強化ショップ「みおのラボ」（text.md 12-4）。upgrade と同じ曲。どちらで呼んでもよい
+
+// ---------- v0.8（2026-11-18）：写真の「カシャ」（text.md 13-6 momo_boss_post 3行目・13-8 momo_ed 21行目） ----------
+SE.push({id:'photo_shutter',name:'写真を撮った（カシャ）',dur:.35,fn:(c,o,t)=>{nz(c,o,t,{ft:'highpass',f:3000,dur:.03,g:.5});tone(c,o,t,{f:220,f2:120,dur:.05,g:.35});
+ nz(c,o,t+.07,{f:2500,f2:1200,dur:.06,g:.35,q:1.2});nz(c,o,t+.13,{ft:'highpass',f:4000,dur:.025,g:.4});tone(c,o,t+.13,{type:'square',f:1600,dur:.012,g:.05});}});
+Object.assign(LV,{photo_shutter:.8});
+
+// ---------- v0.9（2026-11-18）：CROSS GATE の起動音・ブローの確認 ----------
+// 起動音：セルモーターの「キュキュキュ」→ エンジンがかかる（本物寄りのエンジン音で 900→1400）→ シリーズのフレーズ「ラ・ド・ミ｜レ・ド・シ♭」がベルで鳴り、白い光のように広がる
+// （story：起動音がエンジンの始動音に似ている＝YUKI のひみつ。ROAD LOG No.001「波形がぴったり重なる」）。text の「起動音。白い光。」の行で1回
+SE.push({id:'gate_boot',name:'CROSS GATE の起動音（エンジンの始動音に似ている）',dur:3.2,fn:(c,o,t)=>{
+ for(let i=0;i<6;i++){tone(c,o,t+i*.1,{type:'square',f:70+i*4,dur:.08,g:.12,lp:900});nz(c,o,t+i*.1,{f:1200,dur:.05,g:.12,q:2});}
+ burst(c,o,t+.6,900,1400,'real',{dur:1.8});
+ [[0,69],[.18,72],[.36,76],[.62,74],[.8,72],[.98,70]].forEach(([d,m])=>{tone(c,o,t+1.0+d,{f:mf(m+12),dur:1.1,g:.07});tone(c,o,t+1.0+d,{f:mf(m+12)*2.76,dur:.3,g:.018});});
+ [57,62,65].forEach(m=>[-8,8].forEach(d=>tone(c,o,t+1.3,{type:'sawtooth',f:mf(m),det:d,dur:1.9,g:.025,a:.9,hold:.5,lp:1600})));
+ nz(c,o,t+1.3,{ft:'highpass',f:2000,f2:9000,dur:1.8,g:.06,a:1.2});}},
+// ブローの確認の小窓（「ブローします。打ちますか？」）：上書きの確認よりはっきり強い注意。低い「ドゥン」＋下がる2音を2回。エラーの音（card_cant）とは別
+{id:'blow_warn',name:'ブローの確認の小窓が出た（⚠ブロー）',dur:.6,fn:(c,o,t)=>{tone(c,o,t,{f:90,f2:55,dur:.25,g:.5});
+ [0,.2].forEach(d=>{tone(c,o,t+d,{type:'square',f:mf(81),dur:.08,g:.1,hold:.04,lp:3000});tone(c,o,t+d+.09,{type:'square',f:mf(75),dur:.09,g:.1,hold:.04,lp:3000});});}});
+Object.assign(LV,{gate_boot:.8,blow_warn:2.2});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
-const LVJ={win:1,one_turn_kill:1,gameover:1};
 let C=null,M=null,BUS={},vol={master:.8,se:.9,engine:.75,bgm:.55},muted=false,engType='real',car=Object.assign({},YUKI);
 let bgmIn=null,hp=null,trem=null,tremLfo=null;
 const live={};
@@ -380,7 +522,7 @@ function jingle(id){const c=ok();if(!c)return;const j=JINGLES[id];if(!j){console
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05);}
 
 window.AUDIO={
- VERSION:'0.4',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.9',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},

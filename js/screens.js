@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22（β2）";
+const VERSION="試作 v0.22.1（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -92,7 +92,7 @@ function showTitle(){
   <button class="mini dataBtn" ${at(8,8,132,28)} onclick="showData()">データ：スロット${SAVE.slot}</button>
   ${nightMaxAvail()>1?`<button class="mini nightBtn" ${at(8,40,132,28)} onclick="pickNight()">夜：NIGHT ${curNight()} ▼</button>`:""}
   ${charsOpen().length>1?`<button class="mini charBtn" ${at(8,72,132,28)} onclick="showChars()">キャラ：${esc(ch)} ▼</button>`:""}
-  ${labOpen()?`<button class="mini labBtn" ${at(8,charsOpen().length>1?104:72,132,28)} onclick="showLab()">強化ショップ（ログ ${SAVE.cur.profile.log}）</button>`:""}
+  ${labOpen()?`<button class="mini labBtn" ${at(8,charsOpen().length>1?104:72,132,28)} onclick="showLab()">みおのラボ（ログ ${SAVE.cur.profile.log}）</button>`:""}
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
   <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
@@ -244,12 +244,12 @@ function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="phase")&&B.key==="bos
   playEvents(takeEvents());S.sel=-1;
   if(window.TUTORIAL_ON){if(r==="dead"){G.hp=1}S.pending=null;renderBattle();tutAfter(r);return}
   if(r==="win")S.pending=()=>{if(!seenGet().first_remit)showScene("first_remit",showWin);else showWin()};else if(r==="dead")S.pending=()=>showResult(false);
-  else if(r==="escape")S.pending=()=>{toast2(TEXT.ui.hidden_lose.replace(/<br>/g,""));nextRow()};
+  else if(r==="escape")S.pending=()=>{SND.engineStop();SND.jingle("hidden_escape");toast2(TEXT.ui.hidden_lose.replace(/<br>/g,""));nextRow()};
   renderBattle();
 }
 function doPlay(i,shift,ok){if(B.over||!tutAllow("play",{i,shift}))return;
-  if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){S.blowGo=()=>{seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
-    modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">いちばん上のギアで リミットをこえると、エンジンブロー（このランは終わり）</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
+  if(!ok&&G.night>=3&&!seenGet().blow_confirm){const p=preview(B.hand[i]);if(p.ok&&p.danger==="blow"&&!shift){SND.se("blow_warn");S.blowGo=()=>{SND.se("ui_ok");seenSet("blow_confirm");closeModal();doPlay(i,shift,true)};
+    modal(`<div class="h ngc">ブローします。打ちますか？</div><div class="small">いちばん上のギアで リミットをこえると、エンジンブロー（このランは終わり）</div><div class="row"><button class="warn" onclick="S.blowGo()">打つ</button><button class="main" onclick="SND.se('ui_cancel');closeModal()">やめる</button></div>`);return}}flushAnim();closeModal();const r0=B.rpm;afterAct(playCard(i,shift),r0)}
 function doEndTurn(){if(B.over||!tutAllow("end"))return;flushAnim();const r0=B.rpm;SND.se("turn_end");afterAct(endTurn(),r0)}
 function doDownShift(){if(B.over||!tutAllow("down"))return;flushAnim();const r0=B.rpm,g0=B.gear;afterAct(downShift(),r0);if(B.gear<g0)TUTS.downs++;tutAfter("down")}
 function doParking(){if(B.over)return;flushAnim();const r0=B.rpm;afterAct(parking(),r0)}
@@ -333,16 +333,16 @@ function onUpIcons(){const k={};B.onUp.forEach(o=>{const t=o[0]==="genHand"?"晶
   return "⇧ "+Object.entries(k).map(([t,v])=>`<span class="oi">${t}${v}</span>`).join("")}
 
 /* ---- 勝った ---- */
-function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;SND.jingle(!B.enemyActed?"one_turn_kill":"win")}
+function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();SND.jingle("hidden_win");setTimeout(()=>SND.se("card_unlock"),900)}else SND.jingle(!B.enemyActed?"one_turn_kill":"win")}
   setScreen("win");setScene("dim");closeModal();
   const w=winRewards();S.win=w;saveRun({s:"win",rank:w.rank});
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
-  let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">カードを1枚もらう（デッキに足す）</div></div>`;
+  let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
   S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank);
   if(w.rank==="hidden")h+=(w.hidCard?cardBig(w.hidCard,{art:true,cls:"lit",attrs:`${at(LAMP_X[1]-70,52,140,184)}`})+`<div class="sign" ${at(170,240,300,40)}><div class="h">裏道のカード「${esc(CARDS[w.hidCard].n)}」を開いた</div><div class="small"><span class="commk">通信</span>みお：${esc(TEXT.ui.hidden_win.replace(/<br>/g,""))}</div><div class="small">デッキに1枚入った（次のランからも報酬に出る）</div></div>`
-    :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(270,300,100,28)} onclick="takeCard(null)">つぎへ</button>`;
+    :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(484,300,120,32)} onclick="takeCard(null)">つぎへ</button>`;
   h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
-   backBtn("もらわない","takeCard(null)")+
+   (w.rank==="hidden"?"":backBtn("もらわない","takeCard(null)"))+/* ★v0.22.1 BUG-30：裏道は「つぎへ」だけ */
    `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}</div>`;
   ui().innerHTML=h;
 }
@@ -491,7 +491,8 @@ function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/
 const MIO_HERE=/^(prologue|op|ed1_after|join_\w+)$/;
 function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;if(s.key==="ed1")return i<5;if(s.key==="hina_op")return i>=5;return!MIO_HERE.test(s.key)}
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
-  if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");
+  if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");if(!comm&&s.i>0&&mioComm(s,s.i-1))SND.se("comm_close");
+  if(/^起動音。/.test(full)){SND.bgmStop();SND.se("gate_boot")}// ★v0.22.1 CROSS GATE の起動音（audio-list 6-2）
   if(full){s.t=setInterval(()=>{s.shown++;if(s.shown%3===1)SND.se(comm?"comm_blip":"text_blip");if(s.shown>=full.length){s.shown=full.length;clearInterval(s.t)}renderScene()},30)}
   renderScene()}
 /* ★v0.18.2（ちかちかの直し）：絵（一枚絵・立ち絵）は変わったときだけ入れかえる。
@@ -530,7 +531,7 @@ function sceneTap(){const s=S.sc;if(!s)return;const full=sceneText();
   if(s.shown<full.length){s.shown=full.length;clearInterval(s.t);renderScene();return}
   SND.se("text_next");s.i++;if(s.i>=s.sc.lines.length){sceneEnd();return}sceneLine()}
 function sceneSkip(){SND.se("ui_cancel");sceneEnd()}
-function sceneEnd(){const s=S.sc;if(!s)return;clearInterval(s.t);S.sc=null;seenSet(s.key);s.done&&s.done()}
+function sceneEnd(){const s=S.sc;if(!s)return;clearInterval(s.t);if(mioComm(s,s.i)||mioComm(s,s.i-1))SND.se("comm_close");S.sc=null;seenSet(s.key);s.done&&s.done()}
 /* エリアの入り口（初めてのときだけ一言。2回目からはエリア名だけ） */
 function areaIntro(ai,done){const k="area"+(ai+1),sc=TEXT.scenes[k];if(!sc){done();return}
   if(seenGet()[k]||!sceneKey(k)){TEXT.scenes.__t.title=sc.title||"";showScene("__t",done);return}showScene(k,done)}
@@ -574,7 +575,7 @@ function runOpts(){const p=PRF();return{night:curNight(),ul:{cards:unlockedCards
 function pickNight(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length;
   modal(`<div class="h">夜をえらぶ</div><div class="small dim">決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く</div><div class="scroll nlist" style="height:190px">`+
     NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
-      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();showTitle()"><b>${esc(lab)}</b>${bl}　<span class="small">${esc(x.add)}</span></button>`
+      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();SND.jingle('night_select',{lv:${x.n}});showTitle()"><b>${esc(lab)}</b>${bl}　<span class="small">${esc(x.add)}</span></button>`
         :`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+
     `</div><div class="row"><button onclick="closeModal()">とじる</button></div>`)}
 /* ★v0.22 ブローが入る夜に初めて入るとき（design 8-6・text 12-1）。どのキャラでも1回だけ。4行目は走るキャラ */
@@ -623,21 +624,22 @@ function playJoins(q,done){const c=q.shift();if(!c){done();return}const next=()=
   if(TEXT.scenes[k])showScene(k,next);
   else{TEXT.scenes["join_tmp"]={light:1,lines:[[null,TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)+"。"]]};showScene("join_tmp",next)}}
 function afterCarShow(got){const p=PRF();
+  {const nu=got.find(t=>t.startsWith("夜："));if(nu)setTimeout(()=>SND.jingle("night_up",{lv:+(nu.match(/\d+/)||[1])[0]}),300)}
   S.runGot=null;if(!got.length&&!S.runEndLog){showTitle();return}
   /* 種類ごとに1行にまとめる（初めてのクリアは20こ近く開くため） */
   const grp={};got.forEach(t=>{const k=t.includes("：")?t.split("：")[0]:"";(grp[k]=grp[k]||[]).push(k?t.slice(k.length+1):t)});
   const lines=Object.entries(grp).map(([k,v])=>`<div class="small">${k?`<b>${esc(k)}</b>　`:""}${v.map(esc).join("・")}</div>`).join("");
   showTitle();modal(`<div class="h">このランで</div><div class="small">ログ +${S.runEndLog||0}（合計 ${p.log}）</div>${lines?`<div class="scroll" style="max-height:170px">${lines}</div>`:""}<div class="row"><button class="main" onclick="closeModal();showTitle()">OK</button></div>`)}
 /* 強化ショップ：ログでカードを解放（design 9-7。名前は案「ログ」） */
-function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("title");S.labSel=S.labSel||UNLOCK.shop[0][0];renderLab()}
+function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("lab");S.labSel=S.labSel||UNLOCK.shop[0][0];renderLab()}
 function renderLab(){const p=PRF(),have=new Set(unlockedCards(p)),sel=S.labSel,pr=(UNLOCK.shop.find(x=>x[0]===sel)||[])[1];
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>強化ショップ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>
   ${backBtn("もどる","showTitle()")}<div class="sign" ${at(8,26,300,260)}></div>
-  <div class="small dim" ${at(16,32,284)}>送り返した記録のかけら（ログ）で、新しいカードを開く</div>`+
+  <div class="small" ${at(16,32,284)}><span class="commk">みお</span>ロガーに残った記録から、カードを作れます……！</div>`+
   UNLOCK.shop.map(([id,price],i)=>{const d=CARDS[id],own=have.has(id);return `<button class="u9 lrow${sel===id?" main":""}" ${at(16,52+i*44,284,40)} onclick="S.labSel='${id}';renderLab()"><span class="ln">${esc(d.n)}</span><span class="small dim"> ${RARITY_JP[d.r]}</span><span class="lp ${own?"dim":p.log>=price?"gold":"ngc"}">${own?"解放ずみ":"ログ "+price}</span></button>`}).join("")+
   (sel?cardBig(sel,{art:true,attrs:at(380,64,140,184)})+(have.has(sel)?`<div class="small dim" ${at(330,262,240)}>解放ずみ（報酬・デッキに出る）</div>`:
     `<button class="main u9" ${at(380,258,140,32)} ${p.log>=pr?"":"disabled"} onclick="labBuy('${sel}')">ログ ${pr} で開く</button>`):"")}
-function labBuy(id){const p=PRF(),it=UNLOCK.shop.find(x=>x[0]===id);if(!it||p.log<it[1]||unlockedCards(p).includes(id))return;p.log-=it[1];SAVE.unlock("cards",id);SND.se("card_upgrade");toast2(`「${CARDS[id].n}」を開いた`);renderLab()}
+function labBuy(id){const p=PRF(),it=UNLOCK.shop.find(x=>x[0]===id);if(!it||unlockedCards(p).includes(id))return;if(p.log<it[1]){SND.se("card_cant");toast2("ログが、足りません……");return}p.log-=it[1];SAVE.unlock("cards",id);SND.se("upgrade_buy");setTimeout(()=>SND.se("card_unlock"),500);toast2(`「${CARDS[id].n}」を開いた`);renderLab()}
 
 /* ===================== ★テスト用の口（QA・レベルデザイン班・デザイン班）=====================
    qaSetProgress({slot,nightMax,night,cards,parts,chars,log,tutorial,sCount})：進み具合を一度に作ってスロットに書く。

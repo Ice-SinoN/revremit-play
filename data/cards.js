@@ -45,7 +45,7 @@ const CARDS={
  eikyu:{r:"E",mo:"atk_finisher",own:"YUKI",n:"永久凍土",t:"atk",c:4500,gas:2,v:20,vu:30,fx:[["atk","v"],["atkFrz",2]],d:"{v}ダメージ＋この戦闘で与えた凍結×2（40まで）",num:"sum"},
  rikkamai:{r:"R",own:"YUKI",n:"六花の舞",t:"rev",c:0,gas:0,sup:1,v:1,vu:2,fx:[["onUp","genHand","hyoushou","v"]],d:"この戦闘の間、シフトアップのたびに手札に氷晶を{v}枚"},
  nadare:{r:"E",mo:"atk_finisher",own:"YUKI",n:"雪崩",t:"atk",c:3000,gas:10,charge:1,v:30,vu:45,fx:[["atk","v"]],d:"大技。{v}ダメージ。ガソリン10。パーフェクト・チェイン5・レッドゾーンで打つ、のたびに −1"},
- muhyou:{r:"C",mo:"guard",own:"YUKI",n:"霧氷",t:"grd",c:1500,gas:1,v:4,vu:6,fx:[["blk","v"],["onUp","frz",1],["onUp","blk",3]],d:"防御 {v}。この戦闘の間、シフトアップのたびに凍結 1・防御 3"},
+ muhyou:{r:"C",mo:"guard",own:"YUKI",n:"霧氷",t:"grd",c:1500,gas:1,v:4,vu:6,fx:[["blk","v"],["onUp","frz",1],["onUp","blk",2]],d:"防御 {v}。この戦闘の間、シフトアップのたびに凍結 1・防御 2"},
  hakunetsu:{r:"R",mo:"atk_heavy",own:"YUKI",n:"白熱",t:"atk",c:1000,gas:2,v:12,vu:18,band:"R",bm:2,fx:[["atk","v"]],d:"{v}ダメージ（レッドゾーンで2倍）"},
  /* ===== ★v0.21：β で足す10種（design v0.6 9-2・名前は仮＝シナリオ班が text.md で決める）===== */
  hyouen:{r:"R",mo:"atk_heavy",own:"YUKI",n:"氷炎",t:"atk",c:1500,gas:2,v:9,vu:14,band:"R",bm:2,fx:[["atk","v"],["redStay",1000]],d:"{v}ダメージ（レッドゾーンで打つと2倍）。レッドゾーンで打ったら、そのあと回転 −1000"},
@@ -95,7 +95,7 @@ const CARDS={
  m_hanafubuki:{r:"R",mo:"atk_light",own:"MOMO",n:"花吹雪",t:"atk",c:2500,gas:2,v:2,vu:3,band:"M",fx:[["atkHits","v",5,5]],d:"{v}ダメージを5回"},
  m_harukaze:{r:"C",mo:"guard",own:"MOMO",n:"春風",t:"grd",c:1000,gas:1,v:3,vu:5,band:"L",fx:[["blk","v"],["heal",3]],d:"防御 {v}・エンジン耐久 +3",num:"blk"},
  m_hanawa:{r:"C",mo:"atk_light",own:"MOMO",n:"花輪",t:"atk",c:1500,gas:1,v:5,vu:8,band:"L",fx:[["atk","v"],["chainAdd",1]],d:"{v}ダメージ・チェイン +1"},
- m_hanami:{r:"R",mo:"draw",own:"MOMO",n:"花見",t:"rev",c:0,gas:1,sup:1,v:2,vu:3,fx:[["hanami","v"]],d:"捨て札から回転0のカードを {v}枚手札に"},
+ m_hanami:{r:"R",mo:"draw",own:"MOMO",n:"花見",t:"rev",c:0,gas:1,sup:1,v:2,vu:3,fx:[["hanami","v"]],d:"捨て札から回転0のカードを {v}枚手札に（花見はもどさない）"},
  // --- NANA（シフト連打）---
  n_koutotsu:{r:"C",mo:"atk_heavy",own:"NANA",n:"紅突",t:"atk",c:2000,gas:2,v:10,vu:15,band:"M",fx:[["atk","v"]],d:"{v}ダメージ"},
  n_hosaki:{r:"C",mo:"atk_light",own:"NANA",n:"穂先",t:"atk",c:1000,gas:1,v:5,vu:8,band:"L",fx:[["atk","v"]],d:"{v}ダメージ"},
@@ -115,7 +115,7 @@ const CARDS={
  n_teppeki:{r:"C",mo:"guard",own:"NANA",n:"鉄壁",t:"grd",c:2000,gas:1,v:8,vu:12,fx:[["blk","v"]],d:"防御 {v}"},
  n_tenshou:{r:"R",mo:"atk_light",own:"NANA",n:"天翔",t:"atk",c:1500,gas:1,v:4,vu:6,halfDrop:1,fx:[["atk","v"]],d:"{v}ダメージ。「シフトして打つ」で打つと、シフトのあとの回転が ×0.5"},
  // --- 生成・ジャマ（30種に数えない。チェインには数える）---
- oil:{r:"C",own:"N",n:"エンジンオイル",t:"rev",c:0,gas:0,sup:1,gen:1,v:500,fx:[["atkDown","v"]],d:"次に打つアタックの回転 −{v}（使うと消える）"},
+ oil:{r:"C",own:"N",n:"エンジンオイル",t:"rev",c:0,gas:0,sup:1,gen:1,v:500,fx:[["atkDown","v"],["draw",1]],d:"次に打つアタックの回転 −{v}・1枚引く（使うと消える）"},
  hyoushou:{r:"C",mo:"atk_light",own:"YUKI",n:"氷晶",t:"atk",c:0,gas:0,gen:1,v:3,fx:[["atk","v"]],d:"{v}ダメージ（使うと消える）"},
  mud:{r:"C",own:"N",n:"泥はね",t:"jam",c:0,gas:1,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},
  crosstalk:{r:"C",own:"N",n:"混線",t:"jam",c:1000,gas:0,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},

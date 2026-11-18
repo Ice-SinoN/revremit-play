@@ -1,6 +1,6 @@
 "use strict";
 /* ===== 音のつなぎ（α3・プログラム班）=====
-   音そのものはサウンド班の js/audio.js v0.4（window.AUDIO。合成・ファイルなし）。ここは「いつ鳴らすか」だけ。
+   音そのものはサウンド班の js/audio.js v0.9（window.AUDIO。合成・ファイルなし）。ここは「いつ鳴らすか」だけ。
    つなぎ方は revremit-audio-list.md 6章の表のとおり。
    ★音の方向 B・エンジン音は本物寄り・SE は試聴ページのまま（虎雪 08:19）。
    ★エンジン音は回転数が変わったあと約2秒だけ（AUDIO.engineBurst。続けて呼ぶと前を切る）。 */
@@ -19,12 +19,13 @@ const SND={on:true,
   /* BGM：同じ曲なら鳴らしなおさない（audio.js 側で判定） */
   bgm(id){SND.call(A=>A.bgm(id))},
   bgmStop(){SND.call(A=>A.bgmStop())},
-  jingle(id){SND.call(A=>A.jingle(id))},
+  jingle(id,o){SND.call(A=>A.jingle(id,o))},
   /* レッドゾーンにいるあいだ BGM にハイパス */
   redOn:false,red(rpm){const on=!!(G&&B&&rpm>=redLo()&&!B.over);if(on!==SND.redOn){SND.redOn=on;SND.call(A=>A.redFilter(on))}},
   /* 場面ごとの曲（audio-list 6章）。ショップ・会話などの曲がまだないところはマップの曲を流用 */
   areaBgm(kind){const a=G?curArea().key:"street",k={street:"street",touge:"touge",circuit:"circuit"}[a]||"street";
-    if(kind==="battle"){const E=ENEMIES[B.key];SND.bgm(E.rank==="boss"?{boss1:"boss_zankou",boss2:"boss_byakuya",boss3:"boss_zerogou"}[B.key]:E.rank==="elite"?"elite":"battle_"+k)}
+    if(kind==="battle"){const E=ENEMIES[B.key],ally=G.char&&G.char!=="YUKI"?"theme_"+G.char.toLowerCase():null;// ★v0.22.1 仲間のランはふつうの戦闘を3エリアともその子のテーマ・裏道は hidden（audio-list 6-2）
+      SND.bgm(B.hidden?"hidden":E.rank==="boss"?{boss1:"boss_zankou",boss2:"boss_byakuya",boss3:"boss_zerogou"}[B.key]:E.rank==="elite"?"elite":ally||"battle_"+k)}
     else SND.bgm("map_"+k)},
   toggle(){SND.on=!SND.on;try{localStorage.setItem("revremit_sound",SND.on?"1":"0")}catch(e){}if(window.AUDIO)try{AUDIO.mute(!SND.on);if(!SND.on)AUDIO.engineStop()}catch(e){}},
 };
