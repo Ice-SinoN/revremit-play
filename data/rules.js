@@ -9,7 +9,7 @@ const RULES={
   // 止め（design 0-6）
   shiftCap:3,cardCap:12,multCap:5,frzCap:40,
   red:{MT:7000,AT:6000},areaHeal:0.3,
-  atMult:0.9,atLimiter:0.5,atAutoDown:3500,atFirstGas:1,
+  atMult:0.9,atLimiter:0.5,atAutoDown:3500,atFirstGas:0,/* ★v0.22.46 AT の1ターン最初の自動シフトも +1（LD 11-30・チーフ 21:40） */
   overDmg:8,overDmgCool:4,money0:30,partsMax:5,
   gold:{battle:[18,28],elite:40,boss:40,otk:15,cat:10},ticketRate:0.15,
   featRate:0.25,saleRate:0.25,featPrice:60,sale:0.7,ticket:0.5,
