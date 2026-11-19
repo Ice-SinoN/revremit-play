@@ -25,7 +25,7 @@ function clearedNight(ch,mode,n){return(clearRecOf()[ch+"|"+mode]||[]).includes(
 function starHTML(on,lab){return`<span class="cst${on?" on":""}">${on?"★":"☆"}${lab?esc(lab):""}</span>`}
 function charStars(ch,mode){return["MT","AT"].map(m=>`<span class="${m===mode?"":"dim"}">${starHTML(clearedAny(ch,m),m)}</span>`).join(" ")}
 /* ---- 待機の絵（戦闘の idle）を小さな canvas に。未解放はシルエット ---- */
-function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok"].includes(window.SCREEN)){S.chavOn=false;return}
+function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage"].includes(window.SCREEN)){S.chavOn=false;return}
   document.querySelectorAll("canvas.chav").forEach(cv=>{const set=SPR[cv.dataset.ch];const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
     if(!set||set.proc){g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
     const t=set.tags.idle||set.tags.stand||[0,0],n=t[1]-t[0]+1,ms=(set.dur&&set.dur[t[0]])||120,fr=set.frames[t[0]+Math.floor(performance.now()/ms)%n];if(!fr)return;
@@ -69,46 +69,60 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
    <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"確かめ"}</span></button></div>`;
   if($("#nl"))$("#nl").scrollTop=sc}
 function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else runConfirm([])}
-/* ---- 4. 確認 ---- */
-function runConfirm(bring){S.flowBring=(bring||[]).slice();setScreen("runok");setScene("dim");setBg("garage");closeModal();
+/* ---- 4. 確認（★虎雪 11:35：ダイアログ。難易度・キャラ・デッキ〈はじめのカード〉・ミニカー → よろしいですか？ OK／もどる）---- */
+function runConfirm(bring){S.flowBring=(bring||[]).slice();
   const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk=loadDeck(ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>この内容で走りますか？</div>
-   <div class="sign" ${at(16,34,200,280)}><canvas class="chav" data-ch="${ch}" data-z="1" width="184" height="190"></canvas><div class="h" style="text-align:center">${esc(TEXT.names[ch]||ch)}</div><div class="small dim" style="text-align:center">${esc(C.carName)}</div></div>
-   <div class="sign rcf" ${at(228,34,396,236)}>
-    <div class="rrow"><span class="dim">キャラ</span><b>${esc(ch)}（${esc(TEXT.names[ch]||"")}）</b></div>
-    <div class="rrow"><span class="dim">走りかた</span><b>${esc(mode)}</b>${starHTML(clearedAny(ch,mode),"")}</div>
-    <div class="rrow"><span class="dim">夜</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
-    <div class="rrow"><span class="dim">スキルツリー</span><b>プリセットなし</b><span class="small dim">（スキルツリーは準備中）</span></div>
-    <div class="rrow"><span class="dim">デッキ</span><b>${deckCount(dk)}枚</b></div>
-    <div class="rrow"><span class="dim">ミニカー</span><b>${S.flowBring.length?S.flowBring.length+"台 持ちこむ":"なし"}</b></div>
-    <div class="small dim" style="margin-top:4px">${esc(ruleTxtOf(ch))}</div></div>
-   <div class="row rbtn" ${at(228,280,396,40)}><button class="main u9" onclick="runGo()">OK（出発）</button><button class="u9" onclick="runBack()">もどる</button></div>`;
-  SND.se("ui_ok");chavStart()}
-function runBack(){SND.se("ui_cancel");if(loadMinicars().length)showMinicarGarage(flowMode());else showNights()}
-function runGo(){const mode=flowMode(),bring=S.flowBring||[];S.flow=null;S.flowBring=null;bootSeq(()=>newRun(mode,bring))}
-/* ---- 5. 端末につなぐ演出（約3秒・タップでとばす）---- */
-function bootSeq(done){setScreen("boot");setScene("dim");closeModal();SND.bgmStop&&SND.bgmStop();
-  const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk=loadDeck(ch),hex=()=>Math.floor(Math.random()*65536).toString(16).toUpperCase().padStart(4,"0");
-  const L=[`> .50 CAL LOGGER  ${VERSION_NO()}`,`> LINK ............ ${C.carName}  [OK]`,`> DRIVER  ${ch} / MODE ${mode}`,`> NIGHT ${n} ... ROUTE MAP LOAD`,`> DECK ${deckCount(dk)} CARDS  SUM ${hex()}`,
-    `> MINICAR x${(S.flowBring||[]).length} ... SYNC`,`> CROSS GATE  ${hex()}:${hex()}:${hex()}`,"> ROAD ACCESS ......",">> REMIT READY"];
+  const cards=Object.keys(dk).sort((a,b)=>"SKERC".indexOf(rarityOf(a))-"SKERC".indexOf(rarityOf(b))||CARDS[a].c-CARDS[b].c).map(id=>`<span class="rcc r-${rarityOf(id)}">${esc(CARDS[id].n)}<b>×${dk[id]}</b></span>`).join("");
+  const mc=S.flowBring.length?S.flowBring.map(m=>`<span class="rcc">${esc(TEXT.names[m.char]||m.char)}・${esc(m.rank)}<b>${m.cards.length}枚</b></span>`).join(""):`<span class="dim">なし</span>`;
+  modal(`<div class="rcf"><div class="h">よろしいですか？</div>
+   <div class="rtop"><canvas class="chav" data-ch="${ch}" width="72" height="72"></canvas><div class="rcol">
+    <div class="rrow"><span class="dim">難易度</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
+    <div class="rrow"><span class="dim">キャラ</span><b>${esc(TEXT.names[ch]||ch)}</b><span class="small dim">${esc(C.carName)}・${esc(mode)}</span></div>
+    <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div></div></div>
+   <div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
+   <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
+  const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
+function runBack(){SND.se("ui_cancel");closeModal()}
+function runGo(){const mode=flowMode(),bring=S.flowBring||[];closeModal();S.flow=null;bootSeq(()=>newRun(mode,bring),mode,bring)}
+/* ---- 5. キャラが光の粒になって端末に吸いこまれる（★虎雪 11:35。約3秒・タップでとばす）----
+   粒は戦闘の待機の絵のピクセルから作る（色はキャラの色）。端末はコードで描く（絵が来たら差しかえ）。 */
+function bootSeq(done,mode,bring){const ch=curChar();setScreen("boot");setScene("dim");closeModal();SND.bgmStop&&SND.bgmStop();
   ui().innerHTML=`<div class="boot" ${at(0,0,640,360)} onclick="bootSkip()"><canvas id="bootcv" width="640" height="360"></canvas><div class="small bskip">タップでとばす</div></div>`;
-  const cv=$("#bootcv"),g=cv.getContext("2d"),T0=performance.now(),DUR=3200;S.boot={done,end:false};SND.se("comm_open");let shown=0;
+  const cv=$("#bootcv"),g=cv.getContext("2d"),T0=performance.now(),DUR=3000;S.boot={done,end:false};
+  // 端末（右）の画面の位置
+  const TX=488,TY=150,TW=104,TH=76,tcx=TX+TW/2,tcy=TY+TH/2;
+  // 粒：待機の1コマ目のピクセル
+  const P=[];const set=SPR[ch];const SC=0.8,CX=170,FY=300;
+  if(set&&!set.proc){const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]],w=fr.width,h=fr.height,q=fr.getContext?fr.getContext("2d"):null;
+    let d=null;try{if(q)d=q.getImageData(0,0,w,h).data;else{const o=document.createElement("canvas");o.width=w;o.height=h;const oq=o.getContext("2d");oq.drawImage(fr,0,0);d=oq.getImageData(0,0,w,h).data}}catch(e){}
+    const fx=set.foot?set.foot[0]:w/2,fy=set.foot?set.foot[1]:h,st=2;
+    if(d)for(let y=0;y<h;y+=st)for(let x=0;x<w;x+=st){const k=(y*w+x)*4;if(d[k+3]<120)continue;
+      const px=CX+(x-fx)*SC,py=FY+(y-fy)*SC,r=d[k],gg=d[k+1],b=d[k+2];
+      P.push({x0:px,y0:py,c:`rgb(${r},${gg},${b})`,t0:600+(1-(y/h))*900+Math.random()*350,sp:0.7+Math.random()*0.6,sw:(Math.random()*2-1)*60,s:st*SC+0.4})}}
+  SND.se("comm_open");let swoosh=false,arrived=0;
+  const term=(glow)=>{// 端末：台・モニター・画面（光る）
+    g.fillStyle="#141022";g.fillRect(TX-14,TY-12,TW+28,TH+24);g.strokeStyle="#3a3456";g.lineWidth=2;g.strokeRect(TX-14,TY-12,TW+28,TH+24);
+    g.fillStyle="#1d1830";g.fillRect(TX+TW/2-10,TY+TH+12,20,40);g.fillRect(TX-24,TY+TH+52,TW+48,10);
+    const a=Math.min(1,0.25+glow);g.fillStyle=`rgba(70,230,255,${0.15+0.5*a})`;g.fillRect(TX,TY,TW,TH);
+    g.fillStyle=`rgba(197,255,69,${0.6*a})`;g.font="10px PM10, monospace";g.textBaseline="top";g.fillText("REMIT",TX+6,TY+6);g.fillText(`${ch} / ${mode}`,TX+6,TY+20);
+    g.fillStyle=`rgba(197,255,69,${0.3+0.6*a})`;g.fillRect(TX+6,TY+TH-12,Math.round((TW-12)*Math.min(1,glow)),4);
+    g.fillStyle="rgba(197,255,69,.08)";for(let y=TY;y<TY+TH;y+=3)g.fillRect(TX,y,TW,1)};
   const step=()=>{if(!S.boot||S.boot.end)return;const t=performance.now()-T0,p=Math.min(1,t/DUR);
     g.fillStyle="#05060C";g.fillRect(0,0,640,360);
-    // ノイズ（はじめ強く、だんだん弱く）
-    const nz=Math.max(0,1-t/900);for(let i=0;i<260*nz+30;i++){g.fillStyle=Math.random()<.5?"rgba(197,255,69,.18)":"rgba(70,230,255,.14)";g.fillRect(Math.random()*640|0,Math.random()*360|0,1+Math.random()*3|0,1)}
-    // 走査線
-    g.fillStyle="rgba(197,255,69,.05)";for(let y=(t/12|0)%4;y<360;y+=4)g.fillRect(0,y,640,1);
-    // ログ（1行ずつ、1文字ずつ）
-    const per=DUR*0.8/L.length,nl=Math.min(L.length,Math.floor(t/per)+1);if(nl>shown){shown=nl;SND.se("comm_blip")}
-    g.font="12px PM12, monospace";g.textBaseline="top";
-    for(let i=0;i<nl;i++){const s=L[i],k=i<nl-1?s.length:Math.min(s.length,Math.floor((t-i*per)/per*s.length*1.6));const y=40+i*22;
-      g.fillStyle=i===L.length-1?"#C5FF45":"#8FE6FF";let sx=48;if(Math.random()<0.04){sx+=(Math.random()*8-4)|0}g.fillText(s.slice(0,k)+(i===nl-1&&(t/200|0)%2?"_":""),sx,y)}
-    // 進みのバー
-    g.strokeStyle="#3a3550";g.strokeRect(48,318,544,8);g.fillStyle="#C5FF45";g.fillRect(50,320,Math.round(540*p),4);
-    g.fillStyle="#6b6880";g.font="10px PM10, monospace";g.fillText(`ACCESS ${Math.round(p*100)}%`,48,300);
-    // グリッチの帯
-    if(Math.random()<0.12){const y=Math.random()*360|0,h=2+Math.random()*10|0;g.drawImage(cv,0,y,640,h,(Math.random()*16-8)|0,y,640,h)}
+    // 床と光
+    const gr=g.createRadialGradient(tcx,tcy,4,tcx,tcy,180);gr.addColorStop(0,`rgba(70,230,255,${0.08+0.25*Math.min(1,arrived/Math.max(1,P.length))})`);gr.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=gr;g.fillRect(0,0,640,360);
+    g.fillStyle="#0c0e1a";g.fillRect(0,FY+2,640,58);g.fillStyle="rgba(197,255,69,.06)";for(let x=0;x<640;x+=32)g.fillRect(x,FY+2,1,58);
+    term(arrived/Math.max(1,P.length));
+    // キャラのまわりが光る（はじめ）
+    if(t<1100){const k=Math.sin(Math.min(1,t/1100)*Math.PI),rg=g.createRadialGradient(CX,FY-80,6,CX,FY-80,110);rg.addColorStop(0,`rgba(247,249,245,${0.22*k})`);rg.addColorStop(1,"rgba(247,249,245,0)");g.fillStyle=rg;g.fillRect(CX-120,FY-200,240,210)}
+    arrived=0;
+    for(const q of P){let x,y,s=q.s;if(t<q.t0){x=q.x0;y=q.y0;if(t>q.t0-250){/* ほどける前にふるえる */x+=Math.random()*1.4-0.7}}
+      else{const u=Math.min(1,(t-q.t0)/(900/q.sp)),e=u*u*(3-2*u);if(u>=1){arrived++;continue}
+        x=q.x0+(tcx-q.x0)*e;y=q.y0+(tcy-q.y0)*e+Math.sin(u*Math.PI)*q.sw*(1-u)-Math.sin(u*Math.PI)*40;s=q.s*(1-0.6*u)+0.3;
+        if(!swoosh){swoosh=true;SND.se("card_toss")}}
+      g.fillStyle=q.c;g.fillRect(x,y,s,s)}
+    if(!P.length)arrived=Math.round(p*1);// 絵がないときは光だけ
+    if(p>0.9){g.fillStyle=`rgba(247,249,245,${(p-0.9)*6})`;g.fillRect(0,0,640,360)}
     if(p>=1){bootEnd();return}requestAnimationFrame(step)};requestAnimationFrame(step)}
 function bootSkip(){if(S.boot&&!S.boot.end){SND.se("ui_ok");bootEnd()}}
 function bootEnd(){const b=S.boot;if(!b||b.end)return;b.end=true;S.boot=null;SND.se("gate_boot");b.done&&b.done()}

@@ -406,3 +406,8 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .chcard.lock{opacity:.85}.chcard.main .cst{color:#4a5a20}.chcard.main .cst.on,.nrow2.main .cst.on{color:#0A0812}.nrow2.main .cst{color:#4a5a20}
 .chdet{text-align:left}.rcf{text-align:left}
 .chdet{justify-content:flex-start;padding-top:6px}
+.modal .box.rcbox{width:420px}.rcf .rtop{display:flex;gap:8px;align-items:center}.rcf .rcol{display:flex;flex-direction:column;gap:3px;flex:1}
+.rcf canvas.chav{width:72px;height:72px;flex:none;background:#0A0812;margin:0}.rcs{display:flex;flex-wrap:wrap;gap:2px 6px}
+.rcc{font:10px/12px 'PM10';padding:1px 3px;background:#1d1830;border-left:2px solid var(--grey)}.rcc b{margin-left:3px;color:var(--lime);font-weight:normal}
+.rcc.r-R{border-color:#46E6FF}.rcc.r-E{border-color:#FF4FA0}.rcc.r-SK{border-color:var(--gold)}.rdeck{max-height:88px;overflow-y:auto}
+.rcf .row button{flex:1;min-height:30px}
