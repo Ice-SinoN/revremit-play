@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.33（β2）";
+const VERSION="試作 v0.22.34（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -27,12 +27,13 @@ const partIcon=(p,size)=>itemIcon("part_"+p,size||64);
 /* ★v0.18.3：ホーム画面から全画面で開いたとき、切り欠き・角の丸み・ホームバーの所（safe area）をよけて置く */
 function safeArea(){let p=$("#safep");if(!p){p=document.createElement("div");p.id="safep";p.style.cssText="position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";document.body.appendChild(p)}
   const c=getComputedStyle(p),n=v=>parseFloat(v)||0;return{t:n(c.paddingTop),r:n(c.paddingRight),b:n(c.paddingBottom),l:n(c.paddingLeft)}}
-function fit(){const st=$("#stage"),dpr=window.devicePixelRatio||1,SA=safeArea(),W=innerWidth-SA.l-SA.r,H=innerHeight-SA.t-SA.b,RW=RES.W,RH=RES.H;
+function fit(){const st=$("#stage"),dpr=window.devicePixelRatio||1,SA=safeArea(),vv=window.visualViewport,VW=Math.max(innerWidth,vv?Math.round(vv.width):0),VH=Math.max(innerHeight,vv?Math.round(vv.height):0),W=VW-SA.l-SA.r,H=VH-SA.t-SA.b,RW=RES.W,RH=RES.H;
   st.style.width=RW+"px";st.style.height=RH+"px";const cv=$("#cv");if(cv.width!==RW){cv.width=RW;cv.height=RH;if(A.g)A.g.imageSmoothingEnabled=false}
-  const k=Math.floor(Math.min(W*dpr/RW,H*dpr/RH));const s=k>=1?k/dpr:Math.min(W/RW,H/RH);
+  /* ★v0.22.34（虎雪 14:39 iPhone 17 Pro Max）：整数倍をやめて、安全な範囲の高さか幅いっぱいまで（16:9 のまま・絵は pixelated）。ちょうど整数倍に近いときだけ整数倍 */
+  const fill=Math.min(W/RW,H/RH),k=Math.floor(fill*dpr);const s=k>=1&&k/dpr>=fill*0.985?k/dpr:fill;
   st.style.transform=`scale(${s})`;st.style.left=Math.round(SA.l+(W-RW*s)/2)+"px";st.style.top=Math.round(SA.t+(H-RH*s)/2)+"px";
   window.FIT={k,s,dpr,SA};$("#rot").style.display=H>W*1.1?"flex":"none"}
-addEventListener("resize",fit);addEventListener("orientationchange",()=>setTimeout(fit,300));
+addEventListener("resize",fit);addEventListener("orientationchange",()=>{setTimeout(fit,300);setTimeout(fit,800)});if(window.visualViewport)visualViewport.addEventListener("resize",fit);addEventListener("pageshow",()=>setTimeout(fit,50));
 
 const TYPE_K={atk:"攻",grd:"守",dbf:"弱",drw:"引",rev:"回",sk:"技"};
 const NODE_JP={battle:"戦闘",shop:"ショップ",sim:"シム",lucky:"ラッキー",elite:"エリート",garage:"ガレージ",boss:"ボス",hidden:"裏道"};

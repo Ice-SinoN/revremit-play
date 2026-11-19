@@ -1,7 +1,7 @@
 /* ===== 見た目（α2）：原寸 640×360 のドット。文字は PixelMplus（12・10ドット）だけ ===== */
 :root{--ink:#171B22;--white:#F7F9F5;--lime:#C5FF45;--red:#FF4040;--navy:#1E243A;--grey:#8B95A3;--dark:#2A2F3A;--gold:#FFD34D;--cyan:#7FD8FF;--line:#262B48;--panel:#0E111C}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#000;overflow:hidden;-webkit-text-size-adjust:none;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}/* ★v0.20.1：ピンチ・ダブルタップで拡大しない（一覧のスクロールはできる） */
+html,body{margin:0;height:100%;background:#05060C radial-gradient(ellipse at 50% 50%,#1a2040 0%,#0b0e1c 55%,#05060C 100%) fixed;overflow:hidden;-webkit-text-size-adjust:none;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}/* ★v0.20.1：ピンチ・ダブルタップで拡大しない（一覧のスクロールはできる） */
 img,canvas{-webkit-user-drag:none;user-select:none}
 #stage{position:absolute;width:640px;height:360px;/* 大きさは fit() が RES から入れる */transform-origin:0 0;overflow:hidden;background:#0D1020;
   font:12px/14px 'PM12',monospace;color:var(--white);-webkit-font-smoothing:none;font-smooth:never;image-rendering:pixelated}
@@ -415,3 +415,4 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .rcf .row button,.rcf button{text-align:center}/* ★BUG-48 */
 .chcard.lock .chn{font:12px/14px 'PM12B','PM12'}.chcard.lock .small{line-height:11px}
 .ninfo{text-align:left;line-height:12px}
+#stage{box-shadow:0 0 0 1px #000,0 0 40px 12px rgba(0,0,0,.6)}/* ★v0.22.34 横長の端末の左右の余り：暗いふち＋外側を暗いグラデーションで埋める */
