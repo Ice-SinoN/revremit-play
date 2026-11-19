@@ -82,11 +82,11 @@ function newRunState(mode,charId,bring,dk,opt){
   G={char:charId,car:JSON.parse(JSON.stringify(ch.car)),mode,hp:ch.car.hp+nr.maxHp,maxhp:ch.car.hp+nr.maxHp,money:nr.money0!=null?nr.money0:RULES.money0,tickets:0,
      tune:{tire:0,shift:0,engine:0,light:0,ecu:0},parts:[],deck,map:null,row:0,path:[],cageUsed:false,seen:{},
      night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
-     st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0};
+     st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0,mcParts:[],soldParts:[]};/* ★v0.22.37 持ちこみのパーツ・売ったパーツ（10-14・10-19） */
   G.map=genMap();
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
-    if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax)addPart(m.part)});
+    if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
   return G;
 }
 function mcBonus(m){const i=Math.max(0,RANKS.indexOf(m.rank));return{hp:MC_BONUS.hp[i],atk:MC_BONUS.atk[i]}}
@@ -99,9 +99,15 @@ function advanceRow(){const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
   if(G.row>=G.map.length){G.st.clear=true;return"clear"}
   if(prev.k==="boss"){G.st.bosses++;const ah=NR().areaHeal,h=Math.round(G.maxhp*(ah!=null?ah:RULES.areaHeal));G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();return"area"}
   return"map"}
-/* 候補に出るパーツ：共通＋自分の専用＋持ち込んだミニカーのキャラの専用。持っているものは除く */
-function partPool(){const own=new Set([G.char,...G.bring.map(m=>m.char)]);
-  return Object.keys(PARTS).filter(p=>!G.parts.includes(p)&&(PARTS[p].own==="N"||own.has(PARTS[p].own))&&partOK(p))}
+/* 候補に出るパーツ：共通＋自分の専用だけ（★v0.22.37 虎雪 15:23・design 10-14：持ちこんだキャラの専用は出さない）。持っているもの・このランで売ったものは除く */
+function partPool(){const sold=G.soldParts||[];
+  return Object.keys(PARTS).filter(p=>!G.parts.includes(p)&&!sold.includes(p)&&(PARTS[p].own==="N"||PARTS[p].own===G.char)&&partOK(p))}
+/* ★v0.22.37 design 10-19 パーツの売却：目玉商品の値段の 40%（5きざみに切り捨て）＋専用 +10。持ちこみのミニカーのパーツは売れない（0＝外すだけ） */
+function isMcPart(p){return(G.mcParts||[]).includes(p)}
+function sellPrice(p){if(!PARTS[p]||isMcPart(p))return 0;return Math.floor(RULES.featPrice*RULES.sellRate/5)*5+(PARTS[p].own!=="N"?RULES.sellOwnAdd:0)}
+function removePartAt(idx){const p=G.parts[idx];if(p==null)return null;G.parts.splice(idx,1);if(p==="forged")G.maxhp+=10;if(isMcPart(p))G.mcParts=G.mcParts.filter(x=>x!==p);return p}
+function sellPart(p,idx){/* idx あり＝持っているパーツ、なし＝手に入れたばかりのものをその場で売る */const v=sellPrice(p);if(idx!=null&&idx>=0){if(G.parts[idx]!==p)return 0;removePartAt(idx)}
+  if(v>0){G.money+=v;(G.soldParts=G.soldParts||[]).push(p)}return v}
 function partOptions(n){return shuffle(partPool()).slice(0,n||3)}
 /* パーツを取る。5つあるときは idx の枠と入れ替える（idx なしで5つなら false） */
 function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.push(p);
@@ -117,6 +123,9 @@ function rewardOptions(rank){
   if(rank==="elite"){const hi=pool.filter(id=>rarityOf(id)!=="C");if(hi.length)out.push(draw(hi))}
   if(rank==="boss"){const hi=pool.filter(id=>rarityOf(id)==="E");if(hi.length)out.push(pick(hi))}
   while(out.length<3){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
+  /* ★v0.22.37 design 10-14：持ちこんだミニカー（ほかのキャラのもの）のカード2種だけが、3枚のうち1枚まで出る。1台 15%（2台で 30%）。強化前の形・2種（2台なら4種）から等しく1つ */
+  const other=(G.bring||[]).filter(m=>m.char!==G.char),carry=[...new Set(other.flatMap(m=>m.cards.map(c=>c.id)))].filter(id=>CARDS[id]&&!CARDS[id].gen&&!out.includes(id));
+  if(carry.length&&out.length&&Math.random()<RULES.carryCardP*other.length){const k=(rank==="elite"||rank==="boss")&&out.length>1?out.length-1:Math.floor(Math.random()*out.length);out[k]=pick(carry)}
   return shuffle(out);
 }
 function upgradeTargets(){return G.deck.map((c,i)=>[c,i]).filter(([c])=>canUpgrade(c)).map(([,i])=>i)}
@@ -533,11 +542,14 @@ function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};
   if(rank)parts.rank=L.rank[rank]||0;
   const sum=Object.values(parts).reduce((a,b)=>a+b,0),mul=1+L.nightBonus*Math.max(0,(G.night||1)-1);
   return{parts,total:Math.round(sum*mul),mul}}
+/* ★v0.22.37 design 10-14：ミニカーの10枚の抽選は重みつき（自分の専用・ニュートラル 1、ほかのキャラ 0.3） */
+function mcTen(){const L=G.deck.slice(),out=[];const w=c=>{const o=CD(c).own;return o==="N"||o===G.char?1:RULES.otherCardW};
+  while(out.length<MC_DRAW&&L.length){const t=L.reduce((a,c)=>a+w(c),0);let x=Math.random()*t,i=0;for(;i<L.length-1;i++){x-=w(L[i]);if(x<0)break}out.push(L.splice(i,1)[0])}return out}
 /* リザルト（ミニカーの評価） */
 function calcResult(clear){
   const st=G.st,rate=st.shiftTry?st.perfect/st.shiftTry:0,tuneSum=Object.values(G.tune).reduce((a,b)=>a+b,0),rows=G.map.length;
   const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0,難易度:Math.max(0,(G.night||1)-1)*5};
   const total=Object.values(pts).reduce((a,b)=>a+b,0);
   let ri=0;RANK_TH.forEach(t=>{if(total>=t)ri++});ri=Math.min(ri,RANKS.length-1);
-  return{pts,total,ri,rank:RANKS[ri],ten:shuffle(G.deck.slice()).slice(0,MC_DRAW)};
+  return{pts,total,ri,rank:RANKS[ri],ten:mcTen()};
 }

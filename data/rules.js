@@ -13,6 +13,7 @@ const RULES={
   overDmg:8,overDmgCool:4,money0:30,partsMax:5,
   gold:{battle:[18,28],elite:40,boss:40,otk:15,cat:10},ticketRate:0.15,
   featRate:0.25,saleRate:0.25,featPrice:60,sale:0.7,ticket:0.5,
+  carryCardP:0.15,otherCardW:0.3,sellRate:0.4,sellOwnAdd:10,/* ★v0.22.37 design 10-14（持ちこんだミニカー）・10-19（パーツの売却） */
   restRate:0.3,upMult:1.5,
   mtLockDraw:1,atLowDraw:2,frzDelayCap:2,// ★v0.22.1 design v0.9 0-8・5-1b（MT の詰み・AT の詰まり・凍結の上限）
   deckSize:20,deckLimit:{C:4,R:2,E:1,SK:1},rarityW:{C:60,R:30,E:10},// 上限は★RA-01（ラン前のデッキだけ）

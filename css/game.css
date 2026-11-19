@@ -425,3 +425,10 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .simc .simmore{position:absolute;left:0;right:0;bottom:0;height:14px}
 .simarr{color:var(--cyan);font:16px/20px 'PM12';text-align:center;width:auto}
 .rsc{color:#FF9FC8;white-space:nowrap}.rsc.used{color:var(--grey)}.rsc img{width:12px;height:12px;vertical-align:-2px;margin-right:2px}
+.sellt{display:block;margin-top:1px}.psrow .sellt{display:inline}
+.pswap.sellp{display:flex;flex-direction:column;gap:4px;width:440px}
+.sellp .pslist{max-height:220px;overflow-y:auto}
+.sellp .sellrow{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:0 8px;align-items:center;padding:3px 6px;min-height:0}
+.sellp .sellrow .pdn{grid-column:1}.sellp .sellrow>.small:not(.sellt){grid-column:1;grid-row:2}.sellp .sellrow .sellt{display:none}
+.sellp .sellrow button{grid-column:2;grid-row:1/3;min-height:26px;padding:2px 8px;white-space:nowrap}
+.sellp>.row{justify-content:center}

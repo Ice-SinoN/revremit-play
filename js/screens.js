@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.36（β2）";
+const VERSION="試作 v0.22.37（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -422,18 +422,26 @@ function partStats(parts){const sv=G.parts,hp=G.maxhp+(sv.includes("forged")?10:
 function partDiffRows(before,after){const a=partStats(before),b=partStats(after),w=x=>{const m=String(x).split("〜");return m[1]-m[0]},
   L=[["リミット","limit",(x,y)=>y>x],["レッドゾーン（から）","red",(x,y)=>y<x],["シフトの帯","band",(x,y)=>w(y)>w(x)],["エンジン耐久の最大","maxhp",(x,y)=>y>x]];
   return L.filter(([,k])=>a[k]!==b[k]).map(([n,k,good])=>`<div class="pdrow"><span>${n}</span><span>${a[k]} → <b class="${good(a[k],b[k])?"up":"down"}">${b[k]}</b></span></div>`).join("")}
-function choosePartSlot(p,onOk){
+/* ★v0.22.37 design 10-19：効果の文の横の札（売値／ミニカーのパーツは外すだけ） */
+function sellTag(id){return isMcPart(id)?`<span class="small dim sellt">ミニカーのパーツ（外すだけ）</span>`:`<span class="small gold sellt">売値 +${sellPrice(id)}</span>`}
+function choosePartSlot(p,onOk,canSellNew){
   if(G.parts.length<RULES.partsMax){onOk(-1);return}
-  S.slotOk=onOk;S.slotNew=p;S.slotSel=-1;renderPartSlot()}
+  S.slotOk=onOk;S.slotNew=p;S.slotSel=-1;S.slotSellNew=canSellNew||null;renderPartSlot()}
 function renderPartSlot(){const p=S.slotNew,sel=S.slotSel,q=sel>=0?G.parts[sel]:null;
-  const card=(id,tag,cls)=>`<div class="pdcard ${cls}"><div class="small dim">${tag}</div><div class="pdn">${partIcon(id,24)}<b>${esc(partName(id))}</b></div><div class="small">${esc(PARTS[id].d)}</div></div>`;
+  const card=(id,tag,cls,st)=>`<div class="pdcard ${cls}"><div class="small dim">${tag}</div><div class="pdn">${partIcon(id,24)}<b>${esc(partName(id))}</b></div><div class="small">${esc(PARTS[id].d)}</div>${st?sellTag(id):""}</div>`;
   let diff="";if(q){const after=G.parts.slice();after[sel]=p;diff=partDiffRows(G.parts,after)}
   modal(`<div class="pswap"><div class="h">どれと入れ替える？</div><div class="small dim">パーツは${RULES.partsMax}つまで。外すパーツをえらぶ</div>
-   <div class="pslist">${G.parts.map((x,i)=>`<button class="psrow${i===sel?" on":""}" onclick="S.slotSel=${i};SND.se('ui_ok');renderPartSlot()"><span class="pdn">${partIcon(x,20)}<b>${esc(partName(x))}</b></span><span class="small">${esc(PARTS[x].d)}</span></button>`).join("")}</div>
-   <div class="psside">${card(p,"付ける","new")}${q?card(q,"外す","old")+(diff?`<div class="pdiff">${diff}</div>`:""):`<div class="small dim pshint">左から、外すパーツをえらぶ</div>`}
-   <div class="row"><button class="main" ${q?"":"disabled"} onclick="closeModal();S.slotOk(${sel})">入れ替える</button><button onclick="closeModal()">やめる</button></div></div></div>`);
+   <div class="pslist">${G.parts.map((x,i)=>`<button class="psrow${i===sel?" on":""}" onclick="S.slotSel=${i};SND.se('ui_ok');renderPartSlot()"><span class="pdn">${partIcon(x,20)}<b>${esc(partName(x))}</b></span><span class="small">${esc(PARTS[x].d)}</span>${sellTag(x)}</button>`).join("")}</div>
+   <div class="psside">${card(p,"付ける","new",!!S.slotSellNew)}${q?card(q,isMcPart(q)?"外す（ミニカーのパーツ・このランだけ）":"外す（売る）","old",true)+(diff?`<div class="pdiff">${diff}</div>`:""):`<div class="small dim pshint">左から、外すパーツをえらぶ</div>`}
+   <div class="row"><button class="main" ${q?"":"disabled"} onclick="slotSwapGo(${sel})">${q&&sellPrice(q)>0?`入れ替える（+${sellPrice(q)}）`:"入れ替える"}</button>${S.slotSellNew?`<button onclick="slotSellNew()">付ける方を売る（+${sellPrice(p)}）</button>`:""}<button onclick="closeModal()">やめる</button></div></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("wide")}
-function takePart(p){choosePartSlot(p,idx=>{addPart(p,idx);SND.se(idx>=0?"part_swap":"part_get");S.pdone()})}
+/* 入れ替え：外す方は売る（ミニカーのパーツは外すだけ）。売値があるときだけ確認 */
+function slotSwapGo(sel){const q=G.parts[sel],v=sellPrice(q);
+  const go=()=>{closeModal();sellPart(q,sel);/* 空いた枠に付ける */S.slotOk(-1);if(v>0){SND.se("shop_buy");toast2(`${PARTS[q].n} を売った（+${v}）`)}};
+  if(v>0){SND.se("overwrite_warn");S.slotGo=go;modal(`<div class="h">${esc(PARTS[q].n)}を売って +${v}。よろしいですか</div><div class="small">かわりに ${esc(PARTS[S.slotNew].n)} を付けます。売ったパーツは、このランではもう出ません。</div><div class="row"><button class="main" onclick="S.slotGo()">売って入れ替える</button><button onclick="renderPartSlot()">やめる</button></div>`)}
+  else go()}
+function slotSellNew(){const p=S.slotNew,v=sellPart(p);closeModal();SND.se("shop_buy");if(S.slotSellNew)S.slotSellNew();toast2(`${PARTS[p].n} を売った（+${v}）`)}
+function takePart(p){choosePartSlot(p,idx=>{addPart(p,idx);SND.se(idx>=0?"part_swap":"part_get");S.pdone()},()=>S.pdone())}
 
 /* ---- チューニングショップ ---- */
 function showShop(n){
@@ -449,11 +457,20 @@ function showShop(n){
     h+=(n.featBought?"":`<div class="onctr" ${at(124,222,48,48)}>${partIcon(n.featPart,48)}</div>`)+
     `${n.featBought?"":`<i class="badge feature" ${at(100,290,30,12)}></i>`}<div class="shoprow feat" ${at(100,296,330,54)}><div class="tx"><span class="gold">★目玉商品</span> ${n.featBought?"売り切れ":`<b>${esc(partName(n.featPart))}</b><br><span class="small">${esc(PARTS[n.featPart].d)}</span>`}</div>
     ${n.featBought?"":`${priceTag(pr,RULES.featPrice,G.money>=pr)}<button class="u9" ${G.money>=pr?"":"disabled"} onclick="uiBuyFeat()">買う</button>`}</div>`}
+  h+=`<button class="u9 sellbtn" ${at(440,252,180,30)} ${G.parts.length?"":"disabled"} onclick="showSellParts()">パーツを売る（${G.parts.length}）</button>`;/* ★v0.22.37 design 10-19 */
   if(G.tickets)h+=`<label class="small sign tick" ${at(440,296,180,22)}><input type="checkbox" ${ut?"checked":""} onchange="S.useTicket=this.checked;showShop(S.shop)"> 割引券を使う（−50%）</label>`;
   // ★v0.18.1：「店を出る」は右上（どの端末でも下の端が隠れても見える所）
   h+=backBtn("店を出る","S.useTicket=false;nextRow()");
   ui().innerHTML=h;
 }
+/* ★v0.22.37 design 10-19：ショップの「売る」。持っているパーツを売る（確認あり）・ミニカーのパーツは外すだけ */
+function showSellParts(){SND.se("ui_ok");modal(`<div class="pswap sellp"><div class="h">パーツを売る</div><div class="small dim">売値はセール・割引券に関係なし。売ったパーツは、このランではもう出ません。</div>
+  <div class="pslist">${G.parts.map((x,i)=>`<div class="psrow sellrow"><span class="pdn">${partIcon(x,20)}<b>${esc(partName(x))}</b></span><span class="small">${esc(PARTS[x].d)}</span>${sellTag(x)}<button class="u9" onclick="sellAsk(${i})">${isMcPart(x)?"外す":`売る（+${sellPrice(x)}）`}</button></div>`).join("")||`<div class="small dim">パーツを持っていない</div>`}</div>
+  <div class="row"><button onclick="closeModal();showShop(S.shop)">もどる</button></div></div>`);const m=$("#modal .modal .box");if(m)m.classList.add("wide")}
+function sellAsk(i){const q=G.parts[i];if(!q)return;const v=sellPrice(q),mc=isMcPart(q);SND.se("overwrite_warn");
+  S.sellGo=()=>{if(mc)removePartAt(i);else sellPart(q,i);SND.se(mc?"ui_cancel":"shop_buy");showShop(S.shop);if(G.parts.length)showSellParts();else closeModal();toast2(mc?`${PARTS[q].n} を外した（このランだけ）`:`${PARTS[q].n} を売った（+${v}）`)};
+  modal(`<div class="h">${mc?`${esc(PARTS[q].n)}を外しますか`:`${esc(PARTS[q].n)}を売って +${v}。よろしいですか`}</div><div class="small">${mc?"ミニカーのパーツなので売れません。このランだけ外れます（ミニカーからは消えません）。":"売ったパーツは、このランではもう出ません。"}</div>
+  <div class="row"><button class="main" onclick="S.sellGo()">${mc?"外す":"売る"}</button><button onclick="showSellParts()">やめる</button></div>`)}
 /* 値段の札（ui640 price・セールや割引は price_sale で元の値段に線）。足りないときは赤 */
 function priceTag(pr,base,ok){const sale=base!=null&&base>pr;return `<span class="price${sale?" sale":""}${ok?"":" lack"}">${sale?`<s>${base}</s>`:""}${pr}</span>`}
 function uiBuyTune(k){const ut=!!S.useTicket&&G.tickets>0;const pr=tunePrice(k,S.shop,ut);if(pr!=null&&buyTune(k,pr,ut)){S.useTicket=false;SND.se("shop_buy");SND.se("tune_up",{lv:G.tune[k]})}else SND.se("card_cant");showShop(S.shop)}
