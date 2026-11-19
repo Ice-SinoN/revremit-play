@@ -65,7 +65,7 @@ const CARDS={
  h_gouda:{r:"C",mo:"atk_heavy",own:"HINA",n:"轟打",t:"atk",c:2500,gas:2,v:11,vu:16,band:"M",fx:[["atk","v"]],d:"{v}ダメージ"},
  h_kagerou:{r:"R",mo:"atk_light",own:"HINA",n:"陽炎連打",t:"atk",c:1500,gas:1,v:4,vu:6,fx:[["atkHits","v",3,3]],d:"{v}ダメージを3回"},
  h_kneegrip:{r:"C",mo:"guard",own:"HINA",n:"ニーグリップ",t:"grd",c:1000,gas:1,v:5,vu:8,band:"L",fx:[["blk","v"],["nextTurnAtk",2]],d:"防御 {v}。次の番の最初のアタック +2",num:"blk"},
- h_saitenka:{r:"C",mo:"atk_light",own:"HINA",n:"再点火",t:"atk",c:1500,gas:1,v:7,vu:10,fx:[["atk","v"],["retryIfBlocked"]],d:"{v}ダメージ。相手の防御で全部受けられたら手札にもどる"},
+ h_saitenka:{r:"C",mo:"atk_light",own:"HINA",n:"再点火",t:"atk",c:1000,/* ★v0.22.42 1500→1000（design 10-12-3・LD 11-26） */gas:1,v:7,vu:10,fx:[["atk","v"],["retryIfBlocked"]],d:"{v}ダメージ。相手の防御で全部受けられたら手札にもどる"},
  h_sunrise:{r:"SK",own:"HINA",n:"サンライズ・ダッシュ",t:"sk",c:0,gas:2,v:4,vu:6,fx:[["gearUp2"],["turnAtkAdd","v"]],d:"ギア +2（パーフェクト扱い・シフトアップ2回に数える）。この番のアタック +{v}"},
  h_asayake:{r:"R",mo:"atk_heavy",own:"HINA",n:"朝焼け",t:"atk",c:1000,gas:1,v:8,vu:12,fx:[["atkFirstTurn","v"]],d:"{v}ダメージ（戦闘の最初のターンなら2倍）"},
  h_kickstart:{r:"C",mo:"rev",own:"HINA",n:"キックスタート",t:"rev",c:0,gas:0,sup:1,v:2000,vu:2500,fx:[["revUp","v"],["draw",1]],d:"回転 +{v}（リミットで止まる）・1枚引く"},
@@ -75,7 +75,7 @@ const CARDS={
  h_hibana:{r:"C",mo:"atk_light",own:"HINA",n:"火花",t:"atk",c:500,gas:0,v:3,vu:5,fx:[["atk","v"]],d:"{v}ダメージ（ガソリン 0）"},
  h_mahiru:{r:"R",mo:"atk_heavy",own:"HINA",n:"真昼",t:"atk",c:2000,gas:2,v:10,vu:15,band:"R",bm:2,fx:[["atk","v"]],d:"{v}ダメージ（レッドゾーンで2倍）"},
  h_memo:{r:"R",mo:"draw",own:"HINA",n:"整備メモ",t:"rev",c:0,gas:1,gasu:0,sup:1,v:1,fx:[["tutorAtk"]],d:"山札からいちばん強いアタックを1枚手札に"},
- h_fullthrottle:{r:"E",mo:"rev",own:"HINA",n:"フルスロットル",t:"rev",c:0,gas:1,sup:1,v:0.1,vu:0.15,fx:[["fullThrottle","v"]],d:"このターン、アタックを打つたびに倍率 +{v}（重なる・最大 +0.5）"},
+ h_fullthrottle:{r:"E",mo:"rev",own:"HINA",n:"フルスロットル",t:"rev",c:0,gas:1,sup:1,v:0.1,vu:0.15,fx:[["fullThrottle","v"],["draw",1]],d:"このターン、アタックを打つたびに倍率 +{v}（重なる・最大 +0.5）。1枚引く"/* ★v0.22.42 1枚引く（design 10-12-3） */},
  h_hidamari:{r:"C",mo:"guard",own:"HINA",n:"陽だまり",t:"grd",c:1500,gas:1,v:4,vu:6,fx:[["blk","v"],["heal",2]],d:"防御 {v}・エンジン耐久 +2",num:"blk"},
  h_shippu:{r:"R",mo:"atk_light",own:"HINA",n:"疾風",t:"atk",c:1500,gas:1,v:5,vu:8,band:"M",fx:[["atk","v"],["draw",1]],d:"{v}ダメージ・1枚引く"},
  // --- MOMO（チェイン）---
