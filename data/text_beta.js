@@ -2192,3 +2192,15 @@ null,
 ]
 }
 });
+/* ★v0.22.64 text v0.22.18 32章：その子のボス → 零号の連戦のつなぎ（link_{char}_boss_to_zero）と boss3_pre_{char} の1行（11-7・13-7・14-7） */
+Object.assign(TEXT.scenes,{
+ link_hina_boss_to_zero:{lines:[[null,"紙きれの光が、ROAD の奥へ流れていく。<br>サーキットの、まだ先へ。"],["MIO","待ってください……！<br>光の行く先に、もう一つ反応が……！","surprise"],["MIO","今の記録より、ずっと古い反応です。<br>……この形、見たことあります。","serious"],["HINA","先輩の字の紙が、そっちに……？<br>追いかけます！"],["YUKI","……ひな。そのまま行って。","serious"]],bgs:[[3,"fx:boss_intro"]]},
+ link_momo_boss_to_zero:{lines:[[null,"帰っていく光の中で、<br>写真の光だけが、奥へ流れていく。"],["MIO","百花さん、待って……！<br>写真の光の先に、もう一つ反応が……！","surprise"],["MIO","写真と同じくらい……ううん、<br>もっと古い記録です。","serious"],["MOMO","写真の続き、まだあるのね。<br>……行ってくる。"],["YUKI","……その先、あたしが毎晩いる所。","serious"]],bgs:[[3,"fx:boss_intro"]]},
+ link_nana_boss_to_zero:{lines:[[null,"二つの光が帰っていく。<br>筐体の記録の光だけが、奥へ。"],["MIO","菜々美さん、まだです……！<br>筐体の記録の先に、反応が……！","surprise"],["MIO","決勝の日より、ずっと古い……。<br>いちばん古い、タイムの記録です。","serious"],["NANA","決勝を止めたものの、さらに奥……<br>ということですのね。"],["NANA","よろしいですわ。<br>このまま、まいりましょう。"]],bgs:[[3,"fx:boss_intro"]]}
+});
+(()=>{const S=TEXT.scenes,ins=(k,i,l)=>{if(S[k]&&!S[k].lines.some(x=>x[1]===l[1]))S[k].lines.splice(i,0,l)};
+ ins("boss3_pre_hina",3,["MIO","さっきの紙の光も、ここに……。<br>古い記録は、みんな零号につながってるみたい。","serious"]);
+ if(S.boss3_pre_momo){S.boss3_pre_momo.lines[1]=["MIO","「零号」です。だれの記録か分からなくて、<br>毎晩また、形になるんです。","serious"];S.boss3_pre_momo.lines=S.boss3_pre_momo.lines.filter((x,i)=>i!==2||!/送り返せない/.test(x[1]))}
+ ins("boss3_pre_momo",2,["MIO","写真の光も、ここに吸いこまれて……。<br>古い記録は、零号のまわりに集まってます。","serious"]);
+ if(S.boss3_pre_nana){S.boss3_pre_nana.lines[1]=["MIO","「零号」です。だれの記録か分からなくて、<br>毎晩また、形になるんです。","serious"];S.boss3_pre_nana.lines=S.boss3_pre_nana.lines.filter((x,i)=>i!==2||!/送り返せない/.test(x[1]))}
+ ins("boss3_pre_nana",2,["MIO","あの日の筐体の記録も、零号のほうへ……。<br>決勝の日も、ここにつながってるみたいです。","serious"]);})();

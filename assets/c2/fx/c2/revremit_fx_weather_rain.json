@@ -1,0 +1,53 @@
+{
+ "frames": [
+  {
+   "filename": "rain_01",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 640,
+    "h": 360
+   },
+   "duration": 80
+  },
+  {
+   "filename": "rain_02",
+   "frame": {
+    "x": 640,
+    "y": 0,
+    "w": 640,
+    "h": 360
+   },
+   "duration": 80
+  },
+  {
+   "filename": "rain_03",
+   "frame": {
+    "x": 1280,
+    "y": 0,
+    "w": 640,
+    "h": 360
+   },
+   "duration": 80
+  },
+  {
+   "filename": "rain_04",
+   "frame": {
+    "x": 1920,
+    "y": 0,
+    "w": 640,
+    "h": 360
+   },
+   "duration": 80
+  }
+ ],
+ "meta": {
+  "size": {
+   "w": 2560,
+   "h": 360
+  },
+  "loop": true,
+  "layer": "背景の上・キャラの下",
+  "note": "画面全体に重ねる・透明・半透明なし"
+ }
+}

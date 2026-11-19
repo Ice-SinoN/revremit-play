@@ -23,7 +23,7 @@ const SND={on:true,
   bgmStop(){SND.call(A=>A.bgmStop())},
   jingle(id,o){SND.call(A=>A.jingle(id,o))},
   /* レッドゾーンにいるあいだ BGM にハイパス */
-  redOn:false,red(rpm){const on=!!(G&&B&&rpm>=redLo()&&!B.over);if(on!==SND.redOn){SND.redOn=on;SND.call(A=>A.redFilter(on))}},
+  redOn:false,red(rpm){const on=!!(G&&B&&rpm>=redLo()&&!B.over);if(on!==SND.redOn){SND.redOn=on;SND.call(A=>{A.redFilter(on);A.redLoop&&A.redLoop(on)})}}/* ★v0.22.64 ⑤ */,
   /* 場面ごとの曲（audio-list 6章）。ショップ・会話などの曲がまだないところはマップの曲を流用 */
   areaBgm(kind){const a=G?curArea().key:"street",k={street:"street",touge:"touge",circuit:"circuit"}[a]||"street";
     if(kind==="battle"){const E=ENEMIES[B.key],ally=G.char&&G.char!=="YUKI"?"theme_"+G.char.toLowerCase():null;// ★v0.22.1 仲間のランはふつうの戦闘を3エリアともその子のテーマ・裏道は hidden（audio-list 6-2）

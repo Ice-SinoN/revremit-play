@@ -1,0 +1,154 @@
+{
+ "image": "revremit_card_art_c2_fused_sheet.png",
+ "cell": [
+  50,
+  38
+ ],
+ "cols": 6,
+ "frames": {
+  "f_y_hyoukasen": {
+   "x": 0,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_y_tokai": {
+   "x": 50,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_y_gyakuhan": {
+   "x": 100,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_y_soujin": {
+   "x": 150,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_y_shakusetsu": {
+   "x": 200,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_y_rinkaitsurara": {
+   "x": 250,
+   "y": 0,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_akebono": {
+   "x": 0,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_dainichirin": {
+   "x": 50,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_kagerouhibana": {
+   "x": 100,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_shippunuki": {
+   "x": 150,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_hidamarigrip": {
+   "x": 200,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_h_braketurn": {
+   "x": 250,
+   "y": 38,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_toukarin": {
+   "x": 0,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_shunran": {
+   "x": 50,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_hanaakarihoro": {
+   "x": 100,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_harucruise": {
+   "x": 150,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_kaeririnjin": {
+   "x": 200,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_m_hanamidrive": {
+   "x": 250,
+   "y": 76,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_tenshoupaddle": {
+   "x": 0,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_gaisenhachiren": {
+   "x": 50,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_hiyoku": {
+   "x": 100,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_hokorikoutotsu": {
+   "x": 150,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_taikantotsugeki": {
+   "x": 200,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  },
+  "f_n_shukumeikabe": {
+   "x": 250,
+   "y": 114,
+   "w": 50,
+   "h": 38
+  }
+ }
+}

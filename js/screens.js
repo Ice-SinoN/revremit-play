@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.63（β2）";
+const VERSION="試作 v0.22.64（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -15,7 +15,7 @@ function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_ba
 function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle")SND.engineStop();setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
-const FULL_SCREENS=["battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
+const FULL_SCREENS=["remitfx","battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
 function placeUI(n){const u=$("#ui");if(!u)return;const full=FULL_SCREENS.includes(n);
   u.style.left=(full?0:RES.inner[0])+"px";u.style.top=(full?0:RES.inner[1])+"px";u.style.width=(full?RES.W:480)+"px";u.style.height=(full?RES.H:270)+"px";u.classList.toggle("panel",!full)}
 /* ★アイテム・パーツのアイコン（items\c2・64×64） */
@@ -143,7 +143,7 @@ function showHowto(){const C=CHARS.YUKI.car;
   <div class="row"><button class="main" onclick="closeModal()">とじる</button></div>`)}
 
 /* ---- デッキを組む（上限 C4・R2・E1・SK1・20枚） ---- */
-function showDeck(){SND.bgm("title");setScreen("deck");setScene("dim");S.deck=S.deck||loadDeck(curChar());renderDeck()}
+function showDeck(){SND.bgm("garage");setScreen("deck");setScene("dim");S.deck=S.deck||loadDeck(curChar());renderDeck()}
 /* ★v0.16：背景 garage。左の棚の前に一覧の窓、右の工具の壁の前に枚数とボタン（真ん中の車は見せる） */
 function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c),err=deckErrors(dk,ch),n=deckCount(dk);
   const sc=$("#dkl")?$("#dkl").scrollTop:0;
@@ -183,7 +183,7 @@ function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
 function mcHTML(m,o={}){const b=mcBonus(m);
   return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
 /* ★v0.16：背景 garage。デッキと同じ並び（左に一覧・右にボタン） */
-function showMinicarGarage(mode){SND.bgm("title");if(!(S.flow&&!S.flow.mode))try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
+function showMinicarGarage(mode){SND.bgm("garage");if(!(S.flow&&!S.flow.mode))try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
   setScreen("garage");setScene("dim");
   const mc=loadMinicars().slice().reverse();S.mcAll=mc;S.mcMode=mode;S.mcSel=(S.mcSel||[]).filter(id=>mc.some(m=>m.id===id));
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
@@ -209,7 +209,8 @@ function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S
 /* ★つづきから */
 function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
   const st=r.stage||{};if(st.s==="battle"&&ENEMIES[st.key]){if(st.j!=null)G.path[G.row]=st.j;startBattleState(st.key);enterBattle()}
-  else if(st.s==="win"){const rk=st.rank;if(st.key&&ENEMIES[st.key]&&ENEMIES[st.key].ally){allyBossAfter();return}if(rk==="boss"||rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
+  else if(st.s==="link"||st.s==="win"&&st.key&&ENEMIES[st.key]&&ENEMIES[st.key].ally){allyBossAfter(true)}/* ★v0.22.64 つなぎの会話から再開 */
+  else if(st.s==="win"){const rk=st.rank;if(rk==="boss")bossParts(nextRow);else if(rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
   else showMap()}
 function newRun(mode,bring){const ch=curChar();clearRun();newRunState(mode,ch,(bring||[]).map(normMinicar).filter(Boolean),loadDeck(ch),runOpts());SND.setCar();
   // ★v0.19（text.md v0.7 10-1）：初めてのラン＝チュートリアル → 導入 prologue → オープニング op → ROAD に入る op_road → エリアの入り口 → マップ。
@@ -234,7 +235,8 @@ function showMap(){
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
       const st=i<G.row?"done":i===G.row?"now":"later",hidQ=n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
       const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
-      const inner=artHave(ic)?`<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab}</span>`;
+      const chain=n.k==="boss"&&!G.allyBossDone&&typeof allyBossOf==="function"&&allyBossOf(n),lab2=chain?"連戦":lab;/* ★v0.22.64 design 10-4b：その子のボス → 零号（2つ重ねのアイコンはグラフィック班の絵が来るまで同じアイコンをずらして重ねる） */
+      const inner=artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`;
       h+=i===G.row?`<button class="node k-${n.k} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
@@ -251,7 +253,7 @@ function enterNode(j){SND.se("map_select");
   else if(n.k==="battle"||n.k==="elite"){const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()}
   else if(n.k==="boss"){const go=()=>{const k=nodeEnemy(n);saveRun({s:"battle",key:k,j});startBattleState(k);enterBattle()};
     /* ★v0.22.3 その子のボス（零号の前に連戦）。まだ倒していなければ、先に「○○_boss_pre」→ その子のボス */
-    const ab=allyBossOf(n);if(ab){showScene(G.char.toLowerCase()+"_boss_pre",()=>{saveRun({s:"battle",key:ab,j});startBattleState(ab);enterBattle()});return}
+    const ab=allyBossOf(n);if(ab){toast2(`連戦：${ENEMIES[ab].n} → ${ENEMIES[AREAS[n.a].boss].n}`);showScene(G.char.toLowerCase()+"_boss_pre",()=>{saveRun({s:"battle",key:ab,j});startBattleState(ab);enterBattle()});return}
     showScene(AREAS[n.a].boss+"_pre",go)}
   else if(n.k==="shop")showShop(n);
   else if(n.k==="sim")showSim();
@@ -387,6 +389,7 @@ function renderBattle(){
   ${METER.blank?"":`<div class="tachn ${red?"ngc":""}" ${at(...L.tachn)}>${B.rpm}<span class="dim">rpm</span></div><div class="gasn" ${at(...L.gasn)}>${B.gas}/${maxGas()}</div>`}
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
+  {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
 }
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
@@ -398,9 +401,11 @@ function onUpIcons(){const k={};B.onUp.forEach(o=>{const t=o[0]==="genHand"?"晶
   return "⇧ "+Object.entries(k).map(([t,v])=>`<span class="oi">${t}${v}</span>`).join("")}
 
 /* ---- 勝った ---- */
-function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();SND.jingle("hidden_win");setTimeout(()=>SND.se("card_unlock"),900)}else SND.jingle(!B.enemyActed?"one_turn_kill":"win")}
+function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();SND.jingle("hidden_win");setTimeout(()=>SND.se("card_unlock"),900)}else SND.jingle(!B.enemyActed?"one_turn_kill":"win",{who:(G.char||"YUKI").toLowerCase()})}/* ★v0.22.64 audio 12-7 ④ */
   setScreen("win");setScene("dim");closeModal();
-  const w=winRewards();S.win=w;saveRun({s:"win",rank:w.rank,key:w.key});
+  const w=winRewards();S.win=w;
+  if(ENEMIES[w.key]&&ENEMIES[w.key].ally){G.allyBossDone=true;G.allyPartPend=w.key;saveRun({s:"link"});allyBossAfter();return}/* ★v0.22.64 design 10-4b：その子のボスのあとは報酬の画面を出さず、撃破演出 → post → つなぎ → 零号。パーツは零号のあとにまとめて */
+  saveRun({s:"win",rank:w.rank,key:w.key});
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
   S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank);
@@ -416,8 +421,19 @@ function takeCard(id){if(id)G.deck.push(inst(id));afterWin()}
 /* その子のボス：サーキットのボスのマスで、その子で走っていて、まだ倒していないとき */
 function allyBossOf(n){const ab=typeof ALLY_BOSS!=="undefined"&&ALLY_BOSS[G.char];return ab&&ENEMIES[ab]&&AREAS[n.a].boss==="boss3"&&!G.allyBossDone?ab:null}
 /* その子のボスに勝ったあと：パーツ → 「○○_boss_post」→ 同じマスで零号へ（段は進めない） */
-function allyBossAfter(){G.allyBossDone=true;const n=G.map[G.row][G.path[G.row]||0];partsChoice("ボス撃破！パーツを1つ選ぶ",()=>showScene(G.char.toLowerCase()+"_boss_post",()=>enterNode(G.path[G.row]||0)))}
-function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")partsChoice("ボス撃破！パーツを1つ選ぶ",nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
+/* ★v0.22.64 design 10-4b・progression 1-33：撃破演出 → 「○○_boss_post」→ つなぎ link_○○_boss_to_zero → 耐久 15% 回復 → boss3_pre → 零号（連戦 2／2）。resume＝続きから（つなぎの会話から） */
+const ALLY_HEAL=0.15;
+function allyBossAfter(resume){G.allyBossDone=true;if(G.allyPartPend==null)G.allyPartPend=G.allyPartPend||true;const ch=G.char.toLowerCase();
+  const link=()=>showScene("link_"+ch+"_boss_to_zero",()=>{const h=Math.max(1,Math.round(G.maxhp*ALLY_HEAL)),to=Math.min(G.maxhp,G.hp+h);G.hp=to;
+    toast2(`記録がエンジンを軽くした（耐久 +${h}）`,300,2200);enterNode(G.path[G.row]||0)});
+  if(resume){link();return}remitFx(()=>showScene(ch+"_boss_post",link))}
+/* 撃破演出（progression 1-26 の 7）：白く飛ぶ → 絵 → 光が上へ・「REMIT」。約2秒（2回目から 1.2秒）・タップで飛ばす。設定 OPTS.remitFx===false で切 */
+function remitFx(done){if(typeof OPTS!=="undefined"&&OPTS.remitFx===false){done();return}const s=seenGet(),k="remitfx_"+(B&&B.key||"x"),dur=s[k]?1200:2000;
+  const bg=storyBg((B&&B.key||"")+"_after|fx:win");let end=false;const fin=()=>{if(end)return;end=true;try{seenSet(k)}catch(e){}done()};
+  setScreen("remitfx");setScene("dim");ui().innerHTML=`<div class="remitfx" ${at(0,0,640,360)} onclick="S.rfx&&S.rfx()">${artHave(bg)?`<img class="px" src="${artURL(bg)}" ${at(0,0,640,360)}>`:""}<div class="rfw"></div><div class="rft">REMIT</div><div class="rfl"></div></div>`;
+  SND.se("enemy_down");S.rfx=fin;setTimeout(fin,dur)}
+function bossParts(done){if(G.allyPartPend){const k=G.allyPartPend,nm=ENEMIES[k]&&ENEMIES[k].n||"";partsChoice(`連戦の報酬（${nm}）：パーツを1つ選ぶ`,()=>{G.allyPartPend=null;partsChoice("ボス撃破！パーツを1つ選ぶ",done)})}else partsChoice("ボス撃破！パーツを1つ選ぶ",done)}
+function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")bossParts(nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
 
 /* ---- パーツの3択 ---- */
 function partsChoice(title,done){
@@ -532,7 +548,7 @@ function uiUpgrade(i){if(G.deck[i]&&canUpgrade(G.deck[i])){G.deck[i].up=true;SND
 function simScroll(k){const r=$("#simrow");if(r){r.scrollLeft+=k*280;S.simX=r.scrollLeft}}
 /* ---- ガレージ（休憩） ---- */
 /* ★v0.16：背景 garage。ストーブ（左）とソファ（右）。ソファの上に休憩の窓 */
-function showRest(){setScreen("rest");setScene("dim");const x=restAmount(),to=Math.min(G.maxhp,G.hp+x);
+function showRest(){SND.bgm("rest");setScreen("rest");setScene("dim");const x=restAmount(),to=Math.min(G.maxhp,G.hp+x);
   ui().innerHTML=hud()+`<div class="hdr" ${at(452,26,180,18)}>ガレージで休憩</div><div class="sign side" ${at(452,46,180,80)}><div class="small dim">ストーブで温まって<br>エンジンを直す</div>
    <div>耐久 ${G.hp} → <b class="ok">${to}</b><span class="small dim">/${G.maxhp}</span></div></div>
    <button class="main u9" ${at(452,134,180,28)} onclick="G.hp=Math.min(G.maxhp,G.hp+${x});nextRow()">エンジンを直す（+${x}）</button>`}

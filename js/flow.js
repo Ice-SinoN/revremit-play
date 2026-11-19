@@ -156,7 +156,7 @@ function bootEnd(){const b=S.boot;if(!b||b.end)return;b.end=true;S.boot=null;SND
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。ランの前（確認の小窓の「型をえらぶ」）から。振り直し・メモの切りかえはタダ。今のメモに自動で残る */
 function treeData(ch){const p=PRF();p.tree=p.tree||{};const t=p.tree[ch]=p.tree[ch]||{pts:0,cur:0,presets:[]};for(let i=0;i<3;i++)t.presets[i]=t.presets[i]||{name:"",lv:[0,0,0]};return t}
 function treeName(ch,i){const t=treeData(ch),k=i==null?t.cur||0:i,pr=t.presets[k],top=pr.lv.indexOf(4);return pr.name||(top>=0?TREE[ch][top].n+"型":`型のメモ ${k+1}`)}
-function showTree(){setScreen("tree");setScene("dim");setBg("garage");closeModal();const ch=curChar();renderTree();if(!S.treeIntro){S.treeIntro=1;toast2(ch==="MIO"?"こゆき：……どれで行く？":"みお：今夜は、どの型で行きますか？",300)}}
+function showTree(){SND.call(A=>A.bgmFor?A.bgmFor("tree",curChar()):A.bgm("garage"));setScreen("tree");setScene("dim");setBg("garage");closeModal();const ch=curChar();renderTree();if(!S.treeIntro){S.treeIntro=1;toast2(ch==="MIO"?"こゆき：……どれで行く？":"みお：今夜は、どの型で行きますか？",300)}}
 function renderTree(){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,used=treeSpent(lv),left=(t.pts||0)-used,br=TREE[ch];
   let h=`<div class="hdr" ${at(8,6,300,18)}>${esc(TEXT.names[ch]||ch)}の型</div><div class="small" ${at(8,26,300,14)}>ポイント ${left}／${t.pts||0}（${esc(TEXT.names[ch]||ch)}で走るとたまる）</div>${backBtn("もどる","treeBack()")}
    <div class="tslots" ${at(316,58,316,24)}>`+t.presets.map((x,i)=>`<button class="u9${i===(t.cur||0)?" main":""}" onclick="treeSlot(${i})">${esc(treeName(ch,i))}</button>`).join("")+`</div>`;
@@ -175,10 +175,10 @@ function treeSlot(i){const t=treeData(curChar());t.cur=i;SND.se("ui_ok");treeSav
 function treeLP(i){treeLPx();S.treeLPt=setTimeout(()=>{S.treeLPf=1;const b=TREE[curChar()][i];toast2(b.tip,290,2500)},450)}
 function treeLPx(){if(S.treeLPt){clearTimeout(S.treeLPt);S.treeLPt=0}}
 function treeTap(i,k){if(S.treeLPf){S.treeLPf=0;return}const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,left=(t.pts||0)-treeSpent(lv);
-  if(lv[i]>=k){if(lv[i]!==k){SND.se("card_cant");return}lv[i]=k-1;SND.se("ui_cancel");treeSave();renderTree();return}/* いちばん上の段を外す（ポイントはもどる） */
+  if(lv[i]>=k){if(lv[i]!==k){SND.se("card_cant");return}lv[i]=k-1;SND.se("tree_down");treeSave();renderTree();return}/* いちばん上の段を外す（ポイントはもどる） */
   if(lv[i]!==k-1||left<TREE_COST[k-1]){SND.se("card_cant");return}
   const o=k===4?lv.findIndex((l,j)=>j!==i&&l===4):-1;
-  const take=()=>{if(o>=0)lv[o]=3;lv[i]=k;SND.se(k===4?"tree_cap":"tune_up",{lv:k});treeSave();renderTree()};
+  const take=()=>{if(o>=0)lv[o]=3;lv[i]=k;SND.se(k===4?"tree_cap":"tree_up",{lv:k,who:curChar().toLowerCase()});treeSave();renderTree()};
   if(o>=0){const B2=TREE[ch];if((t.pts||0)-treeSpent(lv.map((l,j)=>j===o?3:l))<TREE_COST[3]){SND.se("card_cant");return}
     S.treeGo=()=>{closeModal();take()};modal(`<div class="h">「${esc(B2[o].n)}」の型の決めを外して、「${esc(B2[i].n)}」にしますか？</div><div class="small">外した段のポイントは、もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">入れかえる</button><button onclick="closeModal()">やめる</button></div>`);return}
   take()}
