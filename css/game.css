@@ -392,3 +392,17 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .xcam{width:100%;max-height:120px;background:#000;object-fit:cover}
 .xsl{text-align:left}
 .modal .box.xfbig{width:auto}.xqrw.xqrb{width:290px;height:290px;flex:none}.xqrw.xqrb canvas.xqr{width:290px;height:290px}.xbig{align-items:center}
+
+/* ★v0.22.28 キャラ選び・夜・確認・端末 */
+.chcard{padding-top:4px;gap:1px}.chcard canvas.chav{width:112px;height:70px;image-rendering:pixelated}
+.cst{color:#5a5670}.cst.on{color:var(--gold,#FFD34D)}.cstars{font:10px/12px 'PM10'}
+.chdet{display:flex;flex-direction:column;gap:1px;overflow:hidden}
+.nlist2{display:flex;flex-direction:column;gap:3px}.nrow2{text-align:left;position:relative;padding-right:84px;min-height:34px}
+.nrow2 .nst{position:absolute;right:6px;top:4px;font:10px/12px 'PM10'}
+.rcf{display:flex;flex-direction:column;gap:3px}.rrow{display:flex;gap:8px;align-items:baseline}.rrow>span:first-child{flex:0 0 74px}
+.rbtn{gap:8px}.rbtn button{flex:1}
+.runok canvas.chav,.sign canvas.chav{display:block;margin:0 auto;image-rendering:pixelated}
+.boot{background:#05060C;cursor:pointer}.boot canvas{width:640px;height:360px;display:block}.bskip{position:absolute;right:10px;bottom:6px;color:#6b6880}
+.chcard.lock{opacity:.85}.chcard.main .cst{color:#4a5a20}.chcard.main .cst.on,.nrow2.main .cst.on{color:#0A0812}.nrow2.main .cst{color:#4a5a20}
+.chdet{text-align:left}.rcf{text-align:left}
+.chdet{justify-content:flex-start;padding-top:6px}

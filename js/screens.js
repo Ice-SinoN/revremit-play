@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.27（β2）";
+const VERSION="試作 v0.22.28（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -90,15 +90,13 @@ function showTitle(){
   ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(TEXT.names[ch]||ch)}・3エリア</div></div>
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
-   <button class="${loadRun()?"":"main"}" onclick="showMinicarGarage('MT')">MT ではしる</button>
-   <button onclick="showMinicarGarage('AT')">AT ではしる</button>
+   <button class="${loadRun()?"":"main"}" onclick="startFlow('MT')">MT ではしる</button>
+   <button onclick="startFlow('AT')">AT ではしる</button>
    <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
   <button class="mini dataBtn" ${at(8,8,132,28)} onclick="showData()">データ：スロット${SAVE.slot}</button>
-  ${nightMaxAvail()>1?`<button class="mini nightBtn" ${at(8,40,132,28)} onclick="pickNight()">夜：NIGHT ${curNight()} ▼</button>`:""}
-  ${charsOpen().length>1?`<button class="mini charBtn" ${at(8,72,132,28)} onclick="showChars()">キャラ：${esc(TEXT.names[ch]||ch)} ▼</button>`:""}
-  ${labOpen()?`<button class="mini labBtn" ${at(8,charsOpen().length>1?104:72,132,28)} onclick="showLab()">みおのラボ（ログ ${SAVE.cur.profile.log}）</button>`:""}
+  ${labOpen()?`<button class="mini labBtn" ${at(8,40,132,28)} onclick="showLab()">みおのラボ（ログ ${SAVE.cur.profile.log}）</button>`:""}
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
   <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
@@ -187,14 +185,14 @@ function showMinicarGarage(mode){SND.bgm("title");try{if(PRF().lastMode!==mode){
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ（${esc(mode)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="mcl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:S.mcSel.includes(m.id)?"on":"",attrs:`onclick="toggleBring(${i})"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
-  ${backBtn("もどる","S.mcSel=[];showTitle()")}
+  ${backBtn("もどる","S.mcSel=[];S.flow?showNights():showTitle()")}
   <div class="sign side" ${at(452,60,180,96)}>${itemIcon("minicar",32)}<div class="big">${sel.length}/${BRING_MAX}<span class="small">台</span></div><div class="small dim">持ち込むミニカーを<br>${BRING_MAX}台まで選ぶ</div></div>
   <div class="col" ${at(452,236,180)}><button class="main u9" onclick="startWithMinicars()">${sel.length?"この"+sel.length+"台で出発":"出発"}</button>
-   <button class="u9" onclick="S.mcSel=[];newRun('${mode}')">ミニカーなし</button></div>`;
+   <button class="u9" onclick="S.mcSel=[];runConfirm([])">ミニカーなし</button></div>`;
   if($("#mcl"))$("#mcl").scrollTop=sc}
 function toggleBring(i){const m=S.mcAll[i];if(!m)return;const s=S.mcSel,k=s.indexOf(m.id);
   if(k>=0)s.splice(k,1);else if(s.length<BRING_MAX)s.push(m.id);else{s.shift();s.push(m.id)}showMinicarGarage(S.mcMode)}
-function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];newRun(S.mcMode,p)}
+function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];S.flow=S.flow||{mode:S.mcMode};runConfirm(p)}/* ★v0.22.28 確認の画面へ */
 /* ボット用：newRun("MT") でガレージを飛ばして走れる（組んだデッキを使う） */
 /* ★つづきから */
 function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
@@ -664,18 +662,7 @@ function curChar(){const c=PRF().char;return charsOpen().includes(c)?c:"YUKI"}
 function showChars(){setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");S.chSel=S.chSel||curChar();renderChars()}
 /* ★v0.22.25 キャラの決まりの文（AT を選んでいるとき＝最後に選んだ走り方が AT なら atRuleTxt を3つ目に） */
 function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C.atRuleTxt;return C.ruleTxt?(at?C.ruleTxt+"・"+C.atRuleTxt:C.ruleTxt):""}
-function renderChars(){const op=charsOpen(),sel=S.chSel;
-  let h=`<div class="hdr" ${at(8,6,300,18)}>キャラをえらぶ</div>${backBtn("もどる","showTitle()")}`;
-  CHAR_ORDER.forEach((c,i)=>{const C=CHARS[c],on=op.includes(c),x=16+i*152;
-    h+=`<button class="u9 chcard${sel===c?" main":""}${on?"":" lock"}" ${at(x,60,144,150)} ${on?`onclick="S.chSel='${c}';SND.se('ui_ok');renderChars()"`:"disabled"}>
-      <div class="chn">${esc(c)}</div><div class="small">${esc(TEXT.names[c]||"")}</div><div class="small dim">${esc(C.carName)}</div>
-      ${on?`<div class="small">${esc(C.type)}</div><div class="small dim">${C.car.gears}速・耐久 ${C.car.hp}</div>`:`<div class="small dim">NIGHT ${C.join} を<br>クリアで加わる</div>`}</button>`});
-  const C=CHARS[sel];
-  h+=`<div class="sign" ${at(16,220,456,96)}><div class="h">${esc(sel)}（${esc(TEXT.names[sel]||"")}）　${esc(C.carName)} → ${esc(C.weapon||"")}</div>
-    <div class="small">型：${esc(C.type)}　${C.car.gears}速・レッド ${C.car.red}・リミット ${C.car.limit}・耐久 ${C.car.hp}</div>
-    <div class="small">${esc(ruleTxtOf(sel)||"キャラの決まりなし（基準）")}</div><div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
-    <button class="main u9" ${at(484,232,140,40)} onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showTitle();toast2((TEXT.names[S.chSel]||S.chSel)+'で走ります')">${esc(TEXT.names[sel]||sel)}で走る</button>`;
-  ui().innerHTML=h}
+/* renderChars は js/flow.js（v0.22.28 キャラ選びの画面を作り直した） */
 /* ランの終わり：解放・夜・ログをスロットに書く（1ランに1回）。戻り値＝このランのログ */
 function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;const p=PRF(),u=p.unlock,got=[];
   if(!G.night){S.runEndLog=0;return 0}// 夜なし（テスト・α の道）は数えない
@@ -683,6 +670,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
   const area=a=>{[a,G.char+":"+a].forEach(k=>{if(!u.areas.includes(k))u.areas.push(k)})};if(G.st.bosses>=1)area("a1");if(G.st.bosses>=2)area("a2");if(clear)area("clear");
   S.joinQ=[];
   (G.hiddenWon||[]).forEach(id=>{if(!u.cards.includes(id))u.cards.push(id)});
+  if(clear&&typeof clearMark==="function")clearMark(G.char,G.mode,G.night);/* ★v0.22.28 キャラ × 走りかた × 夜のクリア */
   if(clear&&G.night>(u.nightMax||0)){u.nightMax=G.night;const o=NIGHTS[G.night-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);S.joinQ.push(c)}});(o.story||[]).forEach(c=>{if(!u.story.includes(c))u.story.push(c)});
     if(G.night<Math.min(NIGHTS.length,typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99))got.push("夜："+TEXT.ui.night_open.replace("{n}",G.night+1));(o.chars||[]).forEach(c=>got.push(`仲間：${TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)}`));
     if(o.next&&typeof BETA_NIGHTS==="number"&&G.night>=BETA_NIGHTS)S.joinQ.push("__next")}
