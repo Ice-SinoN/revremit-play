@@ -42,6 +42,7 @@ function renderOpts(){const fs=typeof FS_OK==="function"&&FS_OK(),inRun=!!G&&(wi
   modal(`<div class="opts"><div class="h">設定</div>${sl("bgm","BGM")}${sl("se","効果音")}
    ${FEATURES.auto?`<div class="oprow"><span>オートの早送り</span><span class="opbtns">${[1,2,4].map(v=>`<button class="${OPTS.speed===v?"main":""}" onclick="OPTS.speed=${v};AUTO.speed=${v};optsSave();renderOpts()">×${v}</button>`).join("")}</span></div>`:""}
    ${fs?`<div class="oprow"><span>全画面</span><span class="opbtns"><button class="${isFS()?"main":""}" onclick="toggleFS();setTimeout(renderOpts,300)">${isFS()?"入":"切"}</button></span></div>`:""}
+   <div class="oprow"><span>引き継ぎ</span><span class="opbtns"><button onclick="xferExport(SAVE.slot,'opts')">書き出す</button>${inRun?"":`<button onclick="xferImport('opts')">読み込む</button>`}</span></div>
    <div class="row"><button class="main" onclick="optsClose()">つづける</button>${inRun?`<button onclick="optsTitle()">タイトルへ</button><button class="warn" onclick="optsGiveUp()">あきらめる</button>`:""}</div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("optbox")}
 function optsClose(){S.optsOpen=false;AUTO.on=!!S.autoWas;closeModal();SND.se("ui_cancel");if(window.SCREEN==="battle"&&B)renderBattle()}

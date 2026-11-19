@@ -378,3 +378,17 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 /* ★design 11-1 ローテーションの選ぶ画面 */
 .rotp .rotcards{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin:6px 0}
 .rotp .rotcards .cs{position:relative!important}
+
+/* ★v0.22.26 引き継ぎコード */
+.modal .box.xfbox{width:360px}
+.xf{display:flex;flex-direction:column;gap:4px}
+.xrow{display:flex;gap:6px;align-items:flex-start}
+.xqrw{flex:0 0 150px;width:150px;height:150px;background:#fff}
+.xqrw canvas.xqr{width:150px;height:150px;image-rendering:pixelated;display:block}
+.xcol{flex:1 1 auto;display:flex;flex-direction:column;gap:4px}
+.xpg{align-items:center;gap:4px}.xpg button{min-width:26px}
+.xcode{width:100%;height:40px;box-sizing:border-box;resize:none;font:8px/9px monospace;background:#0A0812;color:var(--white);border:1px solid #3a3550;word-break:break-all}
+.xcode.xin{height:56px;font:10px/11px monospace}
+.xcam{width:100%;max-height:120px;background:#000;object-fit:cover}
+.xsl{text-align:left}
+.modal .box.xfbig{width:auto}.xqrw.xqrb{width:290px;height:290px;flex:none}.xqrw.xqrb canvas.xqr{width:290px;height:290px}.xbig{align-items:center}

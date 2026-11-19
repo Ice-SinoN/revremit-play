@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.25（β2）";
+const VERSION="試作 v0.22.26（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -106,7 +106,7 @@ function showTitle(){
 function dataName(k){return k==="auto"?"オートセーブ":"スロット"+k}
 /* ★v0.22 データ：1スロット＝1人の進み具合（遊ぶと自動でそのスロットに書く）。オートセーブはスロットごと（BUG-28 案①：遊んだぶんは今のスロットに残る） */
 function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal();SND.bgm("title");const L=SAVE.list();
-  ui().innerHTML=`<div class="hdr" ${at(40,22,300,18)}>データ</div>
+  ui().innerHTML=`<div class="hdr" ${at(40,22,130,18)}>データ</div><button class="u9 xbtn" ${at(176,18,168,30)} onclick="xferImport('data')">読み込む（引き継ぎ）</button>
   <div class="small dhint" ${at(352,24,170,24)}>あそぶと自動でセーブ。<br>オートセーブもスロットごと。</div>
   ${backBtn("もどる","showTitle()")}
   ${L.map((r,i)=>{const y=60+i*84,cur=SAVE.slot===r.k,nm=dataName(r.k);
@@ -116,8 +116,9 @@ function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal
     const b1=cur||r.broken?"":`<button class="u9 main sv" ${at(472,10,84,32)} onclick="dataUse(${r.k})">${r.d?"あそぶ":"はじめる"}</button>`;
     const b2=r.d||r.broken?`<button class="u9 ld" ${at(cur||r.broken?472:384,10,84,32)} onclick="dataErase(${r.k})">消す</button>`:"";
     const b3=canR?`<button class="u9 ld" ${at(384,44,172,28)} onclick="dataRestore(${r.k})">オートセーブからもどす</button>`:"";
+    const b4=r.d&&!r.broken?`<button class="u9 ld" ${at(canR?296:472,44,84,28)} onclick="xferExport(${r.k},'data')">書き出す</button>`:"";/* ★v0.22.26 引き継ぎコード */
     return `<div class="slot${cur?" cur":""}" ${at(40,y,560,78)}><div class="sn">${nm}${cur?'<span class="now">いまのデータ</span>':""}</div>
-      <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div><div class="ss dim">${esc(an)}</div>${b1}${b2}${b3}</div>`}).join("")}`}
+      <div class="ss">${esc(sub)}</div><div class="ss dim">${esc(note)}</div><div class="ss dim">${esc(an)}</div>${b1}${b2}${b3}${b4}</div>`}).join("")}`}
 /* ★v0.22.6 音（audio-list 6-0）：あそぶ・はじめる・もどした＝load_ok、確認の小窓＝overwrite_warn、消した＝ui_cancel */
 function dataUse(n){if(SAVE.use(n)){SND.se("load_ok");S.deck=null;S.mcSel=[];showTitle();toast2(`スロット${n}であそびます`)}else showData()}
 function dataErase(n){SND.se("overwrite_warn");S.dataGo=()=>{SAVE.erase(n);SND.se("ui_cancel");closeModal();showData();toast2(`スロット${n}を消しました`)};
