@@ -411,3 +411,7 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .rcc{font:10px/12px 'PM10';padding:1px 3px;background:#1d1830;border-left:2px solid var(--grey)}.rcc b{margin-left:3px;color:var(--lime);font-weight:normal}
 .rcc.r-R{border-color:#46E6FF}.rcc.r-E{border-color:#FF4FA0}.rcc.r-SK{border-color:var(--gold)}.rdeck{max-height:88px;overflow-y:auto}
 .rcf .row button{flex:1;min-height:30px}
+.u640 .sign.chdet{justify-content:flex-start}/* ★BUG-47 */
+.rcf .row button,.rcf button{text-align:center}/* ★BUG-48 */
+.chcard.lock .chn{font:12px/14px 'PM12B','PM12'}.chcard.lock .small{line-height:11px}
+.ninfo{text-align:left;line-height:12px}

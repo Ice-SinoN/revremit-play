@@ -7,9 +7,9 @@ FULL_SCREENS.push("nights","runok","boot");Object.assign(SCREEN_BG,{nights:"gara
 /* 戦闘スタイル（progression 1-23・デザイン班 11-19 11:45。文はあとでデザイン班が直す） */
 const CHAR_STYLE={
   YUKI:["守ってから返すカウンター型。凍結で敵の番を遅らせ、そのあいだに攻める。","ねらい：細雪・ホワイトアウトで止めて、白猫の護りの防御でしのぐ。はじめての人におすすめ。"],
-  HINA:["ギアが5速と少なく、一気に上げて押し切る速攻型。最初の2ターンは受けるダメージが半分。","ねらい：敵が動く前に安いアタックを重ねて倒しきる。長引くと耐久の少なさがひびく。"],
-  MOMO:["1ターンにカードをたくさん打つほど、あとのカードが強くなるチェイン型。","ねらい：安いカードでつないで、桃花・満開で大きく決める。チェイン3以上で攻撃がなくなると「花の便り」で1枚引ける。"],
-  NANA:["8速まであり、1ターンに4回までシフトアップできるシフト連打型。パーフェクトのたびに守りが増える。","ねらい：帯でパーフェクトを重ねて高いギアへ。八連・凱旋で一気に削る。"],
+  HINA:["ギアが5速と少なく、一気に上げて押し切る速攻型。最初の2ターンは受けるダメージが半分。","ねらい：敵が動く前に、安いアタックを重ねて倒しきる。長引くと、耐久の少なさがひびく。"],
+  MOMO:["1ターンにカードをたくさん打つほど、あとのカードが強くなるチェイン型。","ねらい：安いカードでつないで、桃花・満開で大きく決める。チェイン3以上で打てる攻撃が手札にないと、「花の便り」で1枚引ける。"],
+  NANA:["8速まであり、1ターンに4回までシフトアップできるシフト連打型。パーフェクトのたびに防御が増える。","ねらい：帯でパーフェクトを重ねて、高いギアへ。八連・凱旋で一気に削る。"],
   SORA:["安いカードを手数で打ちつづけるテンポ型。","ねらい：軽いカードをリズムよくつなぎ、手を止めない。"],
   KAEDE:["回転をレッドゾーンまで上げて、強い一撃で押し切るパワー型。オーバーレブとの勝負。","ねらい：回転を上げきったところで大技を打つ。"],
   RIN:["敵の攻撃を弱めたり、動きを止めたりする妨害型。","ねらい：敵の予告を見て、大きい攻撃の前に止める。"],
@@ -44,12 +44,12 @@ function renderChars(){const op=charsOpen(),sel=op.includes(S.chSel)?S.chSel:cur
     h+=`<button class="u9 chcard${sel===c?" main":""}${on?"":" lock"}" ${at(x,30,122,124)} ${on?`onclick="S.chSel='${c}';SND.se('ui_ok');renderChars()"`:"disabled"}>
       <canvas class="chav" data-ch="${c}" ${on?"":'data-sil="1"'} width="112" height="70"></canvas>
       ${on?`<div class="chn">${esc(TEXT.names[c]||c)}</div><div class="small cstars">${charStars(c,mode)}</div>`
-        :`<div class="chn">？？？</div><div class="small dim">NIGHT ${C.join} クリアで</div>`}</button>`});
+        :`<div class="chn">？？？</div><div class="small dim">NIGHT ${C.join} を<br>クリアで加わる</div>`}</button>`});
   const C=CHARS[sel],st=CHAR_STYLE[sel]||[];
   h+=`<div class="sign chdet" ${at(16,160,456,192)}><div class="h">${esc(sel)}（${esc(TEXT.names[sel]||"")}）　${esc(C.carName)} → ${esc(C.weapon||"")}</div>
     <div class="small dim">型：${esc(C.type)}　${C.car.gears}速・レッド ${C.car.red}・リミット ${C.car.limit}・耐久 ${C.car.hp}</div>
     <div class="small gold">戦闘スタイル</div>${st.map(t=>`<div class="small">${esc(t)}</div>`).join("")}
-    <div class="small gold">キャラの決まり</div><div class="small">${esc(ruleTxtOf(sel)||"キャラの決まりなし（基準）")}</div>
+    <div class="small gold">キャラの決まり</div><div class="small">${esc(ruleTxtOf(sel)||"なし")}</div>
     <div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
    <div class="col" ${at(484,250,140)}><button class="main u9" onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showNights()">${esc(TEXT.names[sel]||sel)}で走る<br><span class="small">つぎ：夜をえらぶ</span></button></div>`;
   ui().innerHTML=h;chavStart()}
@@ -58,15 +58,15 @@ function showNights(){setScreen("nights");setScene("dim");setBg("garage");closeM
 function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length,ch=curChar(),mode=flowMode(),o=mode==="MT"?"AT":"MT";
   const sc=$("#nl")?$("#nl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>夜をえらぶ（${esc(TEXT.names[ch]||ch)}・${esc(mode)}）</div>${backBtn("もどる","showChars()")}
-   <div class="sign" ${at(8,30,452,324)}></div><div class="small dim" ${at(16,34,440,14)}>決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く。★＝${esc(TEXT.names[ch]||ch)}でクリアした夜</div>
-   <div class="scroll nlist2" id="nl" ${at(14,50,440,298)}>`+
+   <div class="sign" ${at(8,30,452,324)}></div><div class="small dim ninfo" ${at(16,34,440,26)}>決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く。★＝${esc(TEXT.names[ch]||ch)}でクリアした夜（うすい★は、もう1つの走りかた）</div>
+   <div class="scroll nlist2" id="nl" ${at(14,62,440,286)}>`+
     NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
       const st=`${starHTML(clearedNight(ch,mode,x.n),mode)}<span class="dim"> ${starHTML(clearedNight(ch,o,x.n),o)}</span>`;
       return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow2" onclick="PRF().night=${x.n};SAVE.auto();SND.jingle('night_select',{lv:${x.n}});renderNights()"><span class="nst">${st}</span><b>${esc(lab)}</b>${bl}<br><span class="small">${esc(x.add)}</span></button>`
         :`<button class="nrow2" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+`</div>
    <div class="sign side" ${at(472,70,160,120)}><div class="h">NIGHT ${cur}</div><div class="small">${starHTML(clearedNight(ch,mode,cur),mode+" クリア")}</div><div class="small dim">${starHTML(clearedNight(ch,o,cur),o+" クリア")}</div>
     <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div></div>
-   <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"確かめ"}</span></button></div>`;
+   <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"確かめる"}</span></button></div>`;
   if($("#nl"))$("#nl").scrollTop=sc}
 function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else runConfirm([])}
 /* ---- 4. 確認（★虎雪 11:35：ダイアログ。難易度・キャラ・デッキ〈はじめのカード〉・ミニカー → よろしいですか？ OK／もどる）---- */
@@ -74,7 +74,7 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();
   const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk=loadDeck(ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);
   const cards=Object.keys(dk).sort((a,b)=>"SKERC".indexOf(rarityOf(a))-"SKERC".indexOf(rarityOf(b))||CARDS[a].c-CARDS[b].c).map(id=>`<span class="rcc r-${rarityOf(id)}">${esc(CARDS[id].n)}<b>×${dk[id]}</b></span>`).join("");
   const mc=S.flowBring.length?S.flowBring.map(m=>`<span class="rcc">${esc(TEXT.names[m.char]||m.char)}・${esc(m.rank)}<b>${m.cards.length}枚</b></span>`).join(""):`<span class="dim">なし</span>`;
-  modal(`<div class="rcf"><div class="h">よろしいですか？</div>
+  modal(`<div class="rcf"><div class="h">よろしいですか？</div><div class="small dim">この内容で、ランを始めます。</div>
    <div class="rtop"><canvas class="chav" data-ch="${ch}" width="72" height="72"></canvas><div class="rcol">
     <div class="rrow"><span class="dim">難易度</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
     <div class="rrow"><span class="dim">キャラ</span><b>${esc(TEXT.names[ch]||ch)}</b><span class="small dim">${esc(C.carName)}・${esc(mode)}</span></div>

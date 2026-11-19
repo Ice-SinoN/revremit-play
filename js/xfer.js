@@ -35,7 +35,7 @@ const XFER={TAG:"RR",QRMAX:1100,
       try{u8=await XFER.pipe(u8,DecompressionStream,"deflate-raw")}catch(e){return{err:"引き継ぎコードがこわれています"}}}
     let o;try{o=JSON.parse(new TextDecoder().decode(u8))}catch(e){return{err:"引き継ぎコードがこわれています"}}
     if(!o||o.x!==1||!o.s)return{err:"引き継ぎコードの中身が読めません"};
-    if(+o.s.v>SAVE_V)return{err:"新しい版の試作のデータなので、今の版には直せません。この試作を新しくしてから読んでください"};
+    if(+o.s.v>SAVE_V)return{err:"新しい版の試作で書き出したデータです。この試作を新しくしてから読んでください"};
     const s=normSave(o.s);if(!s)return{err:"セーブの中身が読めません（今の版に直せませんでした）"};
     const a=o.a?normSave(o.a):null;return{ok:true,s,a:a&&!a.newer?a:null,g:o.g||"",n:+o.n||1,old:+o.s.v<SAVE_V}},
   /* QR のかけら（1枚に入らなければ分ける） */
@@ -72,8 +72,8 @@ function xferRenderExport(){const X=S.xfer,np=X.parts.length;
     const w=$("#xqrw"),cv=XFER.qrCanvas(X.parts[X.i]);if(w&&cv)w.appendChild(cv);const m=$("#modal .modal .box");if(m)m.classList.add("xfbig");return}/* QR をタップで大きく（スマホで読みやすく） */
   modal(`<div class="xf xfe"><div class="h">引き継ぎコード（スロット${X.n}）</div>
    <div class="xrow"><div class="xqrw" id="xqrw" onclick="S.xfer.big=true;xferRenderExport()" title="タップで大きく"></div><div class="xcol">
-    <div class="small">別の端末で「データ」→「読み込む」。<br>コードを貼りつけるか、QR を読んでください（QR はタップで大きく）。</div>
-    ${np>1?`<div class="small gold">QR は ${np} 枚に分けています。<br>全部読むと そろいます。</div><div class="row xpg"><button onclick="xferPg(-1)" ${X.i?"":"disabled"}>◀</button><span class="small">${X.i+1}／${np}</span><button onclick="xferPg(1)" ${X.i<np-1?"":"disabled"}>▶</button></div>`:""}
+    <div class="small">別の端末で「データ」→「読み込む（引き継ぎ）」を押して、コードを貼りつけるか、QR を読んでください。</div><div class="small dim">QR はタップで大きく</div>
+    ${np>1?`<div class="small gold">QR は ${np} 枚に分けています。<br>全部読むと、そろいます。</div><div class="row xpg"><button onclick="xferPg(-1)" ${X.i?"":"disabled"}>◀</button><span class="small">${X.i+1}／${np}</span><button onclick="xferPg(1)" ${X.i<np-1?"":"disabled"}>▶</button></div>`:""}
     <div class="small dim">${X.code.length} 文字・音量などの設定は入りません。</div></div></div>
    <textarea class="xcode" readonly onclick="this.select()">${esc(X.code)}</textarea>
    <div class="row"><button class="main" onclick="xferCopy()">コピー</button><button onclick="xferBack()">とじる</button></div></div>`);
@@ -111,7 +111,7 @@ async function xferCheck(code){xferMsg("確かめています…");const r=await
   S.xin.res=r;SND.se("ui_ok");xferPickSlot()}
 function xferPickSlot(){const r=S.xin.res,L=SAVE.list();
   modal(`<div class="xf"><div class="h">読み込むデータ</div>
-   <div class="small">${esc(SAVE.label(r.s))}</div><div class="small dim">${esc(SAVE.when(r.s))}${r.g?`・${esc(r.g)} で書き出し`:""}${r.old?"・今の版に直しました":""}${r.a?"・オートセーブつき":""}</div>
+   <div class="small">${esc(SAVE.label(r.s))}</div><div class="small dim">${esc(SAVE.when(r.s))}${r.g?`・${esc(r.g)} で書き出し`:""}${r.old?"・今の版に直した":""}${r.a?"・オートセーブつき":""}</div>
    <div class="small gold">どのスロットに入れますか？</div>
    ${L.map(x=>`<button class="${x.k===r.n?"main":""} xsl" onclick="xferConfirm(${x.k})">スロット${x.k}<span class="small dim">　${esc(x.broken?"読めないデータ":x.d?SAVE.label(x.d):"（空き）")}</span></button>`).join("")}
    <div class="row"><button onclick="xferImport(S.xferFrom)">もどる</button></div></div>`);const m=$("#modal .modal .box");if(m)m.classList.add("xfbox")}
@@ -123,4 +123,4 @@ function xferDo(n){const r=S.xin&&S.xin.res;if(!r)return;
   const cur=r.a&&(r.a.at||0)>(r.s.at||0)?r.a:r.s;/* オートセーブのほうが新しければ、それを今のデータに（つづきから） */
   writeSave(n,r.s,n);writeSave(autoKey(n),r.a||r.s,n,true);lsSet(LAST_KEY,String(n));
   SAVE.slot=n;SAVE.cur=(cur===r.a?readAuto(n).d:readSave(n).d)||cur;
-  S.xin=null;S.deck=null;S.mcSel=[];SND.se("load_ok");closeModal();if(S.xferFrom==="opts"){S.optsOpen=false}showTitle();toast2(`スロット${n}に読み込みました${loadRun()?"（つづきから遊べます）":""}`)}
+  S.xin=null;S.deck=null;S.mcSel=[];SND.se("load_ok");closeModal();if(S.xferFrom==="opts"){S.optsOpen=false}showTitle();toast2(`スロット${n}に読み込みました${loadRun()?"（つづきから あそべます）":""}`)}
