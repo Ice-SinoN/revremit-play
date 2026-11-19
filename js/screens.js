@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.34（β2）";
+const VERSION="試作 v0.22.35（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -464,17 +464,18 @@ function showSim(){
   setScreen("sim");setScene("dim");
   const idx=upgradeTargets();if(S.simSel==null||!idx.includes(S.simSel))S.simSel=null;
   const sel=S.simSel!=null?G.deck[S.simSel]:null;
-  let mon;
-  if(!sel)mon=`<div class="h">シムトレーニング</div><div class="small">カードを1枚えらんで強化する（数値 ×1.5）</div><div class="small dim">${idx.length?"下の列から選ぶ":"強化できるカードがない"}</div>`;
-  else{const cu=baseCost(sel,true,0),cb=baseCost(sel,false,0);
-    mon=`<div class="h">${esc(CD(sel).n)} → ${esc(CD(sel).n)}+</div><div class="small dim">${esc(descOf(sel,false,0))}</div><div class="small">→ ${esc(descOf(sel,true,0))}${cu!==cb?`（回転 ${cu}）`:""}</div>`+
-     `<button class="main u9" ${at(206,36,80,28)} onclick="uiUpgrade(${S.simSel})">強化する</button>`}
-  let h=hud()+`<div class="monitor" ${at(172,90,294,70)}>${mon}</div>`;
+  /* ★v0.22.35（虎雪 15:25 説明が見切れる）：強化の前と後を2枚のカードで並べる。説明は折り返し、入りきらなければ「▼ つづき」で上下に動かせる（BUG-41 と同じ） */
+  let h=hud();
+  if(!sel)h+=`<div class="monitor" ${at(172,90,294,70)}><div class="h">シムトレーニング</div><div class="small">カードを1枚えらんで強化する（数値 ×1.5）</div><div class="small dim">${idx.length?"下の列から選ぶ":"強化できるカードがない"}</div></div>`;
+  else{const simCard=(up,x,lab)=>`<div class="simc" ${at(x,40,200,166)}><div class="small ${up?"ok":"dim"} slab">${lab}</div>${cardBig(sel,{up,cls:"simcb"+(up?" up":"")})}<div class="dkmore simmore">▼ つづき（上下に動かせます）</div></div>`;
+    h+=`<div class="monitor simmon" ${at(104,28,424,214)}></div>`+simCard(false,112,"いま")+`<div class="simarr" ${at(312,110,16,20)}>→</div>`+simCard(true,328,"強化したあと")+
+     `<button class="main u9 simgo" ${at(250,210,140,28)} onclick="uiUpgrade(${S.simSel})">強化する</button>`}
   h+=`<button class="mini arr" ${at(4,256,28,72)} onclick="simScroll(-1)">◀</button><div class="simrow scroll" id="simrow" ${at(36,246,568,96)}>`+
    idx.map(i=>{const c=G.deck[i],d=CD(c);return `<span class="sw${i===S.simSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,false,0),gas:d.gas,band:false,cls:i===S.simSel?"sel":"",attrs:`onclick="simPick(${i})"`})+`</span>`}).join("")+
    `</div><button class="mini arr" ${at(608,256,28,72)} onclick="simScroll(1)">▶</button>`;
   h+=backBtn("強化しない","S.simSel=null;nextRow()");
-  const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;
+  const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;fitHandNames();
+  document.querySelectorAll(".simc").forEach(w=>{const d=w.querySelector(".bd"),mo=w.querySelector(".simmore");if(d&&mo){const up=()=>mo.classList.toggle("on",d.scrollTop+d.clientHeight<d.scrollHeight-2);d.onscroll=up;up()}});
 }
 function simPick(i){if(S.simSel===i){uiUpgrade(i);return}S.simSel=i;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
 function uiUpgrade(i){if(G.deck[i]&&canUpgrade(G.deck[i])){G.deck[i].up=true;SND.se("card_upgrade")}S.simSel=null;S.simX=0;nextRow()}

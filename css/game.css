@@ -416,3 +416,11 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .chcard.lock .chn{font:12px/14px 'PM12B','PM12'}.chcard.lock .small{line-height:11px}
 .ninfo{text-align:left;line-height:12px}
 #stage{box-shadow:0 0 0 1px #000,0 0 40px 12px rgba(0,0,0,.6)}/* ★v0.22.34 横長の端末の左右の余り：暗いふち＋外側を暗いグラデーションで埋める */
+
+/* ★v0.22.35 シムトレーニング：前／後の2枚 */
+.simc{display:flex;flex-direction:column}.simc .slab{text-align:center;line-height:12px}
+.simc .cb.simcb{position:relative;flex:1 1 auto;min-height:0;width:100%;cursor:default}
+.simc .cb.simcb .bn{white-space:normal;line-height:14px}.simc .cb.simcb .bd{flex:1 1 auto;min-height:0;overflow-y:auto;word-break:break-all;line-height:12px}
+.simc .cb.simcb.up{box-shadow:inset 0 0 0 2px var(--lime)!important}
+.simc .simmore{position:absolute;left:0;right:0;bottom:0;height:14px}
+.simarr{color:var(--cyan);font:16px/20px 'PM12';text-align:center;width:auto}
