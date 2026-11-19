@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.43（β2）";
+const VERSION="試作 v0.22.44（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -78,8 +78,10 @@ function cardBig(c,o){o=o||{};const d=CD(c),r=rarityOf(c),up=o.up!=null?o.up:!!c
   const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(c,up,0);
   const art=o.art?cardArtTag(c.id||c):"";
   return `<button class="cb t-${d.t} r-${r}${o.cls?" "+o.cls:""}" ${o.attrs||""}>${o.art?`<span class="bw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`:""}<span class="bn">${esc(d.n)}${up?"+":""}</span>`+
-   `<span class="bt">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span><span class="bc">${o.art?`回転 ${cost}　G${gasLabel(d,up)}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${gasLabel(d,up)}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}</span></button>`}
+   `<span class="bt">${typeRar(d.t,r)}</span><span class="bc">${o.art?`回転 ${cost}　G${gasLabel(d,up)}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${gasLabel(d,up)}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}</span></button>`}
 
+/* ★v0.22.44 BUG-50（BUG-39 と同じ形）：種類とレア度が同じ字（固有スキル）なら1回だけ */
+function typeRar(t,r){const a=TYPE_JP[t],b=RARITY_JP[r];return a===b?a:a+"・"+b}
 /* ---- タイトル ---- */
 /* ★タイトルロゴ（虎雪 13:06：Remit の R を左右反転した Я で赤）。グラフィック班の絵（ファイル名に logo）が assets/c2/ にあればそれ、なければ文字で */
 function titleLogo(){const f=window.ART_HAVE?[...ART_HAVE].filter(p=>/\/revremit_[^/]*logo[^/]*\.png$/i.test(p)&&!/_review\//.test(p)).sort((a,b)=>a.length-b.length)[0]:null;
@@ -163,7 +165,7 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
 function deckPick(id){if(S.dkSel===id)return;SND.se("ui_ok");if(S.dkSel)S.dkCmp=S.dkSel;S.dkSel=id;renderDeck()}
 function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(id,false,0),
    du=descOf(id,true,0),dn=descOf(id,false,0);
-  return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
+  return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${typeRar(d.t,r)}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
    <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${gasLabel(d,false)}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
   if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div>${ruleTxtOf(curChar())?`<div class="small" style="margin-top:8px"><span class="gold">キャラの決まり</span><br>${esc(ruleTxtOf(curChar()))}</div>`:""}</div>`;/* ★v0.22.24 text 27-2：キャラの決まり（MOMO は花の便りの1行） */
@@ -360,7 +362,7 @@ function renderBattle(){
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
-    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
+    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${typeRar(d.t,rarityOf(c))}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
       <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div class="dtx">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
@@ -529,7 +531,7 @@ function caseCard(c,o){const d=CD(c),r=rarityOf(c),art=cardArtTag(c.id||c);
 function togglePick(i){const s=S.pickSel,k=s.indexOf(i);if(k>=0)s.splice(k,1);else if(s.length<S.need)s.push(i);
   S.res.ten.forEach((_,j)=>{const el=$("#pk"+j);if(el)el.classList.toggle("sel",s.includes(j))});
   const b=$("#mkcar"),rest=S.need-s.length;if(b){b.disabled=rest>0;b.textContent=rest>0?`あと${rest}枚えらぶ`:"ミニカーを作る"}
-  const c=S.res.ten[i],dd=$("#pkd");if(c&&dd)dd.innerHTML=`<div class="h">${esc(CD(c).n)}${c.up?"+":""} <span class="small dim">${TYPE_JP[CD(c).t]}・${RARITY_JP[rarityOf(c)]}</span></div><div class="small">${esc(descOf(c,!!c.up,0))}</div><div class="small dim">選んだ ${s.length}/${S.need}枚</div>`}
+  const c=S.res.ten[i],dd=$("#pkd");if(c&&dd)dd.innerHTML=`<div class="h">${esc(CD(c).n)}${c.up?"+":""} <span class="small dim">${typeRar(CD(c).t,rarityOf(c))}</span></div><div class="small">${esc(descOf(c,!!c.up,0))}</div><div class="small dim">選んだ ${s.length}/${S.need}枚</div>`}
 function pickPart(i){S.partSel=i<G.parts.length?i:-1;for(let j=0;j<=G.parts.length;j++){const el=$("#pp"+j);if(el)el.classList.toggle("sel",j===i)}}
 function saveCar(){
   if(S.pickSel.length<S.need)return;

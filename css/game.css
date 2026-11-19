@@ -424,7 +424,7 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .simc .cb.simcb.up{box-shadow:inset 0 0 0 2px var(--lime)!important}
 .simc .simmore{position:absolute;left:0;right:0;bottom:0;height:14px}
 .simarr{color:var(--cyan);font:16px/20px 'PM12';text-align:center;width:auto}
-.rsc{color:#FF9FC8;white-space:nowrap}.rsc.used{color:var(--grey)}.rsc img{width:12px;height:12px;vertical-align:-2px;margin-right:2px}
+.rsc{color:#FFB3D6;white-space:nowrap;font-family:PM12B,PM12,monospace;font-weight:bold;text-shadow:1px 0 #1a0812,-1px 0 #1a0812,0 1px #1a0812,0 -1px #1a0812;background:rgba(26,8,18,.55);padding:0 3px 0 1px;border:1px solid #FF7EB6;border-radius:2px}.rsc.used{color:#8C8796;border-color:#4a4552;background:rgba(10,10,14,.55);text-decoration:line-through;text-decoration-color:#6a6574}.rsc.used img{opacity:.55}/* ★v0.22.44 QA：街の背景の上で細い・差が小さい → 太字・縁どり・枠。届いたら灰色＋取り消し線 */.rsc img{width:12px;height:12px;vertical-align:-2px;margin-right:2px}
 .sellt{display:block;margin-top:1px}.psrow .sellt{display:inline}
 .pswap.sellp{display:flex;flex-direction:column;gap:4px;width:440px}
 .sellp .pslist{max-height:220px;overflow-y:auto}

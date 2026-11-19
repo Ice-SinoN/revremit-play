@@ -105,8 +105,13 @@ function bootSeq(done,mode,bring){const ch=curChar();setScreen("boot");setScene(
     if(im){g.drawImage(im,0,0,640,360)}
     else{const TX=S2.x,TY=S2.y,TW=S2.w,TH=S2.h;g.fillStyle="#141022";g.fillRect(TX-14,TY-12,TW+28,TH+24);g.strokeStyle="#3a3456";g.lineWidth=2;g.strokeRect(TX-14,TY-12,TW+28,TH+24);g.fillStyle="#1d1830";g.fillRect(TX+TW/2-10,TY+TH+12,20,40);g.fillRect(TX-24,TY+TH+52,TW+48,10)}
     g.save();g.globalCompositeOperation="lighter";g.fillStyle=`rgba(70,230,255,${0.08+0.45*a})`;g.fillRect(S2.x+3,S2.y+3,S2.w-6,S2.h-6);
-    g.fillStyle=`rgba(197,255,69,${0.5*a})`;g.font="10px PM10, monospace";g.textBaseline="top";g.fillText("REMIT",S2.x+8,S2.y+8);g.fillText(`${ch} / ${mode}`,S2.x+8,S2.y+22);
-    g.fillRect(S2.x+8,S2.y+S2.h-14,Math.round((S2.w-16)*a),3);g.fillStyle="rgba(197,255,69,.05)";for(let y=S2.y+3;y<S2.y+S2.h-3;y+=3)g.fillRect(S2.x+3,y,S2.w-6,1);g.restore()};
+    g.fillStyle="rgba(197,255,69,.05)";for(let y=S2.y+3;y<S2.y+S2.h-3;y+=3)g.fillRect(S2.x+3,y,S2.w-6,1);g.restore();
+    /* ★v0.22.44 QA の気づき：明るい水色の上でライムの字が読みにくい → 字は重ねがけ（lighter）をやめ、暗い縁どり＋濃い帯の上に、太字で */
+    if(a>0.05){const ta=Math.min(1,0.35+0.65*a);g.save();g.font="12px PM12B, monospace";g.textBaseline="top";
+      g.fillStyle=`rgba(4,16,26,${0.72*ta})`;g.fillRect(S2.x+5,S2.y+6,S2.w-10,28);g.fillRect(S2.x+6,S2.y+S2.h-16,S2.w-12,7);
+      g.lineWidth=3;g.lineJoin="round";g.strokeStyle=`rgba(4,16,26,${ta})`;g.fillStyle=`rgba(214,255,110,${ta})`;
+      for(const[tx,ty]of[["REMIT",8],[`${ch} / ${mode}`,21]]){g.strokeText(tx,S2.x+8,S2.y+ty);g.fillText(tx,S2.x+8,S2.y+ty)}
+      g.fillRect(S2.x+8,S2.y+S2.h-14,Math.round((S2.w-16)*a),3);g.restore()}};
   const step=()=>{if(!S.boot||S.boot.end)return;const t=performance.now()-T0,p=Math.min(1,t/DUR),S2=TERM.scr,tcx=S2.x+S2.w/2,tcy=S2.y+S2.h/2;
     const room=termImg("room");if(room)g.drawImage(room,0,0,640,360);else{g.fillStyle="#05060C";g.fillRect(0,0,640,360);g.fillStyle="#0c0e1a";g.fillRect(0,FY+2,640,58)}
     const k=arrived/Math.max(1,P.length);
