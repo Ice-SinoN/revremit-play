@@ -128,6 +128,12 @@ function rewardOptions(rank){
   if(carry.length&&out.length&&Math.random()<RULES.carryCardP*other.length){const k=(rank==="elite"||rank==="boss")&&out.length>1?out.length-1:Math.floor(Math.random()*out.length);out[k]=pick(carry)}
   return shuffle(out);
 }
+/* ★v0.22.45 合成（design 10-21）：今のデッキにある組み合わせ。強化ずみの材料を先に使う（両方強化ずみ→合成カードも強化ずみ） */
+function fuseOptions(){const out=[];FUSE.forEach(f=>{if(!CARDS[f.id])return;const pickI=id=>{const L=G.deck.map((c,i)=>[c,i]).filter(([c])=>c.id===id);if(!L.length)return -1;const u=L.find(([c])=>c.up);return(u||L[0])[1]};
+  const ia=pickI(f.a),ib=pickI(f.b);if(ia<0||ib<0)return;out.push({id:f.id,a:f.a,b:f.b,ia,ib,up:!!(G.deck[ia].up&&G.deck[ib].up)})});return out}
+function fuseCards(o){const a=G.deck[o.ia],b=G.deck[o.ib];if(!a||!b||a.id!==o.a||b.id!==o.b||o.ia===o.ib)return null;
+  [o.ia,o.ib].sort((x,y)=>y-x).forEach(i=>G.deck.splice(i,1));const c=inst(o.id);if(o.up)c.up=true;G.deck.push(c);(G.st.fused=G.st.fused||[]).push(o.id);
+  try{const p=SAVE.cur.profile;p.codex=p.codex||{};p.codex.fuse=p.codex.fuse||{};p.codex.fuse[o.id]=1}catch(e){}return c}
 function upgradeTargets(){return G.deck.map((c,i)=>[c,i]).filter(([c])=>canUpgrade(c)).map(([,i])=>i)}
 function tunePrice(k,shop,useTicket){const lv=G.tune[k];if(lv>=5)return null;return shopPrice(TUNE_PRICE[lv],shop,useTicket)}
 function shopPrice(x,shop,useTicket){let v=x;if(shop&&shop.sale)v=Math.round(v*RULES.sale);if(has("etc"))v=Math.round(v*0.8);if(useTicket)v=Math.round(v*RULES.ticket);return v}
@@ -143,7 +149,7 @@ function startBattleState(key){
   const E=ENEMIES[key];const C=car();const AR=curArea(),nr=NR(),node=G.map&&G.map[G.row]&&G.map[G.row][G.path[G.row]]||null,hid=!!(node&&node.k==="hidden");
   const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
   const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm);
-  B={key,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
+  B={key,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?2500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
      curAdd:0,curDouble:false,wideAdd:0,cards:0,atks:0,atkDown:0,atShiftDraw:0,gas:0,charge:0,chain5:false,chain:0,chainBefore:0,turnDmg:0,
@@ -331,6 +337,12 @@ const OPS={
  rotate:(x,v)=>{B.rotT=true;let t=rotTargets(null,B.rpm);const pk=B.rotPick;B.rotPick=null;if(pk)t=B.hand.filter(c=>pk.includes(c.uid));else t=rotAutoPick(null,B.rpm,v);t=rotOrder(t).slice(0,v);
    t.forEach(c=>B.hand.splice(B.hand.indexOf(c),1));const n=drawN(t.length);t.forEach(c=>{if(!CD(c).gen)B.disc.push(c)});/* 引いてから捨て札へ（捨てたカードをすぐ引き直さない） */addLog(`ローテーション：${t.length} 枚入れかえた`);ev({k:"rotate",n:t.length,drawn:n})},/* ★design 11-1 */
  taikan:(x,v)=>{if(isTopGear()){OPS.clearBlock(x);x.attack(v)}else x.attack(Math.round(v*0.5*10)/10)},/* ★戴冠（design 10-11）：いつでも打てる・最大ギアでなければ ×0.5（防御は0にしない） */
+ /* ★v0.22.45 合成カード（design 10-21-2）の fx */
+ atkHitsChainN:(x,v,base,max)=>{const k=Math.min(max,base+Math.floor(Math.min(B.chain,RULES.chainMax)/3));for(let i=0;i<k;i++)x.attack(v)},
+ atkGear6:(x,a)=>x.attack(a*Math.min(B.gear+1,6)),
+ perfBoth:(x,a,b)=>{const m=B.lastGrade==="perfect"?2:1;x.attack(a*m);x.block(b*m)},
+ atkPerfCnt:(x,v,k,max)=>x.attack(v+Math.min(max,k*Math.max(0,G.st.perfect-(B.perf0||0)))),
+ vsBigBoth:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank,m=r==="elite"||r==="boss"||B.hidden?1.5:1;x.block(a*m);x.attack(a*m)},
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
  drawIfShift:(x,a)=>{if(B.shifts>0)x.draw(a)},
 };
@@ -374,8 +386,8 @@ function simulateCard(i,shift){
   G=og;B=ob;uidN=su;return out}
 /* カードに書いてある元の数字（倍率・帯なし）：色を変える基準。num の書き方は cards.js */
 function baseNumbers(c){const d=CD(c),v=cardVal(c),hits=[];let block=0;
-  d.fx.forEach(f=>{const a=argOf(f[1],v);if(f[0]==="atk"||f[0]==="atkGear"||f[0]==="kousetsu"||f[0]==="taikan")hits.push(a);/* ★BUG-43 紅雪・戴冠にも数字（実際の数＝×0.5 か満額は simulateCard） */if(f[0]==="atkHits")for(let k=0;k<f[2];k++)hits.push(a);
-    if(f[0]==="blk"||f[0]==="blkGear"||f[0]==="blkRaw")block+=a});
+  d.fx.forEach(f=>{const a=argOf(f[1],v);if(f[0]==="atk"||f[0]==="atkGear"||f[0]==="atkGear6"||f[0]==="kousetsu"||f[0]==="taikan"||f[0]==="atkPerfCnt"||f[0]==="perfBoth"||f[0]==="vsBigBoth")hits.push(a);if(f[0]==="atkHitsChainN")for(let k=0;k<f[2];k++)hits.push(a);/* ★BUG-43 紅雪・戴冠にも数字（実際の数＝×0.5 か満額は simulateCard） */if(f[0]==="atkHits")for(let k=0;k<f[2];k++)hits.push(a);
+    if(f[0]==="blk"||f[0]==="blkGear"||f[0]==="blkRaw"||f[0]==="vsBigBoth")block+=a;if(f[0]==="perfBoth")block+=argOf(f[2],v)});
   if(d.fx.some(f=>f[0]==="atkBlk"||f[0]==="atkChain"||f[0]==="atkFrz")&&!hits.length)hits.push(0);
   return{hits,block}}
 /* カードを打つ。shift：MT でシフトアップするか（AT は自動で決まる） */

@@ -123,8 +123,46 @@ const CARDS={
 };
 const RARITY_JP={C:"コモン",R:"レア",E:"エピック",SK:"固有スキル"};
 /* モーションのキー（revremit-yuki-motion-list.md 1章）。mo がなければ種類から */
+
+/* ★v0.22.45 合成（design 10-21・★虎雪 16:45 案1）。決まった2枚 → 新しい1枚（fused:1）。報酬・ショップ・裏道・ラッキー・ラン前のデッキの候補には出ない（ミニカーで持ちこめる）。
+   数は 10-21-2 の「上限の外の直し」のあと（チーフ 21:40）：春のクルーズ・凍界・霜刃・逆ハン・ブレーキターン・春嵐。名前は仮（design）、直した文は text 28-4 */
+const FUSE=[
+ {a:"sasame",b:"hakusen",id:"f_y_hyoukasen"},{a:"fubuki",b:"eikyu",id:"f_y_tokai"},{a:"braking",b:"counter",id:"f_y_gyakuhan"},{a:"shimo",b:"hyoujin",id:"f_y_soujin"},
+ {a:"hakunetsu",b:"backfire",id:"f_y_shakusetsu"},{a:"tsurara",b:"rinkai",id:"f_y_rinkaitsurara"},
+ {a:"h_youda",b:"h_asayake",id:"f_h_akebono"},{a:"h_gouda",b:"h_nichirin",id:"f_h_dainichirin"},{a:"h_kagerou",b:"h_hibana",id:"f_h_kagerouhibana"},
+ {a:"h_nukiuchi",b:"h_shippu",id:"f_h_shippunuki"},{a:"h_hidamari",b:"h_kneegrip",id:"f_h_hidamarigrip"},{a:"h_fullbrake",b:"h_kickstart",id:"f_h_braketurn"},
+ {a:"m_touka",b:"m_hanawa",id:"f_m_toukarin"},{a:"m_haruichiban",b:"m_hanafubuki",id:"f_m_shunran"},{a:"m_hanaakari",b:"m_softtop",id:"f_m_hanaakarihoro"},
+ {a:"m_harukaze",b:"m_cruise",id:"f_m_harucruise"},{a:"m_kaerizaki",b:"m_rinjin",id:"f_m_kaeririnjin"},{a:"m_openair",b:"m_hanami",id:"f_m_hanamidrive"},
+ {a:"n_paddle",b:"n_tenshou",id:"f_n_tenshoupaddle"},{a:"n_hachiren",b:"n_gaisen",id:"f_n_gaisenhachiren"},{a:"n_houyoku",b:"n_hiiro",id:"f_n_hiyoku"},
+ {a:"n_hokori",b:"n_koutotsu",id:"f_n_hokorikoutotsu"},{a:"n_taikan",b:"n_totsugeki",id:"f_n_taikantotsugeki"},{a:"n_shukumei",b:"n_teppeki",id:"f_n_shukumeikabe"}];
+Object.assign(CARDS,{
+ f_y_hyoukasen:{fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"氷華閃",t:"atk",c:2000,gas:2,v:12,vu:18,band:"M",fx:[["atk","v"],["frz",3]],d:"{v}ダメージ・凍結 3"},
+ f_y_tokai:{fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"凍界",t:"atk",c:4500,gas:2,v:20,vu:30,fx:[["atk","v"],["frz",2]],d:"{v} ダメージ・凍結 2。"},/* 直し：v 24→20・凍結 4→2・上乗せなし */
+ f_y_gyakuhan:{fused:1,r:"R",mo:"guard",own:"YUKI",n:"逆ハン",t:"grd",c:2500,gas:1,v:10,vu:15,fx:[["blk","v"],["counterAdd"]],d:"防御 {v}。次の番の最初のアタックに、この防御の半分を足す。",num:"blk"},/* 直し：14→10 */
+ f_y_soujin:{fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"霜刃",t:"atk",c:2500,gas:2,v:0.35,vu:0.5,fx:[["blkGear",3],["atkBlk","v"]],d:"防御（ギア ×3）を得てから、今の防御 ×{v} ダメージ。"},/* 直し：×0.7→×0.35 */
+ f_y_shakusetsu:{fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"灼雪",t:"atk",c:1500,gas:2,v:14,vu:21,band:"R",bm:2,fx:[["atk","v"],["burn",4]],d:"{v}ダメージ・炎上 4（レッドゾーンで2倍）"},
+ f_y_rinkaitsurara:{fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"臨界氷柱",t:"atk",c:1000,gas:2,v:40,vu:60,fx:[["kousetsu","v",0]],d:"{v}ダメージ。レッドの外では半分。"},
+ f_h_akebono:{fused:1,r:"R",mo:"atk_heavy",own:"HINA",n:"曙打",t:"atk",c:1000,gas:1,v:12,vu:18,fx:[["atkFirstTurn","v"]],d:"{v}ダメージ（戦闘の最初のターンなら2倍）"},
+ f_h_dainichirin:{fused:1,r:"E",mo:"atk_finisher",own:"HINA",n:"大日輪",t:"atk",c:3000,gas:2,v:26,vu:39,fx:[["atk","v"],["atkAtks",5]],d:"{v}ダメージ＋このターン先に打ったアタックの数 ×5",num:"sum"},
+ f_h_kagerouhibana:{fused:1,r:"R",mo:"atk_light",own:"HINA",n:"陽炎火花",t:"atk",c:1500,gas:1,v:3,vu:5,fx:[["atkHits","v",4,4]],d:"{v}ダメージを4回"},
+ f_h_shippunuki:{fused:1,r:"R",mo:"atk_light",own:"HINA",n:"疾風抜き",t:"atk",c:1500,gas:1,v:7,vu:11,fx:[["atkHits","v",1,2],["draw",1]],d:"{v}ダメージ・1枚引く（このターンにシフトアップしていたら2回）"},
+ f_h_hidamarigrip:{fused:1,r:"R",mo:"guard",own:"HINA",n:"陽だまりグリップ",t:"grd",c:1500,gas:1,v:8,vu:12,fx:[["blk","v"],["heal",2],["nextTurnAtk",3]],d:"防御 {v}・エンジン耐久 +2。次の番の最初のアタック +3",num:"blk"},
+ f_h_braketurn:{fused:1,r:"R",mo:"guard",own:"HINA",n:"ブレーキターン",t:"rev",c:0,gas:1,sup:1,v:3,vu:5,fx:[["blk","v"],["revDown",1500],["draw",1]],d:"防御 {v}・回転 −1500・1枚引く",num:"blk"},/* 直し：防御 6→3 */
+ f_m_toukarin:{fused:1,r:"R",mo:"atk_light",own:"MOMO",n:"桃花輪",t:"atk",c:1000,gas:1,v:6,vu:9,fx:[["atkIfChain","v",3,5],["chainAdd",1]],d:"{v}ダメージ・チェイン +1。チェインが3以上なら +5"},
+ f_m_shunran:{fused:1,r:"E",mo:"atk_finisher",own:"MOMO",n:"春嵐",t:"atk",c:2500,gas:2,v:3,vu:5,fx:[["atkHitsChainN","v",5,9]],d:"{v}ダメージを5回。チェイン3つごとに +1回（最大 9回）"},/* 直し：2→3 */
+ f_m_hanaakarihoro:{fused:1,r:"R",mo:"guard",own:"MOMO",n:"花灯りの幌",t:"grd",c:1500,gas:1,v:8,vu:12,fx:[["blk","v"],["blkChain"]],d:"防御 {v}＋チェインの数",num:"blk"},
+ f_m_harucruise:{fused:1,r:"R",mo:"rev",own:"MOMO",n:"春のクルーズ",t:"rev",c:1000,gas:1,sup:1,v:2,vu:3,fx:[["revDown",1000],["blkRaw","v"]],d:"回転 −1000・防御 {v}。",num:"blk"},/* 直し：回転 0→1000・防御 4→2・耐久 +1 なし */
+ f_m_kaeririnjin:{fused:1,r:"E",mo:"atk_finisher",own:"MOMO",n:"返り輪刃",t:"atk",c:2000,gas:2,v:16,vu:24,fx:[["atkLowHp","v"]],d:"{v}ダメージ（エンジン耐久が半分以下なら2倍）"},
+ f_m_hanamidrive:{fused:1,r:"R",mo:"rev",own:"MOMO",n:"花見ドライブ",t:"rev",c:0,gas:1,sup:1,v:2,vu:3,fx:[["hanami",1],["openAir","v"]],d:"捨て札から回転0のカードを1枚手札に。このターン、補助のカードを打つたびに {v}ダメージ"},
+ f_n_tenshoupaddle:{fused:1,r:"R",mo:"atk_light",own:"NANA",n:"天翔パドル",t:"atk",c:0,gas:1,v:8,vu:12,shiftCard:1,atShift:1,fx:[["atk","v"]],d:"シフトアップしてから {v}ダメージ（AT でも打てる）"},
+ f_n_gaisenhachiren:{fused:1,r:"E",mo:"atk_finisher",own:"NANA",n:"凱旋八連",t:"atk",c:3000,gas:2,v:3,vu:5,fx:[["atkGear6","v"],["atkShiftsN",5]],d:"{v} ×今のギア（6まで）＋このターンのシフトアップの数 ×5",num:"sum"},
+ f_n_hiyoku:{fused:1,r:"R",mo:"atk_heavy",own:"NANA",n:"緋翼",t:"atk",c:1500,gas:1,v:7,vu:11,fx:[["perfBoth","v",5]],d:"{v}ダメージ・防御 5（直前のシフトがパーフェクトなら両方2倍）"},
+ f_n_hokorikoutotsu:{fused:1,r:"R",mo:"atk_heavy",own:"NANA",n:"誇りの紅突",t:"atk",c:2000,gas:2,v:10,vu:15,fx:[["atkPerfCnt","v",2,10]],d:"{v}＋この戦闘のパーフェクトの数 ×2（最大 +10）"},
+ f_n_taikantotsugeki:{fused:1,r:"E",mo:"atk_finisher",own:"NANA",n:"戴冠突撃",t:"atk",c:4000,gas:2,v:26,vu:39,fx:[["taikan","v"]],d:"{v} ダメージ。最大ギアなら先に相手の防御を0に。最大ギアでなければ半分。"},
+ f_n_shukumeikabe:{fused:1,r:"R",mo:"atk_heavy",own:"NANA",n:"宿命の壁",t:"atk",c:2000,gas:1,v:8,vu:12,fx:[["vsBigBoth","v"]],d:"防御 {v}・{v}ダメージ（エリート・ボスには両方1.5倍）"}});
+const FUSE_OF=id=>FUSE.find(f=>f.id===id);
 const TYPE_MOTION={atk:"atk_light",grd:"guard",dbf:"debuff",drw:"draw",rev:"rev",sk:"skill",jam:"rev"};
 const TYPE_JP={atk:"アタック",grd:"ガード",dbf:"デバフ",drw:"ドロー",rev:"回転操作",sk:"固有スキル",jam:"ジャマ"};
 const BAND_JP={L:"低回転",M:"中回転",R:"レッド"};
 /* 報酬の候補（キャラごと）：生成・固有スキル以外の共通と専用 */
-Object.values(CHARS).forEach((ch,_,a)=>{const id0=Object.keys(CHARS).find(k=>CHARS[k]===ch);ch.pool=Object.keys(CARDS).filter(id=>!CARDS[id].gen&&CARDS[id].r!=="SK"&&(CARDS[id].own==="N"||CARDS[id].own===id0))});
+Object.values(CHARS).forEach((ch,_,a)=>{const id0=Object.keys(CHARS).find(k=>CHARS[k]===ch);ch.pool=Object.keys(CARDS).filter(id=>!CARDS[id].gen&&!CARDS[id].fused&&CARDS[id].r!=="SK"&&(CARDS[id].own==="N"||CARDS[id].own===id0))});

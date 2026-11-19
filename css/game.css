@@ -432,3 +432,5 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .sellp .sellrow .pdn{grid-column:1}.sellp .sellrow>.small:not(.sellt){grid-column:1;grid-row:2}.sellp .sellrow .sellt{display:none}
 .sellp .sellrow button{grid-column:2;grid-row:1/3;min-height:26px;padding:2px 8px;white-space:nowrap}
 .sellp>.row{justify-content:center}
+.simtabs{display:flex;flex-direction:column;gap:4px;z-index:3}.simtabs button{flex:1;min-height:26px;font-size:11px;padding:0 4px}
+.fmats{display:flex;flex-direction:column;align-items:center;gap:6px}.fmrow{display:flex;align-items:center;gap:4px;margin-top:14px}.fmrow .cs{position:relative}.fplus{color:var(--lime);font-weight:bold}.fnote{text-align:center;margin-top:6px}

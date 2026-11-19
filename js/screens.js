@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.44（β2）";
+const VERSION="試作 v0.22.45（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -483,6 +483,8 @@ function uiBuyFeat(){const n=S.shop,ut=!!S.useTicket&&G.tickets>0,pr=shopPrice(R
 /* ★背景 sim：真ん中のモニター（174,92 〜 464,158）に説明、床にカードの列（タップで選ぶ → モニターに強化の前と後 → 「強化する」） */
 function showSim(){
   setScreen("sim");setScene("dim");
+  /* ★v0.22.45 合成（design 10-21）：「強化」と「合成」のタブ。シム1回に1つ（強化か合成のどちらか） */
+  const fo=fuseOptions();if(S.simTab==="fuse"&&!fo.length)S.simTab="up";if(S.simTab==="fuse"){showFuse(fo);return}
   const idx=upgradeTargets();if(S.simSel==null||!idx.includes(S.simSel))S.simSel=null;
   const sel=S.simSel!=null?G.deck[S.simSel]:null;
   /* ★v0.22.35（虎雪 15:25 説明が見切れる）：強化の前と後を2枚のカードで並べる。説明は折り返し、入りきらなければ「▼ つづき」で上下に動かせる（BUG-41 と同じ） */
@@ -494,10 +496,28 @@ function showSim(){
   h+=`<button class="mini arr" ${at(4,256,28,72)} onclick="simScroll(-1)">◀</button><div class="simrow scroll" id="simrow" ${at(36,246,568,96)}>`+
    idx.map(i=>{const c=G.deck[i],d=CD(c);return `<span class="sw${i===S.simSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,false,0),gas:gasRaw(d,false),band:false,cls:i===S.simSel?"sel":"",attrs:`onclick="simPick(${i})"`})+`</span>`}).join("")+
    `</div><button class="mini arr" ${at(608,256,28,72)} onclick="simScroll(1)">▶</button>`;
-  h+=backBtn("強化しない","S.simSel=null;nextRow()");
+  h+=simTabs(fo.length);
+  h+=backBtn("強化しない","S.simSel=null;S.simTab=null;nextRow()");
   const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;fitHandNames();
   document.querySelectorAll(".simc").forEach(w=>{const d=w.querySelector(".bd"),mo=w.querySelector(".simmore");if(d&&mo){const up=()=>mo.classList.toggle("on",d.scrollTop+d.clientHeight<d.scrollHeight-2);d.onscroll=up;up()}});
 }
+function simTabs(n){const t=S.simTab==="fuse";return `<div class="simtabs" ${at(6,40,92,56)}><button class="u9${t?"":" main"}" onclick="S.simTab='up';S.simSel=null;SND.se('ui_ok');showSim()">強化</button><button class="u9${t?" main":""}" ${n?"":"disabled"} onclick="S.simTab='fuse';S.fuseSel=null;SND.se('ui_ok');showSim()">合成${n?`（${n}）`:""}</button></div>`}
+function showFuse(fo){if(S.fuseSel!=null&&!fo.some(o=>o.id===S.fuseSel))S.fuseSel=null;const o=S.fuseSel!=null?fo.find(x=>x.id===S.fuseSel):null;
+  let h=hud();
+  if(!o)h+=`<div class="monitor" ${at(172,90,294,70)}><div class="h">合成</div><div class="small">決まった2枚を、新しい1枚にする（デッキは1枚へる）</div><div class="small dim">下の列から、できあがりのカードを選ぶ</div></div>`;
+  else{const res=inst(o.id,o.up);
+    h+=`<div class="monitor simmon" ${at(104,28,424,214)}></div><div class="fmats" ${at(112,40,200,166)}><div class="small dim slab">材料（2枚がなくなる）</div><div class="fmrow">${[o.ia,o.ib].map(i=>cardSmall(G.deck[i],{cost:baseCost(G.deck[i],G.deck[i].up,0),gas:gasRaw(CD(G.deck[i]),G.deck[i].up),band:false})).join('<span class="fplus">＋</span>')}</div>
+     <div class="small ${o.up?"ok":"dim"} fnote">${o.up?"両方とも強化ずみ → 強化ずみで合成":"強化前で合成（あとでシムで強化できる）"}</div></div>`+
+     `<div class="simarr" ${at(312,110,16,20)}>→</div><div class="simc" ${at(328,40,200,166)}><div class="small ok slab">できあがり</div>${cardBig(res,{up:o.up,cls:"simcb"+(o.up?" up":"")})}<div class="dkmore simmore">▼ つづき（上下に動かせます）</div></div>`+
+     `<button class="main u9 simgo" ${at(250,210,140,28)} onclick="uiFuse('${o.id}')">合成する</button>`}
+  h+=`<button class="mini arr" ${at(4,256,28,72)} onclick="simScroll(-1)">◀</button><div class="simrow scroll" id="simrow" ${at(36,246,568,96)}>`+
+   fo.map(x=>{const c=inst(x.id,x.up);return `<span class="sw${x.id===S.fuseSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,x.up,0),gas:gasRaw(CD(c),x.up),band:false,cls:x.id===S.fuseSel?"sel":"",attrs:`onclick="fusePick('${x.id}')"`})+`</span>`}).join("")+
+   `</div><button class="mini arr" ${at(608,256,28,72)} onclick="simScroll(1)">▶</button>`;
+  h+=simTabs(fo.length)+backBtn("強化しない","S.simSel=null;S.simTab=null;S.fuseSel=null;nextRow()");
+  const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;fitHandNames();
+  document.querySelectorAll(".simc").forEach(w=>{const d=w.querySelector(".bd"),mo=w.querySelector(".simmore");if(d&&mo){const up=()=>mo.classList.toggle("on",d.scrollTop+d.clientHeight<d.scrollHeight-2);d.onscroll=up;up()}})}
+function fusePick(id){if(S.fuseSel===id){uiFuse(id);return}S.fuseSel=id;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
+function uiFuse(id){const o=fuseOptions().find(x=>x.id===id);if(!o)return;const c=fuseCards(o);if(c){SND.se("card_upgrade");toast2(`${CD(c).n}${c.up?"+":""} を合成した`,200)}S.fuseSel=null;S.simTab=null;S.simX=0;nextRow()}
 function simPick(i){if(S.simSel===i){uiUpgrade(i);return}S.simSel=i;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
 function uiUpgrade(i){if(G.deck[i]&&canUpgrade(G.deck[i])){G.deck[i].up=true;SND.se("card_upgrade")}S.simSel=null;S.simX=0;nextRow()}
 function simScroll(k){const r=$("#simrow");if(r){r.scrollLeft+=k*280;S.simX=r.scrollLeft}}
