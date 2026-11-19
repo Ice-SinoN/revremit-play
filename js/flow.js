@@ -35,11 +35,14 @@ function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["char
       q.drawImage(fr,x,y,w,h);q.globalCompositeOperation="source-in";q.fillStyle="#3a3456";q.fillRect(0,0,o.width,o.height);q.globalCompositeOperation="source-over";g.drawImage(o,0,0)}
     else{g.imageSmoothingEnabled=false;g.drawImage(fr,x,y,w,h)}});requestAnimationFrame(loop)};requestAnimationFrame(loop)}
 /* ---- 1. 走りかた（タイトルのボタン）---- */
-function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flow={mode};try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}S.chSel=curChar();showChars()}
+/* ★v0.22.61 虎雪 11-20 07:58：ホームは「スタート」1つ → キャラ → 夜 →（ミニカー）→ 走りかた（MT／AT）→ 確認 → 演出。走りかたを選ぶまでは、★の見せ方に最後に選んだ走りかたを使う */
+function TU(k,d){return TEXT.ui&&TEXT.ui[k]||d}
+function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();showChars()}
 const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
+const flowModeTag=()=>S.flow&&!S.flow.mode?"":`（${flowMode()}）`;
 /* ---- 2. キャラ ---- */
 function renderChars(){const op=charsOpen(),sel=op.includes(S.chSel)?S.chSel:curChar(),mode=flowMode();S.chSel=sel;
-  let h=`<div class="hdr" ${at(8,6,300,18)}>キャラをえらぶ（${esc(mode)}）</div>${backBtn("もどる","S.flow=null;showTitle()")}`;
+  let h=`<div class="hdr" ${at(8,6,300,18)}>キャラをえらぶ${esc(flowModeTag())}</div>${backBtn("もどる","S.flow=null;showTitle()")}`;
   CHAR_ORDER.forEach((c,i)=>{const C=CHARS[c],on=op.includes(c),x=16+i*128;
     h+=`<button class="u9 chcard${sel===c?" main":""}${on?"":" lock"}" ${at(x,30,122,124)} ${on?`onclick="S.chSel='${c}';SND.se('ui_ok');renderChars()"`:"disabled"}>
       <canvas class="chav" data-ch="${c}" ${on?"":'data-sil="1"'} width="112" height="70"></canvas>
@@ -57,7 +60,7 @@ function renderChars(){const op=charsOpen(),sel=op.includes(S.chSel)?S.chSel:cur
 function showNights(){setScreen("nights");setScene("dim");setBg("garage");closeModal();SND.se("ui_ok");renderNights()}
 function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length,ch=curChar(),mode=flowMode(),o=mode==="MT"?"AT":"MT";
   const sc=$("#nl")?$("#nl").scrollTop:0;
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>夜をえらぶ（${esc(TEXT.names[ch]||ch)}・${esc(mode)}）</div>${backBtn("もどる","showChars()")}
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>夜をえらぶ（${esc(TEXT.names[ch]||ch)}${S.flow&&!S.flow.mode?"":"・"+esc(mode)}）</div>${backBtn("もどる","showChars()")}
    <div class="sign" ${at(8,30,452,324)}></div><div class="small dim ninfo" ${at(16,34,440,26)}>決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く。★＝${esc(TEXT.names[ch]||ch)}でクリアした夜（うすい★は、もう1つの走りかた）</div>
    <div class="scroll nlist2" id="nl" ${at(14,62,440,286)}>`+
     NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
@@ -66,11 +69,23 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
         :`<button class="nrow2" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+`</div>
    <div class="sign side" ${at(472,70,160,120)}><div class="h">NIGHT ${cur}</div><div class="small">${starHTML(clearedNight(ch,mode,cur),mode+" クリア")}</div><div class="small dim">${starHTML(clearedNight(ch,o,cur),o+" クリア")}</div>
     <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div></div>
-   <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"確かめる"}</span></button></div>`;
+   <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"走りかた"}</span></button></div>`;
   if($("#nl"))$("#nl").scrollTop=sc}
-function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else runConfirm([])}
+function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else flowToMode([])}
+/* ---- 3b. 走りかた（MT／AT）★v0.22.61。文は text（mode_mt_1 など）があればそれ ---- */
+FULL_SCREENS.push("modes");SCREEN_BG.modes="garage";
+const MODE_TXT={MT:["自分でシフトアップする。帯の中でシフトするとパーフェクト。","パーフェクトでガソリンがもどり、カードをつなげやすい。"],AT:["シフトは自動。回転が帯に入ると、ひとりでに上がる。","シフトを気にせず、カードを打つことに集中できる。"]};
+function flowToMode(bring){S.flowBring=(bring||[]).slice();if(S.flow&&S.flow.mode){runConfirm(S.flowBring);return}showModes()}
+function showModes(){setScreen("modes");setScene("dim");setBg("garage");closeModal();const ch=curChar(),n=curNight(),last=PRF().lastMode||"MT";
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>${esc(TU("mode_head","走りかたをえらぶ"))}（${esc(TEXT.names[ch]||ch)}・NIGHT ${n}）</div>${backBtn("もどる","modeBack()")}`+
+   ["MT","AT"].map((m,i)=>`<button class="u9 mdcard${m===last?" main":""}" ${at(40+i*290,60,270,220)} onclick="modePick('${m}')"><div class="mdh">${m}</div><div class="mdn">${esc(TU("mode_"+m.toLowerCase()+"_name",m==="MT"?"マニュアル":"オートマ"))}</div>
+     <div class="mdt">${esc(TU("mode_"+m.toLowerCase()+"_1",MODE_TXT[m][0]))}</div><div class="mdt">${esc(TU("mode_"+m.toLowerCase()+"_2",MODE_TXT[m][1]))}</div>
+     <div class="small">${starHTML(clearedNight(ch,m,n),"NIGHT "+n)}　${starHTML(clearedAny(ch,m),m+" クリア")}</div></button>`).join("")+
+   `<div class="small dim" ${at(40,290,560,14)}>${esc(TU("mode_note","えらぶと、確かめの画面に進みます。"))}</div>`}
+function modePick(m){SND.se("ui_ok");S.flow=S.flow||{};S.flow.mode=m;try{if(PRF().lastMode!==m){PRF().lastMode=m;SAVE.auto()}}catch(e){}runConfirm(S.flowBring||[])}
+function modeBack(){SND.se("ui_cancel");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else showNights()}
 /* ---- 4. 確認（★虎雪 11:35：ダイアログ。難易度・キャラ・デッキ〈はじめのカード〉・ミニカー → よろしいですか？ OK／もどる）---- */
-function runConfirm(bring){S.flowBring=(bring||[]).slice();
+function runConfirm(bring){S.flowBring=(bring||[]).slice();S.flowFromMode=window.SCREEN==="modes";
   const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk0=loadDeck(ch),dk=treeDeckMap(dk0,ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);
   const cards=Object.keys(dk).sort((a,b)=>"SKERC".indexOf(rarityOf(a))-"SKERC".indexOf(rarityOf(b))||CARDS[a].c-CARDS[b].c).map(id=>`<span class="rcc r-${rarityOf(id)}">${esc(CARDS[id].n)}<b>×${dk[id]}</b></span>`).join("");
   const mc=S.flowBring.length?S.flowBring.map(m=>`<span class="rcc">${esc(TEXT.names[m.char]||m.char)}・${esc(m.rank)}<b>${m.cards.length}枚</b></span>`).join(""):`<span class="dim">なし</span>`;
@@ -82,7 +97,7 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();
    <div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
    <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
-function runBack(){SND.se("ui_cancel");closeModal()}
+function runBack(){SND.se("ui_cancel");closeModal();if(S.flow&&S.flowFromMode){S.flow.mode=null;showModes()}}
 function runGo(){const mode=flowMode(),bring=S.flowBring||[];closeModal();S.flow=null;bootSeq(()=>newRun(mode,bring),mode,bring)}
 /* ---- 5. キャラが光の粒にほどけて端末に吸いこまれる（★虎雪 11:35。約3秒・タップでとばす）----
    粒は戦闘の待機の絵のピクセルから作る（色はキャラの色）。★v0.22.36：端末と部屋はグラフィック班ラウンド34 の絵（ui/c2/revremit_ui_terminal.png〈640×360 の透明な層〉・revremit_bg_terminal_room.png）。

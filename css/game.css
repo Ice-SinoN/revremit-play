@@ -445,3 +445,13 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .tname{width:100%;font:inherit;padding:4px;background:#0b0f1a;color:#fff;border:1px solid #3a4560}
 /* ★v0.22.51 QA：型のメモの名前（10字）を枠の中に（縁を細く・字を小さく・行の高さを枠に合わせる） */
 .u640 .tslots button,.tslots button{border-width:4px;padding:0 2px;font-size:9px;letter-spacing:-.4px;line-height:14px;text-overflow:clip}
+/* ★v0.22.61 走りかたの画面・ミニカーの中身・リザルトのパーツの効果 */
+.mdcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-align:left}
+.mdcard .mdh{font-size:28px;line-height:30px;font-weight:bold}.mdcard .mdn{font-size:12px;opacity:.85}.mdcard .mdt{font-size:11px;line-height:15px}
+.mcdet{padding:4px}.mcdet .scroll{position:absolute;inset:6px;overflow-y:auto}.mcd1{margin-bottom:6px;line-height:13px}.mcd1 .h{font-size:11px}
+.sign.side .big{font-size:18px;margin:0 2px}
+.rparts{padding:3px 6px;overflow-y:auto;line-height:12px}.rparts .rp1{opacity:.65}.rparts .rp1.on{opacity:1;color:var(--lime)}
+.u640 .sign.mcdet,.sign.mcdet,.u640 .sign.rparts,.sign.rparts{display:block;text-align:left;justify-content:flex-start;align-items:flex-start}
+.mcdet .scroll,.mcdet .mcd1,.rparts .rp1{text-align:left}
+.rparts .rp1{font-size:9px;line-height:11px}
+.mcdet .scroll{bottom:16px}.mcmore{position:absolute;right:8px;bottom:2px;color:var(--lime)}

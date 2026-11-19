@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.60（β2）";
+const VERSION="試作 v0.22.61（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -93,8 +93,7 @@ function showTitle(){
   ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(TEXT.names[ch]||ch)}・3エリア</div></div>
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
-   <button class="${loadRun()?"":"main"}" onclick="startFlow('MT')">MT で走る</button>
-   <button onclick="startFlow('AT')">AT で走る</button>
+   <button class="${loadRun()?"":"main"}" onclick="startFlow()">${esc(TU("flow_start","スタート"))}</button>
    <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
@@ -184,20 +183,28 @@ function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
 function mcHTML(m,o={}){const b=mcBonus(m);
   return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
 /* ★v0.16：背景 garage。デッキと同じ並び（左に一覧・右にボタン） */
-function showMinicarGarage(mode){SND.bgm("title");try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
+function showMinicarGarage(mode){SND.bgm("title");if(!(S.flow&&!S.flow.mode))try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
   setScreen("garage");setScene("dim");
   const mc=loadMinicars().slice().reverse();S.mcAll=mc;S.mcMode=mode;S.mcSel=(S.mcSel||[]).filter(id=>mc.some(m=>m.id===id));
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ（${esc(mode)}）</div><div class="sign" ${at(8,26,300,328)}></div>
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ${S.flow&&!S.flow.mode?"":"（"+esc(mode)+"）"}</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="mcl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:S.mcSel.includes(m.id)?"on":"",attrs:`onclick="toggleBring(${i})"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
   ${backBtn("もどる","S.mcSel=[];S.flow?showNights():showTitle()")}
-  <div class="sign side" ${at(452,60,180,96)}>${itemIcon("minicar",32)}<div class="big">${sel.length}/${BRING_MAX}<span class="small">台</span></div><div class="small dim">持ち込むミニカーを<br>${BRING_MAX}台まで選ぶ</div></div>
-  <div class="col" ${at(452,236,180)}><button class="main u9" onclick="startWithMinicars()">${sel.length?"この"+sel.length+"台で出発":"出発"}</button>
-   <button class="u9" onclick="S.mcSel=[];runConfirm([])">ミニカーなし</button></div>`;
-  if($("#mcl"))$("#mcl").scrollTop=sc}
+  <div class="sign mcdet" ${at(312,58,320,226)}><div class="scroll" id="mcd">${sel.length?sel.map(mcDetail).join(""):`<div class="small dim">${esc(TU("mc_detail_none","ミニカーを選ぶと、中身（上がるステータス・カード・パーツ）がここに出ます。"))}</div>`}</div></div>
+  <div class="sign side" ${at(312,292,132,58)}><div class="small">持ちこみ <b class="gold">${sel.length}/${BRING_MAX}</b> 台</div><div class="small dim">${BRING_MAX}台まで選ぶ</div></div>
+  <div class="col" ${at(452,290,180)}><button class="main u9" onclick="startWithMinicars()">${sel.length?"この"+sel.length+"台で出発":"出発"}</button>
+   <button class="u9" onclick="S.mcSel=[];flowToMode([])">ミニカーなし</button></div>`;
+  if($("#mcl"))$("#mcl").scrollTop=sc;{const d=$("#mcd");if(d&&d.scrollHeight>d.clientHeight+2){const t=document.createElement("div");t.className="small mcmore";t.textContent="▼ つづき（上下に動かせます）";d.parentNode.appendChild(t);d.onscroll=()=>{if(d.scrollTop+d.clientHeight>=d.scrollHeight-2)t.remove()}}}}
+/* ★v0.22.61 虎雪 11-20 07:58：持ちこむミニカーの中身（ステータスアップ・カード2種の効果・パーツの効果）。2台なら両方 */
+function mcDetail(m){const b=mcBonus(m);const own=m.char!==curChar();
+  return `<div class="mcd1"><div class="h"><span class="gold">${esc(m.rank)}</span> ${esc(TEXT.names[m.char]||m.char)}・${esc(m.mode)}${m.clear?"・クリア":""}</div>
+   <div class="small">${esc(TU("mc_up","ステータスアップ"))}：耐久 +${b.hp}・攻撃 +${b.atk}%</div>`+
+   m.cards.map(c=>{const d=CARDS[c.id];if(!d)return"";return `<div class="small"><b>${esc(mcCardName(c))}</b> <span class="dim">${typeRar(d.t,rarityOf(c.id))}</span>：${esc(descOf(inst(c.id,!!c.up),!!c.up,0))}</div>`}).join("")+
+   (m.part&&PARTS[m.part]?`<div class="small"><b>${esc(partName(m.part))}</b> <span class="dim">パーツ</span>：${esc(PARTS[m.part].d)}</div>`:`<div class="small dim">パーツなし</div>`)+
+   (own?`<div class="small dim">${esc(TU("mc_other","ほかのキャラのミニカー：カードはときどき報酬に出る"))}</div>`:"")+`</div>`}
 function toggleBring(i){const m=S.mcAll[i];if(!m)return;const s=S.mcSel,k=s.indexOf(m.id);
   if(k>=0)s.splice(k,1);else if(s.length<BRING_MAX)s.push(m.id);else{s.shift();s.push(m.id)}showMinicarGarage(S.mcMode)}
-function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];S.flow=S.flow||{mode:S.mcMode};runConfirm(p)}/* ★v0.22.28 確認の画面へ */
+function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];S.flow=S.flow||{mode:S.mcMode};flowToMode(p)}/* ★v0.22.28 確認の画面へ */
 /* ボット用：newRun("MT") でガレージを飛ばして走れる（組んだデッキを使う） */
 /* ★つづきから */
 function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
@@ -540,7 +547,9 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}　<span class="gold">ログ +${lg}</span></div>`;
   h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,50)} onclick="togglePick(${i})"`})}).join("");
   if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn${[...PARTS[p].n].length>6?" lng":""}">${esc(PARTS[p].n)}</span></button>`}).join("");
-    const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`}
+    const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`;
+    /* ★v0.22.61 虎雪 11-20 07:58：パーツの効果の文と数値をタップなしで（選んでいるものは明るく） */
+    h+=`<div class="sign rparts" id="rpd" ${at(100,216,440,58)}>${resPartsHTML()}</div>`}
   h+=`<div class="sign foot" id="pkd" ${at(100,276,300,74)}><div class="h">ミニカーに残すカードを${S.need}枚</div><div class="small dim">上のショーケースから選ぶ（ランダムな${res.ten.length}枚）${G.parts.length?"・パーツも1つ":""}</div><div class="small">評価${res.rank}：次のランで 耐久+${MC_BONUS.hp[res.ri]}・攻撃+${MC_BONUS.atk[res.ri]}%</div></div>
   <button class="main u9" id="mkcar" ${at(410,300,130,28)} disabled onclick="saveCar()">あと${S.need}枚えらぶ</button>`;
   ui().innerHTML=h;
@@ -554,7 +563,8 @@ function togglePick(i){const s=S.pickSel,k=s.indexOf(i);if(k>=0)s.splice(k,1);el
   S.res.ten.forEach((_,j)=>{const el=$("#pk"+j);if(el)el.classList.toggle("sel",s.includes(j))});
   const b=$("#mkcar"),rest=S.need-s.length;if(b){b.disabled=rest>0;b.textContent=rest>0?`あと${rest}枚えらぶ`:"ミニカーを作る"}
   const c=S.res.ten[i],dd=$("#pkd");if(c&&dd)dd.innerHTML=`<div class="h">${esc(CD(c).n)}${c.up?"+":""} <span class="small dim">${typeRar(CD(c).t,rarityOf(c))}</span></div><div class="small">${esc(descOf(c,!!c.up,0))}</div><div class="small dim">選んだ ${s.length}/${S.need}枚</div>`}
-function pickPart(i){S.partSel=i<G.parts.length?i:-1;for(let j=0;j<=G.parts.length;j++){const el=$("#pp"+j);if(el)el.classList.toggle("sel",j===i)}}
+function resPartsHTML(){return G.parts.map((p,i)=>`<div class="small rp1${i===S.partSel?" on":""}"><b>${esc(partName(p))}</b>：${esc(PARTS[p].d)}</div>`).join("")}
+function pickPart(i){S.partSel=i<G.parts.length?i:-1;for(let j=0;j<=G.parts.length;j++){const el=$("#pp"+j);if(el)el.classList.toggle("sel",j===i)}const r=$("#rpd");if(r){r.innerHTML=resPartsHTML();const o=r.querySelector(".rp1.on");if(o)o.scrollIntoView({block:"nearest"})}}
 function saveCar(){
   if(S.pickSel.length<S.need)return;
   const a=loadMinicars(),m=makeMinicar(S.res,S.pickSel,S.partSel);SND.se("minicar_make");
