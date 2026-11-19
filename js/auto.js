@@ -9,7 +9,11 @@ const FEATURES={auto:true};
 const OPTS={bgm:0.55,se:0.9,speed:1};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem("revremit_opts")||"{}"))}catch(e){}
 function optsSave(){try{localStorage.setItem("revremit_opts",JSON.stringify(OPTS))}catch(e){}}
-function optsApply(){if(window.AUDIO)try{AUDIO.setVolume("bgm",OPTS.bgm);AUDIO.setVolume("se",OPTS.se);AUDIO.setVolume("engine",Math.min(1,OPTS.se*0.85))}catch(e){}}
+const ENGINE_BASE=0.5,WEATHER_BASE=0.25;
+function optsApply(){if(window.AUDIO)try{AUDIO.setVolume("bgm",OPTS.bgm);AUDIO.setVolume("se",OPTS.se);AUDIO.setVolume("engine",Math.min(1,OPTS.se*0.85*ENGINE_BASE*optVol("engine")));AUDIO.setVolume("weather",Math.min(1,OPTS.se*WEATHER_BASE*optVol("weather")))}catch(e){}}
+/* ★v0.22.61 虎雪 11-20 08:08：エンジン音は前の半分（ENGINE_BASE）。エンジン音・天候の音は設定で変えられる（スライダーは②。値は OPTS.engine・OPTS.weather＝0〜1、初期値 1＝この基準のまま）。天候の音の基準はサウンド班の audio-list の値に合わせる（今は仮）。鳴らす所は weatherVol() を掛ける */
+function optVol(k){const v=OPTS[k];return typeof v==="number"&&isFinite(v)?Math.max(0,Math.min(1,v)):1}
+function weatherVol(){return(SND.on?1:0)*OPTS.se*WEATHER_BASE*optVol("weather")}
 addEventListener("pointerdown",()=>optsApply(),{once:true});
 
 /* ---- オート ---- */
