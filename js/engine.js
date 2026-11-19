@@ -27,13 +27,13 @@ function RULE(){const r=G&&CHARS[G.char]&&CHARS[G.char].rule||{};const t=G&&tree
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。キャラごとに枝3本 × 4段（1・2・3・4 ポイント）。4段目（型の決め）はプリセットで1本だけ。
    セーブ profile.tree[char]={pts, presets:[{name,lv:[0,0,0]}×3], cur}。ランのはじめに G.tree={lv:[..]} に写す */
 const TREE={
- YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","studless","spike","dashcam"],top:"白猫の護り：2回目からのシフトアップで凍結 1",tip:"白猫の護りを打ったあと、1ターン2回目からのシフトアップのたびに凍結 1。"/* ★v0.22.57 文は仮 */},
+ YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","studless","spike","dashcam"],top:"白猫の護り：2回目のシフトアップから凍結 1",tip:"白猫の護り：1ターンの2回目からのシフトアップのたびに凍結 1。"/* ★v0.22.57 文は仮 */},
    {id:"y_cnt",n:"白猫の構え",d:"守ってから返す型",entry:["counter","hyoujin"],cards:["counter","hyoujin","braking","shimo","shironeko"],parts:["grip","cage","jack","widebody","hook"],top:"白猫の護り：防御の半分を次のアタックに"},
    {id:"y_red",n:"紅雪の走り",d:"レッドで押し切る型",entry:["tsurara","hakunetsu"],cards:["tsurara","hakunetsu","rinkai","kyokkou","hyouen","backfire","cooldown"],parts:["hicam","pipe","limiter","oilcool","drysump","forged"],top:"白猫の護り：レッドではガソリン −1"}],
  HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["launch","boost","nitro","h_12inch"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
    {id:"h_combo",n:"火花",d:"数で当てる型",entry:["h_kagerou","h_nukiuchi"],cards:["h_kagerou","h_nukiuchi","h_hibana","h_shippu","h_nichirin"],parts:["turbo","clutch","slick","h_bigbore"],top:"このターン3枚目からのアタック +2"},
    {id:"h_pit",n:"整備メモ",d:"守って立て直す型",entry:["h_hidamari","h_kneegrip"]/* ★v0.22.54 LD 11-34・design 11-3-5：フルブレーキを外す */,cards:["h_hidamari","h_fullbrake","h_kneegrip","h_memo"],parts:["grip","jack","cage","oilcool","h_wheelie"],top:"受けるダメージ半分が、最初の3ターンに"}],
- MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：MT はチェイン5以上で2回目",tip:"MT で、花の便りが1ターン2回まで。2回目は、チェイン5以上のときだけ。"/* ★v0.22.53 文は仮（シナリオ班の文が来たら差しかえ） */},
+ MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：チェイン5以上で2回目（MT）",tip:"花の便り：1回目はチェイン3から。2回目はチェイン5以上のときだけ（MT だけ）。",mtOnly:1/* ★v0.22.53 文は仮（シナリオ班の文が来たら差しかえ） */},
    {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["grip","carbon","lsd","m_horo"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
    {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["cage","jack","widebody","m_light"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
  NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","seq","n_paddleshifter"],top:"4回目のシフトアップで、もどるガソリン +1",tip:"4回目のシフトアップで、もどるガソリン +1（グッド +2・パーフェクト +3）。"/* ★v0.22.51 text 27-6-2 */},
@@ -80,18 +80,18 @@ function modInfo(id){const k=modKind(id),d=CARDS[id];if(!k)return null;const RC=
   const T={
    atk:{l1:small?RC:"ダメージ +1",A:small?["重く",frac?"倍率 +0.1":"ダメージ +1"]:["軽量化",RC+"。早く打てる"],B:["ワイドレンジ","帯で打つと ×"+((d.bm||1.5)+0.25)],Bok:bnd},
    num:{l1:"数 +1",A:["軽量化",RC+"。早く打てる"],B:["ワイドレンジ","帯で打つと ×"+((d.bm||1.5)+0.25)],Bok:bnd},
-   grd:{l1:"防御 +2",A:["余熱","防御の半分が、次の番に残る"],B:["切り返し","次の番の最初のアタック +2"]},
+   grd:{l1:"防御 +1",/* ★v0.22.58 design 11-2-2 */A:["余熱","防御の半分が、次の番に残る"],B:["切り返し","次の番の最初のアタック +2"]},
    frz:{l1:"凍結 +1",A:["根雪","1回ぶん、凍結の上限に数えない"],B:["雪囲い","凍結を与えたら、防御 +2"]},
-   drw:{l1:RC,A:["オールレンジ","帯の外でも ×1.5"],Aok:bnd,B:["下取り","引いた中の1枚を、山札の下へ"]},
+   drw:{l1:(d.c>0||d.costGear)?"回転 −500":"防御 +2",/* ★v0.22.58 引く数とガソリンは変えない */A:["オールレンジ","帯の外でも ×1.5"],Aok:bnd,B:["下取り","引いた中の1枚を、山札の下へ"]},
    cond:{l1:RC,A:["半クラッチ","レッドの外でも、半分で打てる"],B:["フルチャージ","大技にする（ガソリン 10・条件で −1）"]},
-   kinen:{l1:"ガソリン 0",A:["花びら","引いた枚数だけ、チェイン +1"],B:["アルバム","攻撃が来なければ、もう1枚"]}}[k];
+   kinen:{l1:"防御 +2",/* ★v0.22.58 */A:["花びら","引いた枚数だけ、チェイン +1"],B:["アルバム","攻撃が来なければ、もう1枚"]}}[k];
   return{kind:k,l1:T.l1,A:{name:T.A[0],txt:T.A[1],ok:T.Aok!==false},B:{name:T.B[0],txt:T.B[1],ok:T.Bok!==false}}}
 const MOD_CACHE={};
 function modDef(id,m){const key=id+"|"+m.lv+"|"+(m.br||"");if(MOD_CACHE[key])return MOD_CACHE[key];const b=CARDS[id],k=modKind(id);if(!k)return b;
   const d=Object.assign({},b,{fx:b.fx.map(f=>f.slice()),mod:m});const cm=()=>{if(!(b.c>0)&&!b.costGear){d.gas=Math.max(0,(d.gas||0)-1);if(d.gasu!=null)d.gasu=Math.max(0,d.gasu-1);if(d.gasMT!=null)d.gasMT=Math.max(0,d.gasMT-1);return}d.c=Math.max(0,(d.c||0)-500);if(d.cu!=null)d.cu=Math.max(0,d.cu-500);if(d.costGear)d.costGear=[Math.max(0,d.costGear[0]-500),d.costGear[1],d.costGear[2]]};
   const vp=x=>{d.v=Math.round((d.v+x)*100)/100;if(d.vu!=null)d.vu=Math.round((d.vu+(x<1?x*1.5:Math.round(x*1.5)))*100)/100};
   const small=k==="atk"&&b.v<8,frac=b.v<1;
-  if(k==="atk"){if(small)cm();else vp(1)}else if(k==="num")vp(1);else if(k==="grd")vp(2);else if(k==="frz")vp(1);else if(k==="drw"||k==="cond")cm();else if(k==="kinen"){d.gas=0;if(d.gasu!=null)d.gasu=0}
+  if(k==="atk"){if(small)cm();else vp(1)}else if(k==="num")vp(1);else if(k==="grd")vp(1);else if(k==="frz")vp(1);else if(k==="cond")cm();else if(k==="drw"){if(b.c>0||b.costGear)cm();else d.fx.push(["blkFlat",2])}else if(k==="kinen")d.fx.push(["blkFlat",2]);/* ★v0.22.58 design 11-2-2：ガード +1・記念写真と回転0の引くカードは防御 +2（引く数・ガソリンは変えない） */
   if(m.lv>=2){const br=m.br;
     if(k==="atk"){if(br==="A"){if(small)vp(frac?0.1:1);else cm()}else if(b.band)d.bm=(b.bm||RULES.bandMul)+0.25}
     else if(k==="num"){if(br==="A")cm();else if(b.band)d.bm=(b.bm||RULES.bandMul)+0.25}
