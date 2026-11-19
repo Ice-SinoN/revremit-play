@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.40（β2）";
+const VERSION="試作 v0.22.41（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -78,7 +78,7 @@ function cardBig(c,o){o=o||{};const d=CD(c),r=rarityOf(c),up=o.up!=null?o.up:!!c
   const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(c,up,0);
   const art=o.art?cardArtTag(c.id||c):"";
   return `<button class="cb t-${d.t} r-${r}${o.cls?" "+o.cls:""}" ${o.attrs||""}>${o.art?`<span class="bw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`:""}<span class="bn">${esc(d.n)}${up?"+":""}</span>`+
-   `<span class="bt">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span><span class="bc">${o.art?`回転 ${cost}　G${up&&d.gasu!=null?d.gasu:d.gas}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${up&&d.gasu!=null?d.gasu:d.gas}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}</span></button>`}
+   `<span class="bt">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span><span class="bc">${o.art?`回転 ${cost}　G${gasLabel(d,up)}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${gasLabel(d,up)}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}</span></button>`}
 
 /* ---- タイトル ---- */
 /* ★タイトルロゴ（虎雪 13:06：Remit の R を左右反転した Я で赤）。グラフィック班の絵（ファイル名に logo）が assets/c2/ にあればそれ、なければ文字で */
@@ -164,7 +164,7 @@ function deckPick(id){if(S.dkSel===id)return;SND.se("ui_ok");if(S.dkSel)S.dkCmp=
 function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(id,false,0),
    du=descOf(id,true,0),dn=descOf(id,false,0);
   return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
-   <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
+   <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${gasLabel(d,false)}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
   if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div>${ruleTxtOf(curChar())?`<div class="small" style="margin-top:8px"><span class="gold">キャラの決まり</span><br>${esc(ruleTxtOf(curChar()))}</div>`:""}</div>`;/* ★v0.22.24 text 27-2：キャラの決まり（MOMO は花の便りの1行） */
   const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
@@ -490,7 +490,7 @@ function showSim(){
     h+=`<div class="monitor simmon" ${at(104,28,424,214)}></div>`+simCard(false,112,"いま")+`<div class="simarr" ${at(312,110,16,20)}>→</div>`+simCard(true,328,"強化したあと")+
      `<button class="main u9 simgo" ${at(250,210,140,28)} onclick="uiUpgrade(${S.simSel})">強化する</button>`}
   h+=`<button class="mini arr" ${at(4,256,28,72)} onclick="simScroll(-1)">◀</button><div class="simrow scroll" id="simrow" ${at(36,246,568,96)}>`+
-   idx.map(i=>{const c=G.deck[i],d=CD(c);return `<span class="sw${i===S.simSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,false,0),gas:d.gas,band:false,cls:i===S.simSel?"sel":"",attrs:`onclick="simPick(${i})"`})+`</span>`}).join("")+
+   idx.map(i=>{const c=G.deck[i],d=CD(c);return `<span class="sw${i===S.simSel?" on":""}">`+cardSmall(c,{cost:baseCost(c,false,0),gas:gasRaw(d,false),band:false,cls:i===S.simSel?"sel":"",attrs:`onclick="simPick(${i})"`})+`</span>`}).join("")+
    `</div><button class="mini arr" ${at(608,256,28,72)} onclick="simScroll(1)">▶</button>`;
   h+=backBtn("強化しない","S.simSel=null;nextRow()");
   const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;fitHandNames();

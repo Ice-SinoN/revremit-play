@@ -171,7 +171,11 @@ function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"p
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
 /* ★ガソリン（design 0-1） */
 function maxGas(){return RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0)}
-function gasBase(c){const d=CD(c);return c.up&&d.gasu!=null?d.gasu:(d.gas||0)}
+/* ★v0.22.41 走りかたで変わるガソリン（gasMT＝MT のときの値。強化の gasu があればそちら） */
+function gasMode(){return (typeof G!=="undefined"&&G&&G.mode)||(typeof PRF==="function"&&PRF()&&PRF().lastMode)||"MT"}
+function gasRaw(d,up,mode){if(up&&d.gasu!=null)return d.gasu;if((mode||gasMode())==="MT"&&d.gasMT!=null)return d.gasMT;return d.gas||0}
+function gasLabel(d,up){const g=gasRaw(d,up,"AT"),m=gasRaw(d,up,"MT");return m===g?String(g):`${gasRaw(d,up)}（MT ${m}・AT ${g}）`}
+function gasBase(c){return gasRaw(CD(c),c.up)}
 function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;
   if(has("drysump")&&d.band==="R"&&a>0&&B.dryT<2&&inBand(c))a--;return a}
 function addGas(n){B.gas=Math.min(maxGas(),B.gas+n)}
