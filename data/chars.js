@@ -41,7 +41,7 @@ const CHARS={
     name:"NANA",carName:"GR スープラ",weapon:"ストレートシックス",type:"シフト連打",join:3,
     car:{type:"mt",gears:8,mult:[1.0,1.12,1.24,1.36,1.48,1.6,1.72,1.84],
       red:6500,limit:7000,band:[4500,5500],core:[4800,5200],
-      idle:1000,brake:3000,hp:70,spd:10,/* ★v0.22.30 design v0.11.15 10-12-4d：9→10 */minShift:3000,
+      idle:1000,brake:3000,hp:80,/* ★v0.22.33 design v0.11.16 10-12-4d：70→80 */spd:10,/* ★v0.22.30 design v0.11.15 10-12-4d：9→10 */minShift:3000,
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1000,2500],M:[2500,4500],R:[6500,7000]}},
     deck:[["n_koutotsu",2],["n_hosaki",4],["n_hachiren",2],["n_downforce",2],["n_houyoku",2],["n_phoenix",1],["braking",2],["qshift",2],["slip",2],["blip",1]],
