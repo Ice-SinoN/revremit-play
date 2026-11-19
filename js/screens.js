@@ -337,7 +337,7 @@ function renderBattle(){
   const tag=e.rank==="elite"?"エリート":e.rank==="boss"?"ボス":"",form=formOf(e);
   const st=[];if(B.curDouble)st.push("次の攻撃2倍");if(B.curAdd)st.push(`次の攻撃+${B.curAdd}`);if(B.wideAdd)st.push(`ワイド+${B.wideAdd}`);
   if(B.atkDown)st.push(`次の攻撃 回転−${B.atkDown}`);if(B.nextBonus)st.push(`次 倍率+${B.nextBonus}`);if(B.atkTwice)st.push("次のアタック2回");if(B.perfTwice)st.push("パーフェクトで次2回");
-  if(B.htTurn)st.push("ヒール＆トゥ");
+  if(B.htTurn)st.push("ヒール＆トゥ");if(B.atkAll)st.push(`誇り +${B.atkAll}（アタック全部）`);/* text 28-2 hokori_icon */
   const n=B.hand.length,cw=L.hand.cw,stepX=n>1?Math.min(cw+2,Math.floor((L.hand.w-cw)/(n-1))):cw+2;
   const chainPct=Math.round((chainMul()-1)*100);
   let h=`<div class="tap" ${at(0,16,L.W,L.panel.y-16)} onclick="stageTap()"></div>
@@ -358,10 +358,10 @@ function renderBattle(){
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
-    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow-y:auto"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
-      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div>${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
+    h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${TYPE_JP[d.t]===RARITY_JP[rarityOf(c)]?TYPE_JP[d.t]:TYPE_JP[d.t]+"・"+RARITY_JP[rarityOf(c)]}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
+      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div class="dtx">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
-      ${acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`).join("")}</div>`}
+      ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
   // 右下：ボタン
   h+=`<button class="main end" ${at(...L.btnEnd)} ${locked?"disabled":""} onclick="doEndTurn()">ターン<br>終了</button>`;
   if(!window.TUTORIAL_ON&&typeof autoButtons==="function")h+=autoButtons(locked);/* ★v0.22.11 オート・設定 */

@@ -35,8 +35,9 @@ function baseCost(c,up,gear){const d=CD(c);up=up===undefined?!!c.up:up;
   return up&&d.cu!=null?d.cu:d.c}
 function costOf(c){const d=CD(c);let x=baseCost(c,undefined,B?B.gear:0);if(d.t==="atk"&&B&&B.atkDown)x=Math.max(0,x-B.atkDown);return x}
 function descOf(c,up,gear){const d=CD(c);up=up===undefined?!!c.up:up;const v=cardVal(c,up);
-  return (up&&d.du?d.du:d.d).replace(/\{v\}/g,v)/* ★v0.22.7 du＝強化したときの説明 */.replace(/\{gv\}/g,Math.round(v*((gear||0)+1)))}
-function argOf(a,v){return a==="v"?v:a}
+  return (up&&d.du?d.du:d.d).replace(/\{v\}/g,v)/* ★v0.22.7 du＝強化したときの説明 */.replace(/\{gv\}/g,Math.round(v*((gear||0)+1))).replace(/\{k\}/g,kOf(c,up))}
+function argOf(a,v,k){return a==="v"?v:a==="k"&&k!=null?k:a}
+function kOf(c,up){const d=CD(c);up=up===undefined?!!c.up:up;return up&&d.ku!=null?d.ku:d.k}/* ★v0.22.24 2つ目の数 {k}（text 28-0） */
 /* 回転を下げる量（見込み用） */
 function revDownOf(c){const v=cardVal(c);return CD(c).fx.filter(f=>f[0]==="revDown").reduce((s,f)=>s+argOf(f[1],v),0)}
 /* 強化で何か変わるか（変わらないカードはシムトレーニングに出さない） */
@@ -239,7 +240,7 @@ function preview(c){
 }
 /* 効果の手助け */
 function mkCtx(m){return{
-  attack(v,raw){let d=raw?v:v*m*(1+0.1*G.tune.ecu+(G.atkBonus||0));
+  attack(v,raw){let d=raw?v:(v+(B.atkAll||0))*m*/* ★v0.22.24 誇り：倍率の前に足す（多段は1発ずつ） */(1+0.1*G.tune.ecu+(G.atkBonus||0));
     if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0;d+=B.turnAtkAdd}
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
@@ -279,6 +280,7 @@ const OPS={
  limitGuard:()=>{B.limitGuard=true;addLog("このターン、回転はリミットで止まる")},
  atkShifts:(x,v)=>{const k=Math.min(B.shifts,shiftCapNow())+1;for(let i=0;i<k;i++)x.attack(v)},
  down1:()=>{if(B.gear>0){B.gear--;B.rpm=Math.min(limit(),Math.round(B.rpm/car().downDiv/100)*100);addLog(`シフトダウン → ${B.gear+1}速`);ev({k:"down"})}},
+ atkAllAdd:(x,a,cap)=>{B.atkAllCap=Math.max(B.atkAllCap||0,cap||0);const b=B.atkAll||0;B.atkAll=Math.min(B.atkAllCap,b+a);if(B.atkAll>b){addLog(`誇り：アタックが全部 +${B.atkAll}`);ev({k:"onup"})}},/* ★v0.22.24 10-12-4d：この戦闘のあいだ・凍結と防御には足さない */
  nextAtkAdd:(x,a)=>{B.atkAdd=Math.min(15,B.atkAdd+a);addLog(`次のアタック +${a}（合計 +${B.atkAdd}）`)},
  blkFrz:(x,r)=>{const k=Math.min(15,Math.floor(B.frozeTotal*r));if(k>0)x.blockRaw(k)},
  atkShatter:(x,v)=>{const k=Math.min(60,B.frozeTotal*v);x.attack(k,true);B.frozeTotal=0;addLog("凍結の合計が 0 にもどった")},
@@ -340,7 +342,8 @@ function onShiftUp(g){
   if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});
     B.onUp.forEach(([op,...a])=>{if(OPS[op])OPS[op](x,...a)})}
   if(RULE().perfBlk&&(g==="perfect"||(G.mode==="AT"&&B.shiftsT===1))){B.block+=RULE().perfBlk;addLog(`パーフェクトの守り：防御 +${RULE().perfBlk}`);ev({k:"pblk",v:RULE().perfBlk})}/* ★v0.22.7 NANA（design 10-3） */
-  if(g==="perfect"&&B.onPerf.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);B.onPerf.forEach(([op,...a])=>{if(OPS[op])OPS[op](x,...a)})}
+  const atP=G.mode==="AT"&&B.shiftsT===1;/* ★v0.22.24 誇り：AT は1ターン最初の自動シフトをパーフェクトに数える */
+  if((g==="perfect"||atP)&&B.onPerf.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);B.onPerf.forEach(([op,...a])=>{if(OPS[op]&&(g==="perfect"||op==="atkAllAdd"))OPS[op](x,...a)})}
   if(has("n_activediff")){if(g==="perfect"){B.perfStreak++;if(B.perfStreak>=3){B.perfStreak=0;B.curDouble=true;addLog("アクティブデフ：次のアタック2倍")}}else B.perfStreak=0}
   if(B.perfTwice&&(g==="perfect"||G.mode==="AT")){B.perfTwice=false;B.atkTwice=true;addLog("次のアタックは2回当たる")}
 }
@@ -416,7 +419,7 @@ function playCard(i,shift){
   m=Math.round(m*100)/100;
   let v=cardVal(c);if(band)v=rnum(v*(d.bm||RULES.bandMul),v);// ★帯
   const x=mkCtx(m);
-  const runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v)))});
+  const kv=kOf(c),runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v,kv)))});
   B.retry=false;runFx();
   if(d.sup&&B.openAir&&!d.fx.some(f=>f[0]==="openAir")){addLog("オープンエア");hitEnemy(B.openAir)}
   if(has("m_light")&&cost===0){B.rpm=Math.max(0,B.rpm-300)}

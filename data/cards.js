@@ -108,12 +108,12 @@ const CARDS={
  n_hiiro:{r:"R",mo:"guard",own:"NANA",n:"緋色",t:"grd",c:2000,gas:1,v:8,vu:12,fx:[["blk","v"],["onPerf","blk",3]],d:"防御 {v}。この戦闘の間、パーフェクトのたびに防御 +3",num:"blk"},
  n_totsugeki:{r:"R",mo:"atk_heavy",own:"NANA",n:"突撃",t:"atk",c:3500,gas:2,v:16,vu:24,band:"R",fx:[["atk","v"]],d:"{v}ダメージ（レッドゾーンで ×1.5）"},
  n_teatime:{r:"C",mo:"rev",own:"NANA",n:"ティータイム",t:"rev",c:0,gas:0,sup:1,v:1500,vu:2000,fx:[["revDown","v"],["draw",1]],d:"回転 −{v}・1枚引く"},
- n_hokori:{r:"R",mo:"rev",own:"NANA",n:"誇り",t:"rev",c:0,gas:1,sup:1,v:3,vu:5,fx:[["onPerf","nextAtkAdd","v"]],d:"この戦闘の間、パーフェクトのたびに次のアタック +{v}（重なる）"},
+ n_hokori:{r:"R",mo:"rev",own:"NANA",n:"誇り",t:"rev",c:0,gas:1,sup:1,v:1,vu:1,k:5,ku:7,fx:[["onPerf","atkAllAdd","v","k"]],d:"この戦闘の間、パーフェクトのたびに、アタックが全部 +{v}（最大 +{k}）。"},/* ★v0.22.24 design v0.11.12 10-12-4d・text 28-1 */
  n_taikan:{r:"E",mo:"atk_finisher",own:"NANA",n:"戴冠",t:"atk",c:4000,gas:2,v:20,vu:30,fx:[["taikan","v"]],d:"{v} ダメージ。最大ギアなら先に相手の防御を0に。最大ギアでなければ半分。"}/* ★design 10-11・10-12（条件の外は ×0.5） */,
  n_shukumei:{r:"R",mo:"atk_heavy",own:"NANA",n:"宿命",t:"atk",c:2000,gas:1,v:7,vu:10,fx:[["atkVsBig","v"]],d:"{v}ダメージ（エリート・ボスに1.5倍）"},
  n_recordline:{r:"C",mo:"draw",own:"NANA",n:"レコードライン",t:"drw",c:1000,gas:0,v:1,vu:2,band:"M",fx:[["draw","v"],["drawIfShift",1]],d:"{v}枚引く。このターンにシフトアップしていたら +1枚"},
  n_teppeki:{r:"C",mo:"guard",own:"NANA",n:"鉄壁",t:"grd",c:2000,gas:1,v:8,vu:12,fx:[["blk","v"]],d:"防御 {v}"},
- n_tenshou:{r:"R",mo:"atk_light",own:"NANA",n:"天翔",t:"atk",c:1500,gas:1,v:4,vu:6,halfDrop:1,fx:[["atk","v"]],d:"{v}ダメージ。「シフトして打つ」で打つと、シフトのあとの回転が ×0.5"},
+ n_tenshou:{r:"R",mo:"atk_light",own:"NANA",n:"天翔",t:"atk",c:1500,gas:1,v:7,vu:10,/* ★v0.22.24 10-12-4d：4（6）→7（10） */halfDrop:1,fx:[["atk","v"]],d:"{v}ダメージ。「シフトして打つ」で打つと、シフトのあとの回転が ×0.5"},
  // --- 生成・ジャマ（30種に数えない。チェインには数える）---
  oil:{r:"C",own:"N",n:"エンジンオイル",t:"rev",c:0,gas:0,sup:1,gen:1,v:500,fx:[["atkDown","v"],["draw",1]],d:"次に打つアタックの回転 −{v}・1枚引く（使うと消える）"},
  hyoushou:{r:"C",mo:"atk_light",own:"YUKI",n:"氷晶",t:"atk",c:0,gas:0,gen:1,v:3,fx:[["atk","v"]],d:"{v}ダメージ（使うと消える）"},
