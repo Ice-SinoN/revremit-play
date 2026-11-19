@@ -23,7 +23,7 @@ const partOK=id=>!G||!G.ul||G.ul.parts.includes(id);
 function noBlow(){return NR().noBlow||has("forged")||!!(G&&G.practice)}
 /* ★v0.22 キャラの決まり（design 9-10-1）：CHARS[c].rule */
 function RULE(){const r=G&&CHARS[G.char]&&CHARS[G.char].rule||{};const t=G&&treeTop();
-  if(t==="h_pit")return Object.assign({},r,{halfDmg:3});if(t==="m_chain")return Object.assign({},r,{rescueN:2});if(t==="n_perf")return Object.assign({},r,{perfBlk:5});return r}
+  if(t==="h_pit")return Object.assign({},r,{halfDmg:3});if(t==="m_chain")return Object.assign({},r,{rescueN:2,rescue2At:5});/* ★v0.22.53 design 11-3-5：2回目はチェイン5以上 */if(t==="n_perf")return Object.assign({},r,{perfBlk:5});return r}
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。キャラごとに枝3本 × 4段（1・2・3・4 ポイント）。4段目（型の決め）はプリセットで1本だけ。
    セーブ profile.tree[char]={pts, presets:[{name,lv:[0,0,0]}×3], cur}。ランのはじめに G.tree={lv:[..]} に写す */
 const TREE={
@@ -33,7 +33,7 @@ const TREE={
  HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["launch","boost","nitro","h_12inch"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
    {id:"h_combo",n:"火花",d:"数で当てる型",entry:["h_kagerou","h_nukiuchi"],cards:["h_kagerou","h_nukiuchi","h_hibana","h_shippu","h_nichirin"],parts:["turbo","clutch","slick","h_bigbore"],top:"このターン3枚目からのアタック +2"},
    {id:"h_pit",n:"整備メモ",d:"守って立て直す型",entry:["h_hidamari","h_fullbrake"],cards:["h_hidamari","h_fullbrake","h_kneegrip","h_memo"],parts:["grip","jack","cage","oilcool","h_wheelie"],top:"受けるダメージ半分が、最初の3ターンに"}],
- MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：1ターン2回まで"},
+ MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：2回目はチェイン5以上のとき",tip:"花の便りが1ターン2回まで。2回目は、チェイン5以上のときだけ。"/* ★v0.22.53 文は仮（シナリオ班の文が来たら差しかえ） */},
    {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["grip","carbon","lsd","m_horo"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
    {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["cage","jack","widebody","m_light"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
  NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","seq","n_paddleshifter"],top:"4回目のシフトアップで、もどるガソリン +1",tip:"4回目のシフトアップで、もどるガソリン +1（グッド +2・パーフェクト +3）。"/* ★v0.22.51 text 27-6-2 */},
@@ -544,7 +544,7 @@ function playCard(i,shift){
   if(B.e.hp<=0)return finish("win");
   if(G.hp<=0&&dead())return finish("dead");
   /* ★design 10-10 MOMO「花の便り」：チェイン3以上で、打てるアタックが手札にないとき1枚引く（1ターン1回） */
-  {const R=RULE();if(R.rescue&&!B.sim&&B.chain>=R.rescue&&(B.rescueT||0)<(R.rescueN||1)&&canDraw()&&!B.hand.some(x=>CD(x).t==="atk"&&preview(x).ok)){B.rescueT=(B.rescueT||0)+1;if(drawN(1)){addLog("花の便り：1枚引いた");ev({k:"rescue",first:!G.rescueSaid});G.rescueSaid=true}}}
+  {const R=RULE();if(R.rescue&&!B.sim&&B.chain>=((B.rescueT||0)>=1&&R.rescue2At||R.rescue)&&(B.rescueT||0)<(R.rescueN||1)&&canDraw()&&!B.hand.some(x=>CD(x).t==="atk"&&preview(x).ok)){B.rescueT=(B.rescueT||0)+1;if(drawN(1)){addLog("花の便り：1枚引いた");ev({k:"rescue",first:!G.rescueSaid});G.rescueSaid=true}}}
   return checkAP();
 }
 function finish(r){if(!B.over)ev({k:r});B.over=true;B.result=r;if(r==="dead")G.hp=Math.max(0,G.hp);return r}
