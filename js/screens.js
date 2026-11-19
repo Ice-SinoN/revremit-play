@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.24（β2）";
+const VERSION="試作 v0.22.25（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -166,7 +166,7 @@ function deckCardBox(id,dk,lab){const d=CARDS[id],r=rarityOf(id),cost=d.costGear
   return `<div class="dkc r-${r}"><div class="small dim">${lab}</div><div class="h">${esc(d.n)}</div><div class="small"><span class="nw">${TYPE_JP[d.t]}・${RARITY_JP[r]}</span>　<span class="nw">デッキ ${dk[id]||0}/${deckLimitOf(id)}</span></div>
    <div class="small"><span class="nw">回転 ${cost}</span>　<span class="nw">ガソリン ${d.gas}</span>${d.band?`　<span class="nw">帯 ${d.band}</span>`:""}</div><div class="dkd">${d.dDeck?esc(d.dDeck).replace(/\n/g,"<br>"):esc(dn)}</div>${du!==dn?`<div class="small dim">強化：${esc(du)}</div>`:""}</div>`}
 function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCmp&&CARDS[S.dkCmp]&&S.dkCmp!==s?S.dkCmp:null;
-  if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div>${CHARS[curChar()]&&CHARS[curChar()].ruleTxt?`<div class="small" style="margin-top:8px"><span class="gold">キャラの決まり</span><br>${esc(CHARS[curChar()].ruleTxt)}</div>`:""}</div>`;/* ★v0.22.24 text 27-2：キャラの決まり（MOMO は花の便りの1行） */
+  if(!s)return `<div class="sign dkdet" ${at(316,56,316,200)}><div class="small dim">カードをタップすると、ここに効果が出ます。<br>続けて別のカードをタップすると、2枚を並べて入れ替えられます。</div>${ruleTxtOf(curChar())?`<div class="small" style="margin-top:8px"><span class="gold">キャラの決まり</span><br>${esc(ruleTxtOf(curChar()))}</div>`:""}</div>`;/* ★v0.22.24 text 27-2：キャラの決まり（MOMO は花の便りの1行） */
   const can=c&&(dk[c]||0)>0&&(dk[s]||0)<deckLimitOf(s);
   const hh=c?166:200;/* ★BUG-41：説明が長くて窓に入らないときは、下に「▼ つづき」を出す（指で上下に動かせる） */
   return `<div class="sign dkdet${c?" two":""}" ${at(316,56,316,hh)}>${c?deckCardBox(c,dk,"前に選んだ"):""}${deckCardBox(s,dk,"選んだ")}</div><div class="dkmore" ${at(316,56+hh-15,316,14)}>▼ つづき（上下に動かせます）</div>`+
@@ -180,7 +180,7 @@ function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
 function mcHTML(m,o={}){const b=mcBonus(m);
   return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
 /* ★v0.16：背景 garage。デッキと同じ並び（左に一覧・右にボタン） */
-function showMinicarGarage(mode){SND.bgm("title");
+function showMinicarGarage(mode){SND.bgm("title");try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
   setScreen("garage");setScene("dim");
   const mc=loadMinicars().slice().reverse();S.mcAll=mc;S.mcMode=mode;S.mcSel=(S.mcSel||[]).filter(id=>mc.some(m=>m.id===id));
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
@@ -661,6 +661,8 @@ function blowIntro(done){if(!G||G.night<3||noBlow()||seenGet().night3_first){don
 function charsOpen(){const u=PRF().unlock;return CHAR_ORDER.filter(c=>c==="YUKI"||(u.chars||[]).includes(c))}
 function curChar(){const c=PRF().char;return charsOpen().includes(c)?c:"YUKI"}
 function showChars(){setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");S.chSel=S.chSel||curChar();renderChars()}
+/* ★v0.22.25 キャラの決まりの文（AT を選んでいるとき＝最後に選んだ走り方が AT なら atRuleTxt を3つ目に） */
+function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C.atRuleTxt;return C.ruleTxt?(at?C.ruleTxt+"・"+C.atRuleTxt:C.ruleTxt):""}
 function renderChars(){const op=charsOpen(),sel=S.chSel;
   let h=`<div class="hdr" ${at(8,6,300,18)}>キャラをえらぶ</div>${backBtn("もどる","showTitle()")}`;
   CHAR_ORDER.forEach((c,i)=>{const C=CHARS[c],on=op.includes(c),x=16+i*152;
@@ -670,7 +672,7 @@ function renderChars(){const op=charsOpen(),sel=S.chSel;
   const C=CHARS[sel];
   h+=`<div class="sign" ${at(16,220,456,96)}><div class="h">${esc(sel)}（${esc(TEXT.names[sel]||"")}）　${esc(C.carName)} → ${esc(C.weapon||"")}</div>
     <div class="small">型：${esc(C.type)}　${C.car.gears}速・レッド ${C.car.red}・リミット ${C.car.limit}・耐久 ${C.car.hp}</div>
-    <div class="small">${esc(C.ruleTxt||"キャラの決まりなし（基準）")}</div><div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
+    <div class="small">${esc(ruleTxtOf(sel)||"キャラの決まりなし（基準）")}</div><div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
     <button class="main u9" ${at(484,232,140,40)} onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showTitle();toast2((TEXT.names[S.chSel]||S.chSel)+'で走ります')">${esc(TEXT.names[sel]||sel)}で走る</button>`;
   ui().innerHTML=h}
 /* ランの終わり：解放・夜・ログをスロットに書く（1ランに1回）。戻り値＝このランのログ */

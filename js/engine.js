@@ -195,7 +195,7 @@ function startPlayerTurn(first){
   addLog(`— あなたの番（${B.gear+1}速・${B.rpm}回転・ガソリン ${B.gas}）`);
 }
 /* 自動シフト（AT）／シフトできるか（MT） */
-function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=b.lo&&costOf(c)>0}
+function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=(RULE().atShiftAt||b.lo)&&costOf(c)>0}/* ★v0.22.25 design v0.11.13 10-12-4c：MOMO の AT は 5000 から */
 /* カードを打つ前の見込み（打てるか・シフト・危ない）。数字は simulateCard */
 /* ★design 11-1 ローテーション（pitsign）：打てないカード＝ガソリン・回転・条件で打てないカードとジャマ。nr＝打ったあとの回転で見る。ほかのローテーションは同じターンに打てないので打てない扱い */
 function rotTargets(self,nr){const r0=B.rpm,c0=B.cards;B.rpm=nr;B.cards++;try{return B.hand.filter(x=>x!==self&&(CD(x).t==="jam"||CD(x).fx.some(f=>f[0]==="rotate")||!preview(x).ok))}finally{B.rpm=r0;B.cards=c0}}
