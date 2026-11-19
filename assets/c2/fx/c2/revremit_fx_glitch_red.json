@@ -1,0 +1,9 @@
+{
+ "name": "glitch_red",
+ "frame_w": 640,
+ "frame_h": 360,
+ "frames": 4,
+ "ms": 120,
+ "loop": true,
+ "note": "画面全体にかぶせる赤いグリッチ（join_kuro 1行目）。透明 PNG"
+}

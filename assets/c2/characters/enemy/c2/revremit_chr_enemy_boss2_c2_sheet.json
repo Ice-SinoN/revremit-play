@@ -92,7 +92,7 @@
  "meta": {
   "app": "https://www.aseprite.org/",
   "version": "1.3",
-  "image": "/home/claude/rr_gfx/deliv/enemy/boss2/revremit_chr_enemy_boss2_c2_sheet.png",
+  "image": "/tmp/es4/boss2/revremit_chr_enemy_boss2_c2_sheet.png",
   "format": "RGBA8888",
   "size": {
    "w": 1152,
