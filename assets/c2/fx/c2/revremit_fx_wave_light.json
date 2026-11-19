@@ -1,0 +1,9 @@
+{
+ "name": "wave_light",
+ "frame_w": 640,
+ "frame_h": 120,
+ "frames": 4,
+ "ms": 140,
+ "loop": true,
+ "note": "潮騒の戦闘：路面（下 120）にかぶせるゆれる波の光の線。半透明なし"
+}

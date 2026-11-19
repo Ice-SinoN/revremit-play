@@ -35,7 +35,7 @@ function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["char
       q.drawImage(fr,x,y,w,h);q.globalCompositeOperation="source-in";q.fillStyle="#3a3456";q.fillRect(0,0,o.width,o.height);q.globalCompositeOperation="source-over";g.drawImage(o,0,0)}
     else{g.imageSmoothingEnabled=false;g.drawImage(fr,x,y,w,h)}});requestAnimationFrame(loop)};requestAnimationFrame(loop)}
 /* ---- 1. 走りかた（タイトルのボタン）---- */
-function startFlow(mode){SND.se("ui_ok");S.flow={mode};try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}S.chSel=curChar();showChars()}
+function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flow={mode};try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}S.chSel=curChar();showChars()}
 const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
 /* ---- 2. キャラ ---- */
 function renderChars(){const op=charsOpen(),sel=op.includes(S.chSel)?S.chSel:curChar(),mode=flowMode();S.chSel=sel;
@@ -84,44 +84,42 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
 function runBack(){SND.se("ui_cancel");closeModal()}
 function runGo(){const mode=flowMode(),bring=S.flowBring||[];closeModal();S.flow=null;bootSeq(()=>newRun(mode,bring),mode,bring)}
-/* ---- 5. キャラが光の粒になって端末に吸いこまれる（★虎雪 11:35。約3秒・タップでとばす）----
-   粒は戦闘の待機の絵のピクセルから作る（色はキャラの色）。端末はコードで描く（絵が来たら差しかえ）。 */
-function bootSeq(done,mode,bring){const ch=curChar();setScreen("boot");setScene("dim");closeModal();SND.bgmStop&&SND.bgmStop();
+/* ---- 5. キャラが光の粒にほどけて端末に吸いこまれる（★虎雪 11:35。約3秒・タップでとばす）----
+   粒は戦闘の待機の絵のピクセルから作る（色はキャラの色）。★v0.22.36：端末と部屋はグラフィック班ラウンド34 の絵（ui/c2/revremit_ui_terminal.png〈640×360 の透明な層〉・revremit_bg_terminal_room.png）。
+   粒の行き先は revremit_ui_terminal.json の screen（消えた画面のガラス）。絵がないときはコードの仮の絵。 */
+const TERM={json:"assets/c2/ui/c2/revremit_ui_terminal.json",img:"assets/c2/ui/c2/revremit_ui_terminal.png",room:"assets/c2/ui/c2/revremit_bg_terminal_room.png",scr:{x:447,y:67,w:105,h:87},I:{}};
+function termImg(k){const p=TERM[k];if(!artHave(p))return null;let im=TERM.I[k];if(!im){im=TERM.I[k]=new Image();im.src=artURL(p)}return im.complete&&im.naturalWidth?im:null}
+function termPrep(){termImg("img");termImg("room");if(!TERM.jl&&artHave(TERM.json)){TERM.jl=1;fetch(artURL(TERM.json)).then(r=>r.json()).then(j=>{if(j&&j.screen)TERM.scr=j.screen}).catch(()=>{})}}
+function bootSeq(done,mode,bring){const ch=curChar();setScreen("boot");setScene("dim");closeModal();SND.bgmStop&&SND.bgmStop();termPrep();
   ui().innerHTML=`<div class="boot" ${at(0,0,640,360)} onclick="bootSkip()"><canvas id="bootcv" width="640" height="360"></canvas><div class="small bskip">タップでとばす</div></div>`;
-  const cv=$("#bootcv"),g=cv.getContext("2d"),T0=performance.now(),DUR=3000;S.boot={done,end:false};
-  // 端末（右）の画面の位置
-  const TX=488,TY=150,TW=104,TH=76,tcx=TX+TW/2,tcy=TY+TH/2;
-  // 粒：待機の1コマ目のピクセル
-  const P=[];const set=SPR[ch];const SC=0.8,CX=170,FY=300;
+  const cv=$("#bootcv"),g=cv.getContext("2d"),T0=performance.now(),DUR=3000;g.imageSmoothingEnabled=false;S.boot={done,end:false};
+  const P=[];const set=SPR[ch];const SC=0.8,CX=170,FY=318;
   if(set&&!set.proc){const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]],w=fr.width,h=fr.height,q=fr.getContext?fr.getContext("2d"):null;
     let d=null;try{if(q)d=q.getImageData(0,0,w,h).data;else{const o=document.createElement("canvas");o.width=w;o.height=h;const oq=o.getContext("2d");oq.drawImage(fr,0,0);d=oq.getImageData(0,0,w,h).data}}catch(e){}
     const fx=set.foot?set.foot[0]:w/2,fy=set.foot?set.foot[1]:h,st=2;
     if(d)for(let y=0;y<h;y+=st)for(let x=0;x<w;x+=st){const k=(y*w+x)*4;if(d[k+3]<120)continue;
-      const px=CX+(x-fx)*SC,py=FY+(y-fy)*SC,r=d[k],gg=d[k+1],b=d[k+2];
-      P.push({x0:px,y0:py,c:`rgb(${r},${gg},${b})`,t0:600+(1-(y/h))*900+Math.random()*350,sp:0.7+Math.random()*0.6,sw:(Math.random()*2-1)*60,s:st*SC+0.4})}}
+      const px=CX+(x-fx)*SC,py=FY+(y-fy)*SC;
+      P.push({x0:px,y0:py,c:`rgb(${d[k]},${d[k+1]},${d[k+2]})`,t0:600+(1-(y/h))*900+Math.random()*350,sp:0.7+Math.random()*0.6,sw:(Math.random()*2-1)*60,s:st*SC+0.4,tx:Math.random(),ty:Math.random()})}}
   SND.se("comm_open");let swoosh=false,arrived=0;
-  const term=(glow)=>{// 端末：台・モニター・画面（光る）
-    g.fillStyle="#141022";g.fillRect(TX-14,TY-12,TW+28,TH+24);g.strokeStyle="#3a3456";g.lineWidth=2;g.strokeRect(TX-14,TY-12,TW+28,TH+24);
-    g.fillStyle="#1d1830";g.fillRect(TX+TW/2-10,TY+TH+12,20,40);g.fillRect(TX-24,TY+TH+52,TW+48,10);
-    const a=Math.min(1,0.25+glow);g.fillStyle=`rgba(70,230,255,${0.15+0.5*a})`;g.fillRect(TX,TY,TW,TH);
-    g.fillStyle=`rgba(197,255,69,${0.6*a})`;g.font="10px PM10, monospace";g.textBaseline="top";g.fillText("REMIT",TX+6,TY+6);g.fillText(`${ch} / ${mode}`,TX+6,TY+20);
-    g.fillStyle=`rgba(197,255,69,${0.3+0.6*a})`;g.fillRect(TX+6,TY+TH-12,Math.round((TW-12)*Math.min(1,glow)),4);
-    g.fillStyle="rgba(197,255,69,.08)";for(let y=TY;y<TY+TH;y+=3)g.fillRect(TX,y,TW,1)};
-  const step=()=>{if(!S.boot||S.boot.end)return;const t=performance.now()-T0,p=Math.min(1,t/DUR);
-    g.fillStyle="#05060C";g.fillRect(0,0,640,360);
-    // 床と光
-    const gr=g.createRadialGradient(tcx,tcy,4,tcx,tcy,180);gr.addColorStop(0,`rgba(70,230,255,${0.08+0.25*Math.min(1,arrived/Math.max(1,P.length))})`);gr.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=gr;g.fillRect(0,0,640,360);
-    g.fillStyle="#0c0e1a";g.fillRect(0,FY+2,640,58);g.fillStyle="rgba(197,255,69,.06)";for(let x=0;x<640;x+=32)g.fillRect(x,FY+2,1,58);
-    term(arrived/Math.max(1,P.length));
-    // キャラのまわりが光る（はじめ）
-    if(t<1100){const k=Math.sin(Math.min(1,t/1100)*Math.PI),rg=g.createRadialGradient(CX,FY-80,6,CX,FY-80,110);rg.addColorStop(0,`rgba(247,249,245,${0.22*k})`);rg.addColorStop(1,"rgba(247,249,245,0)");g.fillStyle=rg;g.fillRect(CX-120,FY-200,240,210)}
+  const term=(glow)=>{const S2=TERM.scr,im=termImg("img"),a=Math.min(1,glow);
+    if(im){g.drawImage(im,0,0,640,360)}
+    else{const TX=S2.x,TY=S2.y,TW=S2.w,TH=S2.h;g.fillStyle="#141022";g.fillRect(TX-14,TY-12,TW+28,TH+24);g.strokeStyle="#3a3456";g.lineWidth=2;g.strokeRect(TX-14,TY-12,TW+28,TH+24);g.fillStyle="#1d1830";g.fillRect(TX+TW/2-10,TY+TH+12,20,40);g.fillRect(TX-24,TY+TH+52,TW+48,10)}
+    g.save();g.globalCompositeOperation="lighter";g.fillStyle=`rgba(70,230,255,${0.08+0.45*a})`;g.fillRect(S2.x+3,S2.y+3,S2.w-6,S2.h-6);
+    g.fillStyle=`rgba(197,255,69,${0.5*a})`;g.font="10px PM10, monospace";g.textBaseline="top";g.fillText("REMIT",S2.x+8,S2.y+8);g.fillText(`${ch} / ${mode}`,S2.x+8,S2.y+22);
+    g.fillRect(S2.x+8,S2.y+S2.h-14,Math.round((S2.w-16)*a),3);g.fillStyle="rgba(197,255,69,.05)";for(let y=S2.y+3;y<S2.y+S2.h-3;y+=3)g.fillRect(S2.x+3,y,S2.w-6,1);g.restore()};
+  const step=()=>{if(!S.boot||S.boot.end)return;const t=performance.now()-T0,p=Math.min(1,t/DUR),S2=TERM.scr,tcx=S2.x+S2.w/2,tcy=S2.y+S2.h/2;
+    const room=termImg("room");if(room)g.drawImage(room,0,0,640,360);else{g.fillStyle="#05060C";g.fillRect(0,0,640,360);g.fillStyle="#0c0e1a";g.fillRect(0,FY+2,640,58)}
+    const k=arrived/Math.max(1,P.length);
+    const gr=g.createRadialGradient(tcx,tcy,4,tcx,tcy,200);gr.addColorStop(0,`rgba(70,230,255,${0.06+0.22*k})`);gr.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=gr;g.fillRect(0,0,640,360);
+    term(k);
+    if(t<1100){const kk=Math.sin(Math.min(1,t/1100)*Math.PI),rg=g.createRadialGradient(CX,FY-80,6,CX,FY-80,110);rg.addColorStop(0,`rgba(247,249,245,${0.22*kk})`);rg.addColorStop(1,"rgba(247,249,245,0)");g.fillStyle=rg;g.fillRect(CX-120,FY-200,240,210)}
     arrived=0;
-    for(const q of P){let x,y,s=q.s;if(t<q.t0){x=q.x0;y=q.y0;if(t>q.t0-250){/* ほどける前にふるえる */x+=Math.random()*1.4-0.7}}
+    for(const q of P){let x,y,s=q.s;if(t<q.t0){x=q.x0;y=q.y0;if(t>q.t0-250)x+=Math.random()*1.4-0.7}
       else{const u=Math.min(1,(t-q.t0)/(900/q.sp)),e=u*u*(3-2*u);if(u>=1){arrived++;continue}
-        x=q.x0+(tcx-q.x0)*e;y=q.y0+(tcy-q.y0)*e+Math.sin(u*Math.PI)*q.sw*(1-u)-Math.sin(u*Math.PI)*40;s=q.s*(1-0.6*u)+0.3;
+        const ex=S2.x+6+q.tx*(S2.w-12),ey=S2.y+6+q.ty*(S2.h-12);
+        x=q.x0+(ex-q.x0)*e;y=q.y0+(ey-q.y0)*e+Math.sin(u*Math.PI)*q.sw*(1-u)-Math.sin(u*Math.PI)*40;s=q.s*(1-0.6*u)+0.3;
         if(!swoosh){swoosh=true;SND.se("card_toss")}}
       g.fillStyle=q.c;g.fillRect(x,y,s,s)}
-    if(!P.length)arrived=Math.round(p*1);// 絵がないときは光だけ
     if(p>0.9){g.fillStyle=`rgba(247,249,245,${(p-0.9)*6})`;g.fillRect(0,0,640,360)}
     if(p>=1){bootEnd();return}requestAnimationFrame(step)};requestAnimationFrame(step)}
 function bootSkip(){if(S.boot&&!S.boot.end){SND.se("ui_ok");bootEnd()}}

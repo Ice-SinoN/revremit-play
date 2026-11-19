@@ -1,0 +1,9 @@
+{
+ "name": "sound_ripple",
+ "frame_w": 64,
+ "frame_h": 64,
+ "frames": 4,
+ "ms": 110,
+ "loop": true,
+ "note": "そらの音の波紋（口ずさみ・sora_boss_after）。半透明なし"
+}

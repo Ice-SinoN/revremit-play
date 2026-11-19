@@ -1,0 +1,9 @@
+{
+ "name": "shooting_star",
+ "frame_w": 64,
+ "frame_h": 64,
+ "frames": 4,
+ "ms": 90,
+ "loop": true,
+ "note": "流れ星（luna_boss_after・凍星の勝ち）。半透明なし"
+}
