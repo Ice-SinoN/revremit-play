@@ -796,7 +796,7 @@
  "meta": {
   "app": "https://www.aseprite.org/",
   "version": "1.3",
-  "image": "/tmp/sh_MOMO/revremit_chr_MOMO_c2_sheet.png",
+  "image": "revremit_chr_MOMO_c2_sheet.png",
   "format": "RGBA8888",
   "size": {
    "w": 8064,
@@ -879,7 +879,7 @@
   ],
   "layers": [
    {
-    "name": "YUKI",
+    "name": "MOMO",
     "opacity": 255,
     "blendMode": "normal"
    }
