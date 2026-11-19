@@ -34,6 +34,10 @@ const ART_SRC={
 ["lost_wraith","lost_downhill","lost_wrecker"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220]}});
 /* 絵がまだない敵のもと（色変えで仮に出す。いまは全部そろったので使われない） */
 /* ★v0.22.7 その子のボス（graphics-hq 18-B・ボスの枠 288）。置けば出る。まだないあいだは残光・白夜の色変え（仮） */
+/* ★v0.22.40 話のボス6体（SORA〜MIO 編・窓口 18:24）と第2形態。敵のデータが入ったら ENEMIES の art／phase.art にこの名前 */
+["muon","kagesen","ketsuban","itoboshi","uramen","shiosai"].forEach(k=>[k,k+"_p2"].forEach(n=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${n}_c2_sheet`;ART_SRC[n]={sheet:f+".png",json:f+".json",foot:[144,284],lazy:1}}));
+/* ★v0.22.40 SORA〜MIO 編のキャラの戦闘（LUNA・KURO・MIO が届いた。SORA・KAEDE・RIN は置けば同じ形で） */
+["SORA","KAEDE","RIN","LUNA","KURO","MIO"].forEach(c=>{const f=`assets/c2/characters/${c}/c2/revremit_chr_${c}_c2_sheet`;ART_SRC[c]={sheet:f+".png",json:f+".json",foot:[112,220],lazy:1}});
 ["kuuten","sanka","miketsu","kuuten_p2","sanka_p2","miketsu_p2"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[144,284]}});
 const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1",kuuten:"boss1",sanka:"boss2",miketsu:"boss2"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
@@ -187,32 +191,37 @@ async function loadJSON0(src){if(window.ART_EMBED&&ART_EMBED[src])return JSON.pa
 function loadImg(src){return src in PRE.img?Promise.resolve(PRE.img[src]):loadImg0(src)}
 async function loadJSON(src){if(src in PRE.json)return PRE.json[src];return loadJSON0(src)}
 /* 置いてある絵をぜんぶ先に読む（6本ずつ）。onProg(読んだ数, ぜんぶの数) */
-async function preloadAll(have,onProg){const list=[...have].filter(f=>/\.(png|json)$/i.test(f)&&!f.includes("/_review/"));let done=0;const n=list.length;onProg&&onProg(0,n);
+async function preloadAll(have,onProg){const lz=new Set(LAZY_ART()),list=[...have].filter(f=>/\.(png|json)$/i.test(f)&&!f.includes("/_review/")&&!lz.has(f));let done=0;const n=list.length;onProg&&onProg(0,n);
   let i=0;const worker=async()=>{while(i<list.length){const f=list[i++];try{if(/\.png$/i.test(f))PRE.img[f]=await loadImg0(f);else PRE.json[f]=await loadJSON0(f)}catch(e){}done++;onProg&&onProg(done,n)}};
   await Promise.all(Array.from({length:6},worker))}
 /* 置いてある絵の一覧：1ファイル版は ART_EMBED、分けた版は assets/manifest.json（build.py が作る）。どちらもなければ仮のドットだけ */
 async function artList(){if(window.ART_EMBED)return new Set(Object.keys(ART_EMBED));
   try{const r=await fetch("assets/manifest.json");if(r.ok)return new Set((await r.json()).map(f=>"assets/"+f))}catch(e){}return new Set()}
-async function loadArt(){
-  makeProcSprites();
-  const have=await artList();window.ART_HAVE=have;
-  await preloadAll(have,(d,n)=>{if(window.loadingProg)loadingProg(d,n)});
-  for(const[k,a]of Object.entries(ART_SRC)){
-    const need=a.layers?a.layers:a.grid?[a.sheet]:[a.sheet,a.json];if(!need.every(f=>have.has(f)))continue;
+async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||new Set();
+    const need=a.layers?a.layers:a.grid?[a.sheet]:[a.sheet,a.json];if(!need.every(f=>have.has(f)))return false;
     try{
-      if(a.layers){const ims=await Promise.all(a.layers.map(loadImg));if(ims.every(Boolean)){SPR[k]={layers:ims.map(im=>{const cv=mkCanvas(im.width,im.height);cv.getContext("2d").drawImage(im,0,0);return cv})}}continue}// 層は分けたまま（動く層を層ごとに重ねるため）
-      if(a.grid){const im=await loadImg(a.sheet);if(!im)continue;const[w,h,n]=a.grid,frames=[];for(let i=0;i<n;i++){const cv=mkCanvas(w,h);cv.getContext("2d").drawImage(im,i*w,0,w,h,0,0,w,h);frames.push(cv)}
-        SPR[k]={frames,dur:frames.map(()=>a.ms),tags:{play:[0,n-1],stand:[0,0]},foot:[w/2,h/2]};continue}
-      const[js,im]=await Promise.all([loadJSON(a.json),loadImg(a.sheet)]);if(!js||!im)continue;
+      if(a.layers){const ims=await Promise.all(a.layers.map(loadImg));if(ims.every(Boolean)){SPR[k]={layers:ims.map(im=>{const cv=mkCanvas(im.width,im.height);cv.getContext("2d").drawImage(im,0,0);return cv})}}return true}// 層は分けたまま（動く層を層ごとに重ねるため）
+      if(a.grid){const im=await loadImg(a.sheet);if(!im)return false;const[w,h,n]=a.grid,frames=[];for(let i=0;i<n;i++){const cv=mkCanvas(w,h);cv.getContext("2d").drawImage(im,i*w,0,w,h,0,0,w,h);frames.push(cv)}
+        SPR[k]={frames,dur:frames.map(()=>a.ms),tags:{play:[0,n-1],stand:[0,0]},foot:[w/2,h/2]};return true}
+      const[js,im]=await Promise.all([loadJSON(a.json),loadImg(a.sheet)]);if(!js||!im)return false;
       const frames=[],dur=[],tags={};
       (Array.isArray(js.frames)?js.frames:Object.values(js.frames)).forEach(f=>{const r=f.frame,cv=mkCanvas(r.w,r.h);cv.getContext("2d").drawImage(im,r.x,r.y,r.w,r.h,0,0,r.w,r.h);frames.push(cv);dur.push(f.duration||100)});
       ((js.meta&&js.meta.frameTags)||[]).forEach(t=>{tags[t.name]=[t.from,t.to]});
       if(!tags.stand)tags.stand=[0,0];
       // 絵にないタグは、仮のドットの同じ名前を使わず、今ある絵（stand）＋動きで出す
-      SPR[k]={frames,dur,tags,foot:a.foot};
-    }catch(e){}
-  }
-  window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":"仮"]));
+      SPR[k]={frames,dur,tags,foot:a.foot};return true;
+    }catch(e){return false}
+}
+/* ★v0.22.40 あとで使う絵（SORA〜MIO 編のキャラ・話のボス）は起動では読まない（lazy）。使う所で await ensureSpr([キー…]) */
+function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":"仮"}
+async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
+const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]);
+async function loadArt(){
+  makeProcSprites();
+  const have=await artList();window.ART_HAVE=have;
+  await preloadAll(have,(d,n)=>{if(window.loadingProg)loadingProg(d,n)});
+  for(const[k,a]of Object.entries(ART_SRC)){if(a.lazy)continue;await loadSpr(k,have)}
+  window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":a_lazy(k)]));
   await buildStages(have);await buildStagesC2(have);await buildMeter(have);await buildTutParts(have);applyUi640(have);
   // 絵ファイル（背景・アイコン・カード）を名前で引けるように
   window.IMG={};await Promise.all([...have].filter(f=>f.endsWith(".png")&&f.includes("/c2/")&&!f.includes("/characters/")).map(async f=>{IMG[f]=await loadImg(f)}));
