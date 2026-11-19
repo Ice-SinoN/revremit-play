@@ -27,7 +27,51 @@ function RULE(){return G&&CHARS[G.char]&&CHARS[G.char].rule||{}}
 function shiftCapNow(){return Math.max(RULE().shiftCap||RULES.shiftCap,RULES.shiftCap+(has("synchro")?1:0))}
 
 /* ---- カードの読みかた ---- */
-function CD(c){const d=CARDS[c.id||c];if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
+function CD(c){const id=c.id||c;let d=CARDS[id];const pv=typeof MOD_PREVIEW!=="undefined"&&MOD_PREVIEW&&MOD_PREVIEW[id],m=pv||(G&&G.mods&&G.mods[id]);if(m&&m.lv&&!(c&&c.nm))d=modDef(id,m);if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
+/* ★v0.22.47 カード改造（design 11-2・text 27-5）。1枚に2段：1段目＝数値、2段目＝分かれ道 A／B。スロットごと（profile.mods={id:{lv,br,spent}}）。
+   ランのはじめに G.mods に写す。デッキの改造カード（＋合成カード）は8枚まで：こえた分は c.nm（そのランは改造なし） */
+var MOD_PREVIEW=null;/* ラン外（ラボ・デッキ）で改造の形を見せるとき {id:{lv,br}} */
+const MOD_PRICE={C:[60,100],R:[90,150],E:[120,200]},MOD_SWITCH=20,MOD_CAP=8;
+function modKind(id){const d=CARDS[id];if(!d||d.gen||d.r==="SK"||d.r==="OG"||d.t==="jam")return null;if(id==="m_kinen")return"kinen";if(d.redOnly)return"cond";
+  const fv=f=>d.fx.some(x=>x[0]===f[0]&&x[1]==="v"&&(!f[1]||true));
+  if(d.t==="atk"&&typeof d.v==="number")return"atk";
+  if(d.t==="grd"&&d.fx.some(x=>(x[0]==="blk"||x[0]==="blkGear")&&x[1]==="v"))return"grd";
+  if(d.t==="dbf"&&d.fx.some(x=>x[0]==="frz"&&x[1]==="v"))return"frz";
+  if(d.t==="dbf"&&typeof d.v==="number")return"num";
+  if(d.t==="drw"&&d.fx.some(x=>x[0]==="draw"&&x[1]==="v"))return"drw";
+  return null}
+function modPrice(id,lv){const d=CARDS[id];const r=d.fused?"E":(MOD_PRICE[d.r]?d.r:"C");return MOD_PRICE[r][lv-1]}
+/* 段ごとの名前と一行（text 27-5-2）。ok:false はそのカードでは選べない分かれ道 */
+function modInfo(id){const k=modKind(id),d=CARDS[id];if(!k)return null;const RC=(d.c>0||d.costGear)?"回転 −500":"ガソリン −1";const small=k==="atk"&&d.v<8,frac=typeof d.v==="number"&&d.v<1,bnd=!!d.band;
+  const T={
+   atk:{l1:small?RC:"ダメージ +1",A:small?["重く",frac?"倍率 +0.1":"ダメージ +1"]:["軽量化",RC+"。早く打てる"],B:["ワイドレンジ","帯で打つと ×"+((d.bm||1.5)+0.25)],Bok:bnd},
+   num:{l1:"数 +1",A:["軽量化",RC+"。早く打てる"],B:["ワイドレンジ","帯で打つと ×"+((d.bm||1.5)+0.25)],Bok:bnd},
+   grd:{l1:"防御 +2",A:["余熱","防御の半分が、次の番に残る"],B:["切り返し","次の番の最初のアタック +2"]},
+   frz:{l1:"凍結 +1",A:["根雪","1回ぶん、凍結の上限に数えない"],B:["雪囲い","凍結を与えたら、防御 +2"]},
+   drw:{l1:RC,A:["オールレンジ","帯の外でも ×1.5"],Aok:bnd,B:["下取り","引いた中の1枚を、山札の下へ"]},
+   cond:{l1:RC,A:["半クラッチ","レッドの外でも、半分で打てる"],B:["フルチャージ","大技にする（ガソリン 10・条件で −1）"]},
+   kinen:{l1:"ガソリン 0",A:["花びら","引いた枚数だけ、チェイン +1"],B:["アルバム","攻撃が来なければ、もう1枚"]}}[k];
+  return{kind:k,l1:T.l1,A:{name:T.A[0],txt:T.A[1],ok:T.Aok!==false},B:{name:T.B[0],txt:T.B[1],ok:T.Bok!==false}}}
+const MOD_CACHE={};
+function modDef(id,m){const key=id+"|"+m.lv+"|"+(m.br||"");if(MOD_CACHE[key])return MOD_CACHE[key];const b=CARDS[id],k=modKind(id);if(!k)return b;
+  const d=Object.assign({},b,{fx:b.fx.map(f=>f.slice()),mod:m});const cm=()=>{if(!(b.c>0)&&!b.costGear){d.gas=Math.max(0,(d.gas||0)-1);if(d.gasu!=null)d.gasu=Math.max(0,d.gasu-1);if(d.gasMT!=null)d.gasMT=Math.max(0,d.gasMT-1);return}d.c=Math.max(0,(d.c||0)-500);if(d.cu!=null)d.cu=Math.max(0,d.cu-500);if(d.costGear)d.costGear=[Math.max(0,d.costGear[0]-500),d.costGear[1],d.costGear[2]]};
+  const vp=x=>{d.v=Math.round((d.v+x)*100)/100;if(d.vu!=null)d.vu=Math.round((d.vu+(x<1?x*1.5:Math.round(x*1.5)))*100)/100};
+  const small=k==="atk"&&b.v<8,frac=b.v<1;
+  if(k==="atk"){if(small)cm();else vp(1)}else if(k==="num")vp(1);else if(k==="grd")vp(2);else if(k==="frz")vp(1);else if(k==="drw"||k==="cond")cm();else if(k==="kinen"){d.gas=0;if(d.gasu!=null)d.gasu=0}
+  if(m.lv>=2){const br=m.br;
+    if(k==="atk"){if(br==="A"){if(small)vp(frac?0.1:1);else cm()}else if(b.band)d.bm=(b.bm||RULES.bandMul)+0.25}
+    else if(k==="num"){if(br==="A")cm();else if(b.band)d.bm=(b.bm||RULES.bandMul)+0.25}
+    else if(k==="grd"){if(br==="A")d.keepHalf=1;else d.fx.push(["nextTurnAtk",2])}
+    else if(k==="frz"){if(br==="A")d.frzNoCap=1;else d.fx.push(["blkRaw",2])}
+    else if(k==="drw"){if(br==="A")d.bandAny=1;else d.tradeIn=1}
+    else if(k==="cond"){d.redOnly=0;if(br==="A")d.fx=d.fx.map(f=>f[0]==="atk"?["kousetsu",f[1],0]:f);else{d.charge=1;d.gas=10}}
+    else if(k==="kinen"){if(br==="A")d.fx.push(["chainAdd","v"]);else d.album=1}}
+  d.dMod="改造："+[modInfo(id).l1].concat(m.lv>=2?[modInfo(id)[m.br].name]:[]).join("・");
+  return MOD_CACHE[key]=d}
+/* デッキの中の改造カード（合成カードも数える） */
+function isModCard(id,mods){return !!(CARDS[id]&&(CARDS[id].fused||(mods&&mods[id]&&mods[id].lv)))}
+function modCount(list,mods){return list.filter(c=>!c.nm&&isModCard(c.id,mods)).length}
+function applyModCap(){let n=0;G.deck.forEach(c=>{if(isModCard(c.id,G.mods)){if(n>=MOD_CAP)c.nm=true;else n++}})}
 function rnum(x,ref){return Number.isInteger(ref)?Math.round(x):Math.round(x*100)/100}
 function cardVal(c,up){const d=CD(c);up=up===undefined?!!c.up:up;if(!up)return d.v;if(d.vu!=null)return d.vu;const x=d.v*RULES.upMult;return Number.isInteger(d.v)?Math.round(x):Math.round(x*100)/100}// 整数は四捨五入（ブレーキング 5→8）
 function baseCost(c,up,gear){const d=CD(c);up=up===undefined?!!c.up:up;
@@ -83,10 +127,12 @@ function newRunState(mode,charId,bring,dk,opt){
      tune:{tire:0,shift:0,engine:0,light:0,ecu:0},parts:[],deck,map:null,row:0,path:[],cageUsed:false,seen:{},
      night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
      st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0,mcParts:[],soldParts:[]};/* ★v0.22.37 持ちこみのパーツ・売ったパーツ（10-14・10-19） */
+  G.mods=JSON.parse(JSON.stringify(opt.mods||(typeof PRF==="function"&&SAVE&&SAVE.cur&&PRF().mods)||{}));/* ★v0.22.47 改造 */
   G.map=genMap();
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
     if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
+  applyModCap();
   return G;
 }
 function mcBonus(m){const i=Math.max(0,RANKS.indexOf(m.rank));return{hp:MC_BONUS.hp[i],atk:MC_BONUS.atk[i]}}
@@ -189,7 +235,7 @@ function addCharge(why){B.charge++;ev({k:"charge",n:B.charge,why});if(B.hand.con
 /* ★回転数の帯（design 0-3）：打つ前の回転で判定 */
 function redLo(){return RULES.red[G.mode]-(has("hicam")?1000:0)}
 function bandRangeOf(c){const d=CD(c);if(!d.band)return null;if(d.band==="R")return[redLo(),limit()];return car().bands[d.band]}
-function inBand(c){const r=bandRangeOf(c);if(!r)return false;return B.rpm>=r[0]&&(CD(c).band==="R"?B.rpm<=r[1]:B.rpm<r[1])}
+function inBand(c){const r=bandRangeOf(c);if(!r)return false;if(CD(c).bandAny)return true;return B.rpm>=r[0]&&(CD(c).band==="R"?B.rpm<=r[1]:B.rpm<r[1])}
 function inRed(){return B.rpm>=redLo()&&B.rpm<=limit()}
 /* ★チェイン（design 0-2） */
 function chainStep(){return(RULE().chainStep||RULES.chainStep)+(has("slick")?0.05:0)}
@@ -199,7 +245,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 /* 今のギアの倍率（表示用。AT の ×0.9 も入れる：BUG-06） */
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
-  B.block=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
+  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
   if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
@@ -264,7 +310,7 @@ function mkCtx(m){return{
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
   blockRaw(v){B.block+=v;addLog(`防御 +${v}`);ev({k:"pblk",v})},
-  freeze(v){const x=Math.round(v*m)*(has("emblem")?2:1);B.frozeTotal+=x;B.frzAll=(B.frzAll||0)+x;{/* ★v0.22.1 凍結の上限（design 0-8・5-1b）：敵が動いてから足した遅れは 敵の1回ぶん×frzDelayCap まで */const e=B.e,add=x*1.5*(e.halfFrz?0.5:1),cap=RULES.frzDelayCap,room=cap?Math.max(0,cap*100/(e.spd+(e.spdUp||0))-(e.frzD||0)):add,a=Math.min(add,room);e.next+=a;e.frzD=(e.frzD||0)+a}addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x});
+  freeze(v){const x=Math.round(v*m)*(has("emblem")?2:1);B.frozeTotal+=x;B.frzAll=(B.frzAll||0)+x;{/* ★v0.22.1 凍結の上限（design 0-8・5-1b）：敵が動いてから足した遅れは 敵の1回ぶん×frzDelayCap まで */const e=B.e,add=x*1.5*(e.halfFrz?0.5:1),cap=B.frzNoCapNow?0:RULES.frzDelayCap,room=cap?Math.max(0,cap*100/(e.spd+(e.spdUp||0))-(e.frzD||0)):add,a=Math.min(add,room);e.next+=a;if(!B.frzNoCapNow)e.frzD=(e.frzD||0)+a;B.frzNoCapNow=false}addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x});
     if(x>0&&has("studless")&&B.studUid!==B.playUid){B.studUid=B.playUid;B.block+=4;addLog("スタッドレスタイヤ：防御 +4");ev({k:"pblk",v:4})}
     if(has("spike")&&!B.spikeUsed&&B.frzAll>=20){B.spikeUsed=true;addLog("スパイクタイヤ：30ダメージ");hitEnemy(30)}},
   burn(v){const x=Math.round(v*m);B.e.burn+=x;addLog(`炎上 +${x}`);ev({k:"burn",v:x})},
@@ -445,7 +491,13 @@ function playCard(i,shift){
   let v=cardVal(c);if(band)v=rnum(v*(d.bm||RULES.bandMul),v);// ★帯
   const x=mkCtx(m);
   const kv=kOf(c),runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v,kv)))});
-  B.retry=false;runFx();
+  const blk0=B.block,hu0=new Set(B.hand.map(h=>h.uid));if(d.frzNoCap)B.frzNoCapNow=true;
+  B.retry=false;runFx();B.frzNoCapNow=false;
+  /* ★v0.22.47 改造の2段目（余熱・下取り・アルバム） */
+  if(d.keepHalf&&B.block>blk0){const k=Math.floor((B.block-blk0)/2);B.blkCarry=(B.blkCarry||0)+k;addLog(`余熱：次の番に防御 ${k} が残る`)}
+  if(d.tradeIn||d.album){const nw=B.hand.filter(h=>!hu0.has(h.uid));
+    if(d.album&&nw.length&&!nw.some(h=>CD(h).t==="atk")){if(drawN(1))addLog("アルバム：もう1枚")}
+    if(d.tradeIn){const bad=nw.filter(h=>!preview(h).ok).sort((a,b)=>baseCost(b,undefined,B.gear)-baseCost(a,undefined,B.gear))[0];if(bad){B.hand.splice(B.hand.indexOf(bad),1);B.draw.unshift(bad);addLog(`下取り：${CD(bad).n} を山札の下へ`)}}}
   if(d.sup&&B.openAir&&!d.fx.some(f=>f[0]==="openAir")){addLog("オープンエア");hitEnemy(B.openAir)}
   if(has("m_light")&&cost===0){B.rpm=Math.max(0,B.rpm-300)}
   if(d.t==="atk"&&B.atkTwice&&!c.temp){B.atkTwice=false;addLog("もう1回！");runFx()}// ★パーフェクトのあと2回

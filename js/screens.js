@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.46（β2）";
+const VERSION="試作 v0.22.47（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -78,7 +78,7 @@ function cardBig(c,o){o=o||{};const d=CD(c),r=rarityOf(c),up=o.up!=null?o.up:!!c
   const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:baseCost(c,up,0);
   const art=o.art?cardArtTag(c.id||c):"";
   return `<button class="cb t-${d.t} r-${r}${o.cls?" "+o.cls:""}" ${o.attrs||""}>${o.art?`<span class="bw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`:""}<span class="bn">${esc(d.n)}${up?"+":""}</span>`+
-   `<span class="bt">${typeRar(d.t,r)}</span><span class="bc">${o.art?`回転 ${cost}　G${gasLabel(d,up)}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${gasLabel(d,up)}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}</span></button>`}
+   `<span class="bt">${typeRar(d.t,r)}</span><span class="bc">${o.art?`回転 ${cost}　G${gasLabel(d,up)}${d.band?`　帯${d.band}`:""}`:`回転 ${cost}　ガソリン ${gasLabel(d,up)}${d.band?`　帯 ${d.band}`:""}`}</span><span class="bd">${esc(o.desc||descOf(c,up,0))}${d.dMod?`<span class="dmod">${esc(d.dMod)}</span>`:""}</span></button>`}
 
 /* ★v0.22.44 BUG-50（BUG-39 と同じ形）：種類とレア度が同じ字（固有スキル）なら1回だけ */
 function typeRar(t,r){const a=TYPE_JP[t],b=RARITY_JP[r];return a===b?a:a+"・"+b}
@@ -155,7 +155,7 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
   ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;showTitle()")}
   ${deckDetail(dk)}
   <div class="sign side" ${at(316,262,150,92)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
-   <div class="small dim">同じカードは<br>C${RULES.deckLimit.C}・R${RULES.deckLimit.R}・E${RULES.deckLimit.E}・固有${RULES.deckLimit.SK}枚まで</div></div>
+   <div class="small dim">同じカードは<br>C${RULES.deckLimit.C}・R${RULES.deckLimit.R}・E${RULES.deckLimit.E}・固有${RULES.deckLimit.SK}枚まで</div>${(()=>{const k=deckModCount(dk);return k?`<div class="small ${k>MOD_CAP?"ngc":"gold"}">改造したカード ${k}／${MOD_CAP}</div>`:""})()}</div>
   <div class="col" ${at(474,262,158)}><button class="main u9" ${err.length?"disabled":""} onclick="saveDeck(S.deck,curChar());S.deck=null;S.dkSel=S.dkCmp=null;showTitle()">${err.length?esc(err[0]):"これで決める"}</button>
    <button class="u9" onclick="S.deck=defaultDeck(curChar());renderDeck()">最初のデッキ</button></div>`;
   if($("#dkl"))$("#dkl").scrollTop=sc;
@@ -175,7 +175,9 @@ function deckDetail(dk){const s=S.dkSel&&CARDS[S.dkSel]?S.dkSel:null,c=s&&S.dkCm
    (c?`<button class="u9 dkswap" ${at(316,226,316,32)} ${can?"":"disabled"} onclick="deckSwap()">${can?`入れ替える（${esc(CARDS[c].n)} −1 → ${esc(CARDS[s].n)} ＋1）`:`入れ替えられない（${(dk[c]||0)?"選んだカードは上限":"前のカードがデッキにない"}）`}</button>`:"")}
 function deckSwap(){const dk=S.deck,s=S.dkSel,c=S.dkCmp;if(!s||!c||!(dk[c]>0)||(dk[s]||0)>=deckLimitOf(s))return;
   dk[c]--;if(!dk[c])delete dk[c];dk[s]=(dk[s]||0)+1;SND.se("part_swap");renderDeck()}
-function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0)return;if(k>deckLimitOf(id)||d>0&&deckCount(dk)>=RULES.deckSize){SND.se("card_cant");return}if(k)dk[id]=k;else delete dk[id];SND.se(d>0?"ui_ok":"card_toss");renderDeck()}/* ★audio-list 11-2（v0.13）：入れた＝ui_ok・外した＝card_toss・上限＝card_cant */
+/* ★v0.22.47 デッキの改造カード（design 11-2-4）：8枚まで */
+function deckModCount(dk){const mods=(PRF()&&PRF().mods)||{};return Object.entries(dk).reduce((a,[id,n])=>a+(isModCard(id,mods)?n:0),0)}
+function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0)return;if(d>0&&isModCard(id,PRF().mods||{})&&deckModCount(dk)>=MOD_CAP){SND.se("card_cant");toast2("改造したカードは、デッキに8枚までです");return}if(k>deckLimitOf(id)||d>0&&deckCount(dk)>=RULES.deckSize){SND.se("card_cant");return}if(k)dk[id]=k;else delete dk[id];SND.se(d>0?"ui_ok":"card_toss");renderDeck()}/* ★audio-list 11-2（v0.13）：入れた＝ui_ok・外した＝card_toss・上限＝card_cant */
 
 /* ---- ガレージ（ミニカーを2台まで） ---- */
 function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
@@ -363,7 +365,7 @@ function renderBattle(){
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
     h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${typeRar(d.t,rarityOf(c))}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
-      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div class="dtx">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
+      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div><div class="dtx">${esc(descOf(c,c.up,B.gear))}${d.dMod?`<span class="dmod">${esc(d.dMod)}</span>`:""}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
   // 右下：ボタン
@@ -517,7 +519,7 @@ function showFuse(fo){if(S.fuseSel!=null&&!fo.some(o=>o.id===S.fuseSel))S.fuseSe
   const sx=S.simX||0;ui().innerHTML=h;const r=$("#simrow");if(r)r.scrollLeft=sx;fitHandNames();
   document.querySelectorAll(".simc").forEach(w=>{const d=w.querySelector(".bd"),mo=w.querySelector(".simmore");if(d&&mo){const up=()=>mo.classList.toggle("on",d.scrollTop+d.clientHeight<d.scrollHeight-2);d.onscroll=up;up()}})}
 function fusePick(id){if(S.fuseSel===id){uiFuse(id);return}S.fuseSel=id;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
-function uiFuse(id){const o=fuseOptions().find(x=>x.id===id);if(!o)return;const c=fuseCards(o);if(c){SND.se("card_upgrade");toast2(`${CD(c).n}${c.up?"+":""} を合成した`,200)}S.fuseSel=null;S.simTab=null;S.simX=0;nextRow()}
+function uiFuse(id){const o=fuseOptions().find(x=>x.id===id);if(!o)return;const over=modCount(G.deck,G.mods)-(isModCard(o.a,G.mods)&&!G.deck[o.ia].nm?1:0)-(isModCard(o.b,G.mods)&&!G.deck[o.ib].nm?1:0)>=MOD_CAP;const c=fuseCards(o);if(c&&over){c.nm=true;setTimeout(()=>toast2("改造カードが8枚をこえます：合成カードの改造は、このランでは効きません",230),400)}if(c){SND.se("card_upgrade");toast2(`${CD(c).n}${c.up?"+":""} を合成した`,200)}S.fuseSel=null;S.simTab=null;S.simX=0;nextRow()}
 function simPick(i){if(S.simSel===i){uiUpgrade(i);return}S.simSel=i;S.simX=$("#simrow")?.scrollLeft||0;SND.se("ui_ok");showSim()}
 function uiUpgrade(i){if(G.deck[i]&&canUpgrade(G.deck[i])){G.deck[i].up=true;SND.se("card_upgrade")}S.simSel=null;S.simX=0;nextRow()}
 function simScroll(k){const r=$("#simrow");if(r){r.scrollLeft+=k*280;S.simX=r.scrollLeft}}
@@ -741,14 +743,40 @@ function afterCarShow(got){const p=PRF();
   const lines=Object.entries(grp).map(([k,v])=>`<div class="small">${k?`<b>${esc(k)}</b>　`:""}${v.map(esc).join("・")}</div>`).join("");
   showTitle();modal(`<div class="h">このランで</div><div class="small">ログ +${S.runEndLog||0}（合計 ${p.log}）</div>${lines?`<div class="scroll" style="max-height:170px">${lines}</div>`:""}<div class="row"><button class="main" onclick="closeModal();showTitle()">OK</button></div>`)}
 /* 強化ショップ：ログでカードを解放（design 9-7。名前は案「ログ」） */
-function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("lab");S.labSel=S.labSel||UNLOCK.shop[0][0];renderLab()}
-function renderLab(){const p=PRF(),have=new Set(unlockedCards(p)),sel=S.labSel,pr=(UNLOCK.shop.find(x=>x[0]===sel)||[])[1];
+function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("lab");S.labSel=S.labSel||UNLOCK.shop[0][0];S.labTab=S.labTab||"open";renderLab()}
+/* ★v0.22.47 ラボのタブ（text 27-5-1）：カードを開く／カードを改造 */
+function labTabs(){const m=S.labTab==="mod";return `<div class="labtabs" ${at(330,60,190,26)}><button class="u9${m?"":" main"}" onclick="S.labTab='open';SND.se('ui_ok');renderLab()">カードを開く</button><button class="u9${m?" main":""}" onclick="S.labTab='mod';SND.se('ui_ok');renderLab()">カードを改造</button></div>`}
+function modList(p){const ch=curChar(),have=unlockedCards(p).filter(id=>CARDS[id]&&(CARDS[id].own==="N"||CARDS[id].own===ch)&&modKind(id));
+  const fz=Object.keys((p.codex&&p.codex.fuse)||{}).filter(id=>CARDS[id]&&CARDS[id].own===ch);return have.concat(fz).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c)}
+function renderMod(){const p=PRF();p.mods=p.mods||{};const L=modList(p);if(!L.includes(S.modSel))S.modSel=L[0]||null;const id=S.modSel,m=id?p.mods[id]||{lv:0}:null,inf=id?modInfo(id):null;
+  let h=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>${backBtn("もどる","showTitle()")}${labTabs()}
+   <div class="sign" ${at(8,26,300,328)}></div><div class="small" ${at(16,30,284)}>改造できるカード（開いたカードだけ）</div><div class="scroll grid1" id="mdl" ${at(14,46,288,304)}>`+
+   L.map(x=>{const q=p.mods[x],lv=q&&q.lv||0;return `<button class="u9 lrow${x===id?" main":""}" onclick="S.modSel='${x}';renderLab()"><span class="ln">${esc(CARDS[x].n)}</span><span class="small dim"> ${RARITY_JP[rarityOf(x)]}</span><span class="lp ${lv?"gold":"dim"}">${lv?`改造 ${lv}／2${q.br?"・"+q.br:""}`:"改造なし"}</span></button>`}).join("")+`</div>`;
+  if(id){MOD_PREVIEW=m.lv?{[id]:m}:null;h+=cardBig(id,{art:true,attrs:at(322,92,120,170)});MOD_PREVIEW=null;
+    const p1=modPrice(id,1),p2=modPrice(id,2),ok=n=>p.log>=n;
+    h+=`<div class="modp" ${at(448,92,184,214)}><div class="small">1段目：${esc(inf.l1)}</div>`+
+     (m.lv>=1?`<div class="small ok">済み</div>`:`<button class="main u9" ${ok(p1)?"":"disabled"} onclick="modAsk('${id}',1)">改造する（ログ ${p1}）</button>`)+
+     `<div class="small" style="margin-top:4px">${m.lv>=1?"2段目：A か B を、1つえらぶ":"1段目のあとで、えらべる"}</div><div class="modab">`+
+     ["A","B"].map(br=>{const o=inf[br],on=m.lv>=2&&m.br===br,can=m.lv>=1&&o.ok;return `<div class="modbr${on?" on":""}${o.ok?"":" off"}"><b>${esc(o.name)}</b><div class="small">${esc(o.ok?o.txt:"このカードでは使えない")}</div>`+
+       (on?`<div class="small ok">えらんでいる</div>`:m.lv>=2?(o.ok?`<button class="u9" ${p.log>=MOD_SWITCH?"":"disabled"} onclick="modAsk('${id}',3,'${br}')">変える（ログ ${MOD_SWITCH}）</button>`:""):`<button class="u9" ${can&&ok(p2)?"":"disabled"} onclick="modAsk('${id}',2,'${br}')">ログ ${p2}</button>`)+`</div>`}).join("")+`</div>`+
+     (m.lv?`<button class="u9 mini modreset" onclick="modAsk('${id}',0)">改造をもどす</button>`:"")+`</div>`}
+  else h+=`<div class="small dim" ${at(330,100,190)}>改造できるカードがない</div>`;
+  ui().innerHTML=h;if(!PRF().modIntro){PRF().modIntro=1;SAVE.auto&&SAVE.auto();toast2("みお：よく使うカードを、もっと手になじむ形にできます……！")}}
+/* 改造する：lv 1・2（br）、3＝分かれ道を変える、0＝もどす（半分もどる） */
+function modAsk(id,lv,br){const p=PRF(),m=p.mods[id]||{lv:0,spent:0},n=CARDS[id].n;let q,cost=0,go;
+  if(lv===0){const back=Math.floor((m.spent||0)/2);q=`${esc(n)}の改造を、全部もどしますか？<br>使ったログの半分（${back}）がもどります。`;go=()=>{p.log+=back;delete p.mods[id];SND.se("ui_cancel");toast2(`改造をもどしました（ログ +${back}）`)}}
+  else if(lv===3){cost=MOD_SWITCH;q=`2段目を「${esc(modInfo(id)[m.br].name)}」から「${esc(modInfo(id)[br].name)}」に変えますか？<br>1段目は、そのまま残ります。`;go=()=>{p.log-=cost;m.br=br;m.spent=(m.spent||0)+cost;p.mods[id]=m;SND.se("mod_switch");toast2(`2段目を「${modInfo(id)[br].name}」にしました`)}}
+  else{cost=modPrice(id,lv);q=`${esc(n)}を改造しますか？<br>ログ ${cost} を使います。次のランから、ずっと効きます。`;go=()=>{p.log-=cost;m.lv=lv;if(br)m.br=br;m.spent=(m.spent||0)+cost;p.mods[id]=m;SND.se("card_mod");toast2(`${n}を改造しました`)}}
+  if(p.log<cost){SND.se("card_cant");toast2("みお：ログが、足りません……");return}
+  S.modGo=()=>{closeModal();go();SAVE.auto&&SAVE.auto();renderLab()};SND.se("ui_ok");
+  modal(`<div class="h">${q}</div><div class="row"><button class="main" onclick="S.modGo()">${lv===0?"もどす":lv===3?"変える":"改造する"}</button><button onclick="closeModal()">やめる</button></div>`)}
+function renderLab(){if(S.labTab==="mod"){renderMod();return}const p=PRF(),have=new Set(unlockedCards(p)),sel=S.labSel,pr=(UNLOCK.shop.find(x=>x[0]===sel)||[])[1];
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>
-  ${backBtn("もどる","showTitle()")}<div class="sign" ${at(8,26,300,260)}></div>
+  ${backBtn("もどる","showTitle()")}${labTabs()}<div class="sign" ${at(8,26,300,260)}></div>
   <div class="small" ${at(16,32,284)}><span class="nmtag">みお</span>ロガーに残った記録から、カードを作れます……！</div>`+
   UNLOCK.shop.map(([id,price],i)=>{const d=CARDS[id],own=have.has(id);return `<button class="u9 lrow${sel===id?" main":""}" ${at(16,52+i*38,284,35)} onclick="S.labSel='${id}';renderLab()"><span class="ln">${esc(d.n)}</span><span class="small dim"> ${RARITY_JP[d.r]}</span><span class="lp ${own?"dim":p.log>=price?"gold":"ngc"}">${own?"解放ずみ":"ログ "+price}</span></button>`}).join("")+
-  (sel?cardBig(sel,{art:true,attrs:at(380,64,140,184)})+(have.has(sel)?`<div class="small dim" ${at(330,262,240)}>解放ずみ（報酬・デッキに出る）</div>`:
-    `<button class="main u9" ${at(380,258,140,32)} ${p.log>=pr?"":"disabled"} onclick="labBuy('${sel}')">ログ ${pr} で開く</button>`):"")}
+  (sel?cardBig(sel,{art:true,attrs:at(380,92,140,170)})+(have.has(sel)?`<div class="small dim" ${at(330,268,240)}>解放ずみ（報酬・デッキに出る）</div>`:
+    `<button class="main u9" ${at(380,266,140,30)} ${p.log>=pr?"":"disabled"} onclick="labBuy('${sel}')">ログ ${pr} で開く</button>`):"")}
 function labBuy(id){const p=PRF(),it=UNLOCK.shop.find(x=>x[0]===id);if(!it||unlockedCards(p).includes(id))return;if(p.log<it[1]){SND.se("card_cant");toast2("みお：ログが、足りません……");return}p.log-=it[1];SAVE.unlock("cards",id);SND.se("upgrade_buy");setTimeout(()=>SND.se("card_unlock"),500);toast2(`「${CARDS[id].n}」を開きました`);renderLab()}
 
 /* ===================== ★テスト用の口（QA・レベルデザイン班・デザイン班）=====================
