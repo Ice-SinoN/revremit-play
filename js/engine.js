@@ -27,18 +27,18 @@ function RULE(){const r=G&&CHARS[G.char]&&CHARS[G.char].rule||{};const t=G&&tree
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。キャラごとに枝3本 × 4段（1・2・3・4 ポイント）。4段目（型の決め）はプリセットで1本だけ。
    セーブ profile.tree[char]={pts, presets:[{name,lv:[0,0,0]}×3], cur}。ランのはじめに G.tree={lv:[..]} に写す */
 const TREE={
- YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","dashcam","studless","spike"],top:"白猫の護り：シフトアップのたびに凍結 1"},
+ YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","studless","spike","dashcam"],top:"白猫の護り：シフトアップのたびに凍結 1"},
    {id:"y_cnt",n:"白猫の構え",d:"守ってから返す型",entry:["counter","hyoujin"],cards:["counter","hyoujin","braking","shimo","shironeko"],parts:["grip","cage","jack","widebody","hook"],top:"白猫の護り：防御の半分を次のアタックに"},
-   {id:"y_red",n:"紅雪の走り",d:"レッドで押し切る型",entry:["tsurara","hakunetsu"],cards:["tsurara","hakunetsu","rinkai","kyokkou","hyouen","backfire","cooldown"],parts:["hicam","pipe","limiter","oilcool","aero","drysump","forged"],top:"白猫の護り：レッドではガソリン −1"}],
- HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["h_wheelie","h_12inch","boost","launch","nitro"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
-   {id:"h_combo",n:"火花",d:"数で当てる型",entry:["h_kagerou","h_nukiuchi"],cards:["h_kagerou","h_nukiuchi","h_hibana","h_shippu","h_nichirin"],parts:["slick","carbon","pacenote","subcon","qrelease"],top:"このターン3枚目からのアタック +2"},
-   {id:"h_pit",n:"整備メモ",d:"守って立て直す型",entry:["h_hidamari","h_fullbrake"],cards:["h_hidamari","h_fullbrake","h_kneegrip","h_memo"],parts:["grip","cage","jack","oilcool","h_bigbore"],top:"受けるダメージ半分が、最初の3ターンに"}],
+   {id:"y_red",n:"紅雪の走り",d:"レッドで押し切る型",entry:["tsurara","hakunetsu"],cards:["tsurara","hakunetsu","rinkai","kyokkou","hyouen","backfire","cooldown"],parts:["hicam","pipe","limiter","oilcool","drysump","forged"],top:"白猫の護り：レッドではガソリン −1"}],
+ HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["launch","boost","nitro","h_12inch"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
+   {id:"h_combo",n:"火花",d:"数で当てる型",entry:["h_kagerou","h_nukiuchi"],cards:["h_kagerou","h_nukiuchi","h_hibana","h_shippu","h_nichirin"],parts:["turbo","clutch","slick","h_bigbore"],top:"このターン3枚目からのアタック +2"},
+   {id:"h_pit",n:"整備メモ",d:"守って立て直す型",entry:["h_hidamari","h_fullbrake"],cards:["h_hidamari","h_fullbrake","h_kneegrip","h_memo"],parts:["grip","jack","cage","oilcool","h_wheelie"],top:"受けるダメージ半分が、最初の3ターンに"}],
  MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：1ターン2回まで"},
-   {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["m_horo","grip","cage","jack"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
-   {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["m_light","jack","cage","widebody"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
- NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","launch","seq","dogmt","synchro","n_paddleshifter"],top:"5回目のシフトアップでも、ガソリンがもどる"},
-   {id:"n_perf",n:"王宮",d:"パーフェクトで守る型",entry:["n_hiiro","n_hokori"],cards:["n_hiiro","n_hokori","n_downforce","n_teppeki"],parts:["lsd","n_activediff","n_seat","grip"],top:"パーフェクトの防御 +3 → +5"},
-   {id:"n_crown",n:"戴冠",d:"最大ギアで決める型",entry:["n_hachiren","n_taikan"],cards:["n_hachiren","n_taikan","n_totsugeki","n_koutotsu","n_shukumei"],parts:["turbo","limiter","n_paddleshifter","aero"],top:"最大ギアで、アタック +3"}]};
+   {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["grip","carbon","lsd","m_horo"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
+   {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["cage","jack","widebody","m_light"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
+ NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","seq","n_paddleshifter"],top:"4回目のシフトアップで、もどるガソリン +1（1ターン1回）"},
+   {id:"n_perf",n:"王宮",d:"パーフェクトで守る型",entry:["n_hiiro","n_hokori"],cards:["n_hiiro","n_hokori","n_downforce","n_teppeki"],parts:["lsd","launch","dogmt","n_activediff"],top:"パーフェクトの防御 +3 → +5"},
+   {id:"n_crown",n:"戴冠",d:"最大ギアで決める型",entry:["n_hachiren","n_taikan"],cards:["n_hachiren","n_taikan","n_totsugeki","n_koutotsu","n_shukumei"],parts:["turbo","limiter","nitro","n_seat"],top:"最大ギアで、アタック +3"}]};
 const TREE_COST=[1,2,3,4],TREE_PARTW=1.25,TREE_BANDADD=0.25;
 function treeOfProfile(ch){try{if(typeof PRF!=="function")return[0,0,0];const t=PRF().tree&&PRF().tree[ch];if(!t)return[0,0,0];const p=t.presets&&t.presets[t.cur||0];return p&&p.lv&&treeSpent(p.lv)<=(t.pts||0)?p.lv.slice():[0,0,0]}catch(e){return[0,0,0]}}
 function treeSpent(lv){return lv.reduce((a,l)=>a+l*(l+1)/2,0)}
@@ -49,8 +49,8 @@ function treeHas(k,lvMin){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=l
 function treeCardBand(id){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=3&&b.cards.includes(id))?TREE_BANDADD:0}
 function treePartW(p){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=2&&b.parts.includes(p))?TREE_PARTW:1}
 /* ランのはじめ：1段目＝入口のカード2枚がデッキに入る（かわりに共通の C を同じ枚数抜く。20枚のまま） */
-const TREE_OUT=["blip","slip","braking","pitboard","qshift","ebrake","cooldown"];
-function treeDeckList(list,ch,lv){/* list＝[{id,mc}]（手を加えて返す） */(TREE[ch]||[]).forEach((b,i)=>{if((lv[i]||0)<1)return;b.entry.forEach(id=>{if(!CARDS[id])return;
+const TREE_OUT=["blip","slip","braking"];/* ★v0.22.50 design 11-3-5：ブリッピング → スリップ → ブレーキング（クイックシフトは抜かない） */
+function treeDeckList(list,ch,lv){/* list＝[{id,mc}]（手を加えて返す）。入口のカードがもうデッキにあれば、その分は足さず抜かない */(TREE[ch]||[]).forEach((b,i)=>{if((lv[i]||0)<1)return;b.entry.forEach(id=>{if(!CARDS[id]||list.some(c=>c.id===id&&!c.mc))return;
   const k=TREE_OUT.map(o=>list.findIndex(c=>c.id===o&&!c.mc)).find(x=>x>=0);if(k!=null&&k>=0)list.splice(k,1);list.push(inst(id))})});return list}
 function treeApplyDeck(){treeDeckList(G.deck,G.char,treeLv())}
 /* ★v0.22.49 確認の小窓のデッキ欄：ツリーの1段目で入れかわったあと（{id:枚数}） */
@@ -282,7 +282,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
   B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
-  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
+  if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.nShiftT=false;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
   if(first&&RULE().firstGas){B.gas+=RULE().firstGas;addLog(`最初のターン：ガソリン +${RULE().firstGas}`)}
@@ -442,8 +442,8 @@ function onShiftUp(g){
   B.shiftsT++;
   // ★v0.22.1 ローンチコントロール：戦闘で最初のシフトアップで1枚多く引く／AT の詰まりの救済（atLowDraw）：1ターン最初の自動シフトで、手札が2枚以下なら1枚引く
   if(lfirst){B.launchDrawn=true;addGas(1);addLog("ローンチコントロール：ガソリン +1")}/* ★v0.22.7 design 10-1 */
-  if(G.mode==="AT"&&RULES.atLowDraw&&B.shiftsT===1&&h0<=RULES.atLowDraw&&drawN(1))addLog("手札が少ないので1枚引いた（自動シフト）");if(B.shiftsT>shiftCapNow()+(treeTop()==="n_shift"?1:0))return;
-  let k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */addGas(k);
+  if(G.mode==="AT"&&RULES.atLowDraw&&B.shiftsT===1&&h0<=RULES.atLowDraw&&drawN(1))addLog("手札が少ないので1枚引いた（自動シフト）");if(B.shiftsT>shiftCapNow())return;
+  let k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */if(treeTop()==="n_shift"&&B.shiftsT===4&&!B.nShiftT){B.nShiftT=true;k++;addLog("鳳翼：4回目のシフトでガソリン +1")}/* ★v0.22.50 design 11-3-5 */addGas(k);
   if(B.gas>g0){addLog(`ガソリン +${B.gas-g0}`);ev({k:"gas",v:B.gas-g0})}
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
   if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});

@@ -157,7 +157,7 @@ function treeTap(i,k){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],l
   take()}
 function treeReset(){S.treeGo=()=>{closeModal();const t=treeData(curChar());t.presets[t.cur||0].lv=[0,0,0];SND.se("tree_reset");toast2("振り直しました");treeSave();renderTree()};
   modal(`<div class="h">振り直しますか？</div><div class="small">ポイントは、全部もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">振り直す</button><button onclick="closeModal()">やめる</button></div>`)}
-function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree()};
+function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree();toast2(TEXT.tree&&TEXT.tree.saved||"保存しました",318,1000)};/* ★v0.22.50 名前を変えたときだけ1秒（文はシナリオ班から） */
   modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(curChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
 function treePick(){const ch=curChar();SND.se("ui_ok");toast2(`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
 function treeBack(){SND.se("ui_cancel");runConfirm(S.flowBring||[])}
