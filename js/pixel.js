@@ -216,6 +216,14 @@ async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||ne
 function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":"仮"}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
 const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]);
+/* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
+const FUSED_SHEET="assets/c2/cards/c2/revremit_card_art_c2_fused_sheet";
+async function loadFusedArt(have){window.FUSED_ART={};const P=FUSED_SHEET+".png",J=FUSED_SHEET+".json";if(!have.has(P)||typeof FUSE==="undefined")return;
+  try{const im=await loadImg(P);if(!im)return;const js=have.has(J)?await loadJSON(J):null;let cells=[];
+    const fr=js&&(Array.isArray(js.frames)?js.frames:js.frames?Object.entries(js.frames).map(([k,v])=>Object.assign({filename:k},v)):Array.isArray(js.cells)?js.cells:Array.isArray(js)?js:null);
+    if(fr)cells=fr.map((f,i)=>{const r=f.frame||f,nm=String(f.filename||f.name||f.id||"");const hit=FUSE.find(x=>nm.includes(x.id))||FUSE.find(x=>nm&&x.id.endsWith(nm.replace(/\.png$/,"")));return{id:hit?hit.id:(FUSE[i]||{}).id,x:+r.x||0,y:+r.y||0,w:+r.w||50,h:+r.h||38}});
+    else FUSE.forEach((f,i)=>cells.push({id:f.id,x:(i%6)*50,y:Math.floor(i/6)*38,w:50,h:38}));
+    cells.forEach(c=>{if(!c.id)return;const cv=mkCanvas(c.w,c.h);cv.getContext("2d").drawImage(im,c.x,c.y,c.w,c.h,0,0,c.w,c.h);FUSED_ART[c.id]=cv.toDataURL()})}catch(e){}}
 async function loadArt(){
   makeProcSprites();
   const have=await artList();window.ART_HAVE=have;
@@ -223,6 +231,7 @@ async function loadArt(){
   for(const[k,a]of Object.entries(ART_SRC)){if(a.lazy)continue;await loadSpr(k,have)}
   window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":a_lazy(k)]));
   await buildStages(have);await buildStagesC2(have);await buildMeter(have);await buildTutParts(have);applyUi640(have);
+  await loadFusedArt(have);/* ★v0.22.49 */
   // 絵ファイル（背景・アイコン・カード）を名前で引けるように
   window.IMG={};await Promise.all([...have].filter(f=>f.endsWith(".png")&&f.includes("/c2/")&&!f.includes("/characters/")).map(async f=>{IMG[f]=await loadImg(f)}));
 }

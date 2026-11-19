@@ -71,7 +71,7 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
 function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else runConfirm([])}
 /* ---- 4. 確認（★虎雪 11:35：ダイアログ。難易度・キャラ・デッキ〈はじめのカード〉・ミニカー → よろしいですか？ OK／もどる）---- */
 function runConfirm(bring){S.flowBring=(bring||[]).slice();
-  const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk=loadDeck(ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);
+  const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk0=loadDeck(ch),dk=treeDeckMap(dk0,ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);
   const cards=Object.keys(dk).sort((a,b)=>"SKERC".indexOf(rarityOf(a))-"SKERC".indexOf(rarityOf(b))||CARDS[a].c-CARDS[b].c).map(id=>`<span class="rcc r-${rarityOf(id)}">${esc(CARDS[id].n)}<b>×${dk[id]}</b></span>`).join("");
   const mc=S.flowBring.length?S.flowBring.map(m=>`<span class="rcc">${esc(TEXT.names[m.char]||m.char)}・${esc(m.rank)}<b>${m.cards.length}枚</b></span>`).join(""):`<span class="dim">なし</span>`;
   modal(`<div class="rcf"><div class="h">よろしいですか？</div><div class="small dim">この内容で、ランを始めます。</div>

@@ -49,8 +49,12 @@ function treeHas(k,lvMin){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=l
 function treeCardBand(id){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=3&&b.cards.includes(id))?TREE_BANDADD:0}
 function treePartW(p){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=2&&b.parts.includes(p))?TREE_PARTW:1}
 /* ランのはじめ：1段目＝入口のカード2枚がデッキに入る（かわりに共通の C を同じ枚数抜く。20枚のまま） */
-function treeApplyDeck(){const lv=treeLv(),out=["blip","slip","braking","pitboard","qshift","ebrake","cooldown"];treeBr().forEach((b,i)=>{if(lv[i]<1)return;b.entry.forEach(id=>{if(!CARDS[id])return;
-  const k=out.map(o=>G.deck.findIndex(c=>c.id===o&&!c.mc)).find(x=>x>=0);if(k!=null&&k>=0)G.deck.splice(k,1);G.deck.push(inst(id))})})}
+const TREE_OUT=["blip","slip","braking","pitboard","qshift","ebrake","cooldown"];
+function treeDeckList(list,ch,lv){/* list＝[{id,mc}]（手を加えて返す） */(TREE[ch]||[]).forEach((b,i)=>{if((lv[i]||0)<1)return;b.entry.forEach(id=>{if(!CARDS[id])return;
+  const k=TREE_OUT.map(o=>list.findIndex(c=>c.id===o&&!c.mc)).find(x=>x>=0);if(k!=null&&k>=0)list.splice(k,1);list.push(inst(id))})});return list}
+function treeApplyDeck(){treeDeckList(G.deck,G.char,treeLv())}
+/* ★v0.22.49 確認の小窓のデッキ欄：ツリーの1段目で入れかわったあと（{id:枚数}） */
+function treeDeckMap(dk,ch){const L=[];Object.entries(dk).forEach(([id,n])=>{for(let i=0;i<n;i++)L.push(inst(id))});const o={};treeDeckList(L,ch,treeOfProfile(ch)).forEach(c=>{o[c.id]=(o[c.id]||0)+1});return o}
 /* ★v0.22.1 design 5-1b「止めは1つまで」：NANA（4回）と強化シンクロ（+1）は重ねない（高いほう） */
 function shiftCapNow(){return Math.max(RULE().shiftCap||RULES.shiftCap,RULES.shiftCap+(has("synchro")?1:0))}
 
