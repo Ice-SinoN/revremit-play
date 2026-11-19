@@ -49,7 +49,7 @@ function treeHas(k,lvMin){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=l
 function treeCardBand(id){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=3&&b.cards.includes(id))?TREE_BANDADD:0}
 function treePartW(p){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=2&&b.parts.includes(p))?TREE_PARTW:1}
 /* ランのはじめ：1段目＝入口のカード2枚がデッキに入る（かわりに共通の C を同じ枚数抜く。20枚のまま） */
-const TREE_OUT=["blip","slip","braking"];/* ★v0.22.50 design 11-3-5：ブリッピング → スリップ → ブレーキング（クイックシフトは抜かない） */
+const TREE_OUT=["blip","braking","slip"];/* ★v0.22.52 LD 11-34・design 11-3-3：ブリッピング → ブレーキング → スリップ（クイックシフトは抜かない） */
 function treeDeckList(list,ch,lv){/* list＝[{id,mc}]（手を加えて返す）。入口のカードがもうデッキにあれば、その分は足さず抜かない */(TREE[ch]||[]).forEach((b,i)=>{if((lv[i]||0)<1)return;b.entry.forEach(id=>{if(!CARDS[id]||list.some(c=>c.id===id&&!c.mc))return;
   const k=TREE_OUT.map(o=>list.findIndex(c=>c.id===o&&!c.mc)).find(x=>x>=0);if(k!=null&&k>=0)list.splice(k,1);list.push(inst(id))})});return list}
 function treeApplyDeck(){treeDeckList(G.deck,G.char,treeLv())}
