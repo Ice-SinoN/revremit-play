@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.47（β2）";
+const VERSION="試作 v0.22.48（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -15,7 +15,7 @@ function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_ba
 function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle")SND.engineStop();setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
-const FULL_SCREENS=["battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
+const FULL_SCREENS=["battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
 function placeUI(n){const u=$("#ui");if(!u)return;const full=FULL_SCREENS.includes(n);
   u.style.left=(full?0:RES.inner[0])+"px";u.style.top=(full?0:RES.inner[1])+"px";u.style.width=(full?RES.W:480)+"px";u.style.height=(full?RES.H:270)+"px";u.classList.toggle("panel",!full)}
 /* ★アイテム・パーツのアイコン（items\c2・64×64） */
@@ -450,7 +450,7 @@ function takePart(p){choosePartSlot(p,idx=>{addPart(p,idx);SND.se(idx>=0?"part_s
 /* ---- チューニングショップ ---- */
 function showShop(n){
   setScreen("shop");setScene("dim");closeModal();if(S.shop!==n&&(n.feat||n.sale))SND.se("shop_sale");S.shop=n;SND.bgm("shop");
-  if(n.feat&&!n.featPart){const pool=partPool();n.featPart=pool.length?pick(pool):null}
+  if(n.feat&&!n.featPart){const pool=partPool();n.featPart=pool.length?wPickN(pool,1,treePartW)[0]:null}
   const ut=!!S.useTicket&&G.tickets>0;
   /* ★背景 shop：奥の壁にメニューの板（チューン5つ）、カウンターの上に目玉商品、カウンターの前に値札・割引券・「店を出る」 */
   let h=hud()+`<div class="hdr" ${at(100,24,440,18)}>チューニングショップ${n.sale?"　セール −30%":""}</div>${n.sale?`<i class="badge sale" ${at(506,27,30,12)}></i>`:""}<div class="sign board" ${at(96,42,448,170)}></div>`;
@@ -721,6 +721,8 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
     if(o.next&&typeof BETA_NIGHTS==="number"&&G.night>=BETA_NIGHTS)S.joinQ.push("__next")}
   unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push("カード："+CARDS[id].n));
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
+  {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */
+   const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?(G.night>=6?2:G.night>=3?1:0):0);if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
   const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();return lg.total}
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();

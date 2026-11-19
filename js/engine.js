@@ -22,12 +22,40 @@ const cardOK=id=>!G||!G.ul||G.ul.cards.includes(id);
 const partOK=id=>!G||!G.ul||G.ul.parts.includes(id);
 function noBlow(){return NR().noBlow||has("forged")||!!(G&&G.practice)}
 /* ★v0.22 キャラの決まり（design 9-10-1）：CHARS[c].rule */
-function RULE(){return G&&CHARS[G.char]&&CHARS[G.char].rule||{}}
+function RULE(){const r=G&&CHARS[G.char]&&CHARS[G.char].rule||{};const t=G&&treeTop();
+  if(t==="h_pit")return Object.assign({},r,{halfDmg:3});if(t==="m_chain")return Object.assign({},r,{rescueN:2});if(t==="n_perf")return Object.assign({},r,{perfBlk:5});return r}
+/* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。キャラごとに枝3本 × 4段（1・2・3・4 ポイント）。4段目（型の決め）はプリセットで1本だけ。
+   セーブ profile.tree[char]={pts, presets:[{name,lv:[0,0,0]}×3], cur}。ランのはじめに G.tree={lv:[..]} に写す */
+const TREE={
+ YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","dashcam","studless","spike"],top:"白猫の護り：シフトアップのたびに凍結 1"},
+   {id:"y_cnt",n:"白猫の構え",d:"守ってから返す型",entry:["counter","hyoujin"],cards:["counter","hyoujin","braking","shimo","shironeko"],parts:["grip","cage","jack","widebody","hook"],top:"白猫の護り：防御の半分を次のアタックに"},
+   {id:"y_red",n:"紅雪の走り",d:"レッドで押し切る型",entry:["tsurara","hakunetsu"],cards:["tsurara","hakunetsu","rinkai","kyokkou","hyouen","backfire","cooldown"],parts:["hicam","pipe","limiter","oilcool","aero","drysump","forged"],top:"白猫の護り：レッドではガソリン −1"}],
+ HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["h_wheelie","h_12inch","boost","launch","nitro"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
+   {id:"h_combo",n:"火花",d:"数で当てる型",entry:["h_kagerou","h_nukiuchi"],cards:["h_kagerou","h_nukiuchi","h_hibana","h_shippu","h_nichirin"],parts:["slick","carbon","pacenote","subcon","qrelease"],top:"このターン3枚目からのアタック +2"},
+   {id:"h_pit",n:"整備メモ",d:"守って立て直す型",entry:["h_hidamari","h_fullbrake"],cards:["h_hidamari","h_fullbrake","h_kneegrip","h_memo"],parts:["grip","cage","jack","oilcool","h_bigbore"],top:"受けるダメージ半分が、最初の3ターンに"}],
+ MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：1ターン2回まで"},
+   {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["m_horo","grip","cage","jack"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
+   {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["m_light","jack","cage","widebody"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
+ NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","launch","seq","dogmt","synchro","n_paddleshifter"],top:"5回目のシフトアップでも、ガソリンがもどる"},
+   {id:"n_perf",n:"王宮",d:"パーフェクトで守る型",entry:["n_hiiro","n_hokori"],cards:["n_hiiro","n_hokori","n_downforce","n_teppeki"],parts:["lsd","n_activediff","n_seat","grip"],top:"パーフェクトの防御 +3 → +5"},
+   {id:"n_crown",n:"戴冠",d:"最大ギアで決める型",entry:["n_hachiren","n_taikan"],cards:["n_hachiren","n_taikan","n_totsugeki","n_koutotsu","n_shukumei"],parts:["turbo","limiter","n_paddleshifter","aero"],top:"最大ギアで、アタック +3"}]};
+const TREE_COST=[1,2,3,4],TREE_PARTW=1.25,TREE_BANDADD=0.25;
+function treeOfProfile(ch){try{if(typeof PRF!=="function")return[0,0,0];const t=PRF().tree&&PRF().tree[ch];if(!t)return[0,0,0];const p=t.presets&&t.presets[t.cur||0];return p&&p.lv&&treeSpent(p.lv)<=(t.pts||0)?p.lv.slice():[0,0,0]}catch(e){return[0,0,0]}}
+function treeSpent(lv){return lv.reduce((a,l)=>a+l*(l+1)/2,0)}
+function treeLv(){return G&&G.tree&&G.tree.lv||[0,0,0]}
+function treeBr(){return TREE[G&&G.char]||[]}
+function treeTop(){const lv=treeLv(),i=lv.indexOf(4);return i>=0&&treeBr()[i]?treeBr()[i].id:null}
+function treeHas(k,lvMin){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=lvMin&&(k==null||b.cards.includes(k)||b.parts.includes(k)))}
+function treeCardBand(id){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=3&&b.cards.includes(id))?TREE_BANDADD:0}
+function treePartW(p){const lv=treeLv();return treeBr().some((b,i)=>lv[i]>=2&&b.parts.includes(p))?TREE_PARTW:1}
+/* ランのはじめ：1段目＝入口のカード2枚がデッキに入る（かわりに共通の C を同じ枚数抜く。20枚のまま） */
+function treeApplyDeck(){const lv=treeLv(),out=["blip","slip","braking","pitboard","qshift","ebrake","cooldown"];treeBr().forEach((b,i)=>{if(lv[i]<1)return;b.entry.forEach(id=>{if(!CARDS[id])return;
+  const k=out.map(o=>G.deck.findIndex(c=>c.id===o&&!c.mc)).find(x=>x>=0);if(k!=null&&k>=0)G.deck.splice(k,1);G.deck.push(inst(id))})})}
 /* ★v0.22.1 design 5-1b「止めは1つまで」：NANA（4回）と強化シンクロ（+1）は重ねない（高いほう） */
 function shiftCapNow(){return Math.max(RULE().shiftCap||RULES.shiftCap,RULES.shiftCap+(has("synchro")?1:0))}
 
 /* ---- カードの読みかた ---- */
-function CD(c){const id=c.id||c;let d=CARDS[id];const pv=typeof MOD_PREVIEW!=="undefined"&&MOD_PREVIEW&&MOD_PREVIEW[id],m=pv||(G&&G.mods&&G.mods[id]);if(m&&m.lv&&!(c&&c.nm))d=modDef(id,m);if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
+function CD(c){const id=c.id||c;let d=CARDS[id];const pv=typeof MOD_PREVIEW!=="undefined"&&MOD_PREVIEW&&MOD_PREVIEW[id],m=pv||(G&&G.mods&&G.mods[id]);if(m&&m.lv&&!(c&&c.nm))d=modDef(id,m);if(id==="shironeko"&&G&&G.tree){const t=treeTop();if(t==="y_frz")d=Object.assign({},d,{fx:d.fx.concat([["onUp","frz",1]])});else if(t==="y_cnt")d=Object.assign({},d,{fx:d.fx.concat([["counterAdd"]])})}if(G&&G.mode==="AT"&&d.at)return Object.assign({},d,d.at);return d}
 /* ★v0.22.47 カード改造（design 11-2・text 27-5）。1枚に2段：1段目＝数値、2段目＝分かれ道 A／B。スロットごと（profile.mods={id:{lv,br,spent}}）。
    ランのはじめに G.mods に写す。デッキの改造カード（＋合成カード）は8枚まで：こえた分は c.nm（そのランは改造なし） */
 var MOD_PREVIEW=null;/* ラン外（ラボ・デッキ）で改造の形を見せるとき {id:{lv,br}} */
@@ -132,6 +160,7 @@ function newRunState(mode,charId,bring,dk,opt){
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
     if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
+  G.tree={lv:((opt.tree&&opt.tree.lv)||treeOfProfile(charId)).slice(0,3)};treeApplyDeck();/* ★v0.22.48 */
   applyModCap();
   return G;
 }
@@ -154,7 +183,9 @@ function sellPrice(p){if(!PARTS[p]||isMcPart(p))return 0;return Math.floor(RULES
 function removePartAt(idx){const p=G.parts[idx];if(p==null)return null;G.parts.splice(idx,1);if(p==="forged")G.maxhp+=10;if(isMcPart(p))G.mcParts=G.mcParts.filter(x=>x!==p);return p}
 function sellPart(p,idx){/* idx あり＝持っているパーツ、なし＝手に入れたばかりのものをその場で売る */const v=sellPrice(p);if(idx!=null&&idx>=0){if(G.parts[idx]!==p)return 0;removePartAt(idx)}
   if(v>0){G.money+=v;(G.soldParts=G.soldParts||[]).push(p)}return v}
-function partOptions(n){return shuffle(partPool()).slice(0,n||3)}
+/* ★v0.22.48 ツリーの2段目：その型のパーツが出やすい（重み ×1.25） */
+function wPickN(L,n,w){L=L.slice();const out=[];while(out.length<n&&L.length){const t=L.reduce((a,x)=>a+w(x),0);let r=Math.random()*t,i=0;for(;i<L.length-1;i++){r-=w(L[i]);if(r<0)break}out.push(L.splice(i,1)[0])}return out}
+function partOptions(n){return wPickN(partPool(),n||3,treePartW)}
 /* パーツを取る。5つあるときは idx の枠と入れ替える（idx なしで5つなら false） */
 function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.push(p);
   else{if(idx==null||idx<0||idx>=G.parts.length)return false;old=G.parts[idx];G.parts[idx]=p}
@@ -228,7 +259,8 @@ function gasMode(){return (typeof G!=="undefined"&&G&&G.mode)||(typeof PRF==="fu
 function gasRaw(d,up,mode){if(up&&d.gasu!=null)return d.gasu;if((mode||gasMode())==="MT"&&d.gasMT!=null)return d.gasMT;return d.gas||0}
 function gasLabel(d,up){const g=gasRaw(d,up,"AT"),m=gasRaw(d,up,"MT");return m===g?String(g):`${gasRaw(d,up)}（MT ${m}・AT ${g}）`}
 function gasBase(c){return gasRaw(CD(c),c.up)}
-function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;
+function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);
+  {const t=treeTop(),id=c.id||c;if(a>0&&((t==="y_red"&&id==="shironeko"&&inRed())||(t==="m_rev"&&id==="m_hougou"&&G.hp<=G.maxhp/2)))a--;if(t==="h_rush"&&id==="h_sunrise"&&B.pTurns===0)a=0}if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;
   if(has("drysump")&&d.band==="R"&&a>0&&B.dryT<2&&inBand(c))a--;return a}
 function addGas(n){B.gas=Math.min(maxGas(),B.gas+n)}
 function addCharge(why){B.charge++;ev({k:"charge",n:B.charge,why});if(B.hand.concat(B.draw,B.disc).some(c=>CD(c).charge))addLog(`大技の条件（${why}）：ガソリン −1`)}
@@ -305,7 +337,7 @@ function preview(c){
 }
 /* 効果の手助け */
 function mkCtx(m){return{
-  attack(v,raw){let d=raw?v:(v+(B.atkAll||0))*m*/* ★v0.22.24 誇り：倍率の前に足す（多段は1発ずつ） */(1+0.1*G.tune.ecu+(G.atkBonus||0));
+  attack(v,raw){const tt=treeTop(),ta=(tt==="h_combo"&&B.atks>=3?2:0)+(tt==="n_crown"&&isTopGear()?3:0);let d=raw?v:(v+(B.atkAll||0)+ta)*m*/* ★v0.22.24 誇り：倍率の前に足す（多段は1発ずつ） */(1+0.1*G.tune.ecu+(G.atkBonus||0));
     if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0;d+=B.turnAtkAdd}
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
@@ -406,7 +438,7 @@ function onShiftUp(g){
   B.shiftsT++;
   // ★v0.22.1 ローンチコントロール：戦闘で最初のシフトアップで1枚多く引く／AT の詰まりの救済（atLowDraw）：1ターン最初の自動シフトで、手札が2枚以下なら1枚引く
   if(lfirst){B.launchDrawn=true;addGas(1);addLog("ローンチコントロール：ガソリン +1")}/* ★v0.22.7 design 10-1 */
-  if(G.mode==="AT"&&RULES.atLowDraw&&B.shiftsT===1&&h0<=RULES.atLowDraw&&drawN(1))addLog("手札が少ないので1枚引いた（自動シフト）");if(B.shiftsT>shiftCapNow())return;
+  if(G.mode==="AT"&&RULES.atLowDraw&&B.shiftsT===1&&h0<=RULES.atLowDraw&&drawN(1))addLog("手札が少ないので1枚引いた（自動シフト）");if(B.shiftsT>shiftCapNow()+(treeTop()==="n_shift"?1:0))return;
   let k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */addGas(k);
   if(B.gas>g0){addLog(`ガソリン +${B.gas-g0}`);ev({k:"gas",v:B.gas-g0})}
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
@@ -488,11 +520,11 @@ function playCard(i,shift){
   if(d.sup&&has("carbon")){B.block+=2;ev({k:"pblk",v:2})}
   if(d.t==="atk"&&band&&d.band==="R"&&has("pipe")){B.e.burn+=2;ev({k:"burn",v:2})}
   m=Math.round(m*100)/100;
-  let v=cardVal(c);if(band)v=rnum(v*(d.bm||RULES.bandMul),v);// ★帯
+  let v=cardVal(c);if(band)v=rnum(v*((d.bm||RULES.bandMul)+treeCardBand(c.id)),v);// ★帯（★v0.22.48 ツリーの3段目 +0.25）
   const x=mkCtx(m);
   const kv=kOf(c),runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v,kv)))});
   const blk0=B.block,hu0=new Set(B.hand.map(h=>h.uid));if(d.frzNoCap)B.frzNoCapNow=true;
-  B.retry=false;runFx();B.frzNoCapNow=false;
+  B.retry=false;runFx();B.frzNoCapNow=false;if(c.id==="m_hougou")B.hougouT=true;
   /* ★v0.22.47 改造の2段目（余熱・下取り・アルバム） */
   if(d.keepHalf&&B.block>blk0){const k=Math.floor((B.block-blk0)/2);B.blkCarry=(B.blkCarry||0)+k;addLog(`余熱：次の番に防御 ${k} が残る`)}
   if(d.tradeIn||d.album){const nw=B.hand.filter(h=>!hu0.has(h.uid));
@@ -535,6 +567,7 @@ function endTurn(){return turnEnd()}
 function turnEnd(gasout){
   if(B.over)return B.result;
   if(has("subcon")&&!gasout&&B.chain>1){B.chainCarry=Math.floor(B.chain/3);addLog(`サブコン：チェイン ${B.chainCarry} が残る`)}
+  if(treeTop()==="m_guard"&&B.hougouT&&B.chain>0){const k=Math.min(B.chain,15);B.block+=k;addLog(`花癒：防御 +${k}`);ev({k:"pblk",v:k})}B.hougouT=false;
   if(RULE().chainBlk&&B.chain>0){const k=Math.min(Math.floor(B.chain*(RULE().chainBlkMul||1)),RULE().chainBlk);/* ★v0.22.8 10-6 */B.block+=k;addLog(`チェインの守り：防御 +${k}`);ev({k:"pblk",v:k})}/* ★v0.22.7 MOMO（design 10-3） */
   if(has("m_horo")&&B.chain>=5){B.block+=5;addLog("幌：防御 +5");ev({k:"pblk",v:5})}
   B.pTurns++;

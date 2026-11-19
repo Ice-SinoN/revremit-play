@@ -25,7 +25,7 @@ function clearedNight(ch,mode,n){return(clearRecOf()[ch+"|"+mode]||[]).includes(
 function starHTML(on,lab){return`<span class="cst${on?" on":""}">${on?"★":"☆"}${lab?esc(lab):""}</span>`}
 function charStars(ch,mode){return["MT","AT"].map(m=>`<span class="${m===mode?"":"dim"}">${starHTML(clearedAny(ch,m),m)}</span>`).join(" ")}
 /* ---- 待機の絵（戦闘の idle）を小さな canvas に。未解放はシルエット ---- */
-function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage"].includes(window.SCREEN)){S.chavOn=false;return}
+function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage","tree"].includes(window.SCREEN)){S.chavOn=false;return}
   document.querySelectorAll("canvas.chav").forEach(cv=>{const set=SPR[cv.dataset.ch];const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
     if(!set||set.proc){g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
     const t=set.tags.idle||set.tags.stand||[0,0],n=t[1]-t[0]+1,ms=(set.dur&&set.dur[t[0]])||120,fr=set.frames[t[0]+Math.floor(performance.now()/ms)%n];if(!fr)return;
@@ -78,7 +78,7 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();
    <div class="rtop"><canvas class="chav" data-ch="${ch}" width="72" height="72"></canvas><div class="rcol">
     <div class="rrow"><span class="dim">難易度</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
     <div class="rrow"><span class="dim">キャラ</span><b>${esc(TEXT.names[ch]||ch)}</b><span class="small dim">${esc(C.carName)}・${esc(mode)}</span></div>
-    <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div></div></div>
+    <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div>${TREE[ch]?`<div class="rrow"><span class="dim">型</span><b>${esc(treeName(ch))}</b><button class="u9 mini" onclick="closeModal();showTree()">型をえらぶ</button></div>`:""}</div></div>
    <div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
    <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
@@ -129,3 +129,35 @@ function bootSeq(done,mode,bring){const ch=curChar();setScreen("boot");setScene(
     if(p>=1){bootEnd();return}requestAnimationFrame(step)};requestAnimationFrame(step)}
 function bootSkip(){if(S.boot&&!S.boot.end){SND.se("ui_ok");bootEnd()}}
 function bootEnd(){const b=S.boot;if(!b||b.end)return;b.end=true;S.boot=null;SND.se("gate_boot");b.done&&b.done()}
+
+/* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。ランの前（確認の小窓の「型をえらぶ」）から。振り直し・メモの切りかえはタダ。今のメモに自動で残る */
+function treeData(ch){const p=PRF();p.tree=p.tree||{};const t=p.tree[ch]=p.tree[ch]||{pts:0,cur:0,presets:[]};for(let i=0;i<3;i++)t.presets[i]=t.presets[i]||{name:"",lv:[0,0,0]};return t}
+function treeName(ch,i){const t=treeData(ch),k=i==null?t.cur||0:i,pr=t.presets[k],top=pr.lv.indexOf(4);return pr.name||(top>=0?TREE[ch][top].n+"型":`型のメモ ${k+1}`)}
+function showTree(){setScreen("tree");setScene("dim");setBg("garage");closeModal();const ch=curChar();renderTree();if(!S.treeIntro){S.treeIntro=1;toast2(ch==="MIO"?"こゆき：……どれで行く？":"みお：今夜は、どの型で行きますか？",300)}}
+function renderTree(){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,used=treeSpent(lv),left=(t.pts||0)-used,br=TREE[ch];
+  let h=`<div class="hdr" ${at(8,6,300,18)}>${esc(TEXT.names[ch]||ch)}の型</div><div class="small" ${at(8,26,300,14)}>ポイント ${left}／${t.pts||0}（${esc(TEXT.names[ch]||ch)}で走るとたまる）</div>${backBtn("もどる","treeBack()")}
+   <div class="tslots" ${at(316,58,316,24)}>`+t.presets.map((x,i)=>`<button class="u9${i===(t.cur||0)?" main":""}" onclick="treeSlot(${i})">${esc(treeName(ch,i))}</button>`).join("")+`</div>`;
+  br.forEach((b,i)=>{const x=8+i*210;h+=`<div class="tbr" ${at(x,86,204,226)}><div class="tbn"><b>${esc(b.n)}</b> <span class="small dim">${esc(b.d)}</span></div>`+
+    [1,2,3,4].map(k=>{const on=lv[i]>=k,can=lv[i]===k-1,need=TREE_COST[k-1],txt=k===1?`初期デッキに「${CARDS[b.entry[0]].n}」「${CARDS[b.entry[1]].n}」が入る`:k===2?`${b.n}のパーツが、店で出やすい`:k===3?`${b.n}のカードを帯で打つと ×${RULES.bandMul+TREE_BANDADD}`:b.top;
+      const why=on?"":!can?"下の段のあとで、とれる":left<need?`ポイントが足りない（あと ${need-left}）`:"";
+      return `<button class="tnode${on?" on":""}${!on&&why?" off":""}${k===4?" top":""}" onclick="treeTap(${i},${k})" ${b.tip&&k===4?`title="${esc(b.tip)}"`:""}><span class="tnt">${esc(txt)}</span><span class="small ${on?"ok":"dim"} tnc">${on?"とった":why||"とる"}・${need} ポイント</span></button>`}).join("")+`</div>`});
+  h+=`<div class="small dim" ${at(8,314,300,12)}>型の決め（4段目）は、1本だけ</div>
+   <button class="u9" ${at(8,328,100,26)} onclick="treeReset()">振り直す</button><button class="u9" ${at(114,328,110,26)} onclick="treeRename()">名前をつける</button>
+   <button class="main u9" ${at(460,328,172,26)} onclick="treePick()">この型で走る</button>`;
+  ui().innerHTML=h}
+function treeSave(){SAVE.auto&&SAVE.auto()}
+function treeSlot(i){const t=treeData(curChar());t.cur=i;SND.se("ui_ok");treeSave();renderTree()}
+function treeTap(i,k){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,left=(t.pts||0)-treeSpent(lv);
+  if(lv[i]>=k){if(lv[i]!==k){SND.se("card_cant");return}lv[i]=k-1;SND.se("ui_cancel");treeSave();renderTree();return}/* いちばん上の段を外す（ポイントはもどる） */
+  if(lv[i]!==k-1||left<TREE_COST[k-1]){SND.se("card_cant");return}
+  const o=k===4?lv.findIndex((l,j)=>j!==i&&l===4):-1;
+  const take=()=>{if(o>=0)lv[o]=3;lv[i]=k;SND.se(k===4?"tree_cap":"tune_up",{lv:k});treeSave();renderTree()};
+  if(o>=0){const B2=TREE[ch];if((t.pts||0)-treeSpent(lv.map((l,j)=>j===o?3:l))<TREE_COST[3]){SND.se("card_cant");return}
+    S.treeGo=()=>{closeModal();take()};modal(`<div class="h">「${esc(B2[o].n)}」の型の決めを外して、「${esc(B2[i].n)}」にしますか？</div><div class="small">外した段のポイントは、もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">入れかえる</button><button onclick="closeModal()">やめる</button></div>`);return}
+  take()}
+function treeReset(){S.treeGo=()=>{closeModal();const t=treeData(curChar());t.presets[t.cur||0].lv=[0,0,0];SND.se("tree_reset");toast2("振り直しました");treeSave();renderTree()};
+  modal(`<div class="h">振り直しますか？</div><div class="small">ポイントは、全部もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">振り直す</button><button onclick="closeModal()">やめる</button></div>`)}
+function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree()};
+  modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(curChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
+function treePick(){const ch=curChar();SND.se("ui_ok");toast2(`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
+function treeBack(){SND.se("ui_cancel");runConfirm(S.flowBring||[])}

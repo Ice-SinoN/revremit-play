@@ -438,3 +438,8 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .labtabs{display:flex;gap:3px;z-index:3}.labtabs button{flex:1;min-height:24px;font-size:10px;padding:0 2px}
 .modp{display:flex;flex-direction:column;gap:3px}.modp>button{min-height:26px}.modab{display:flex;gap:4px}.modbr{flex:1;border:1px solid #3a4560;background:rgba(10,14,24,.85);padding:3px;display:flex;flex-direction:column;gap:2px;min-height:96px}
 .modbr.on{border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime)}.modbr.off{opacity:.55}.modbr button{margin-top:auto;min-height:24px;font-size:10px}.modreset{align-self:flex-end;min-height:24px}
+.tslots{display:flex;gap:3px}.tslots button{flex:1;min-height:24px;font-size:10px;padding:0 3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tbr{display:flex;flex-direction:column;gap:3px;background:rgba(8,10,20,.82);border:1px solid #3a4560;padding:4px}.tbn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tnode{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:46px;padding:2px 5px;text-align:left;background:#141a2c;border:1px solid #3a4560;color:#e8ecf4;font:inherit}
+.tnode .tnt{font-size:11px;line-height:1.25}.tnode .tnc{margin-top:auto;font-size:9px}.tnode.on{border-color:var(--lime);background:rgba(184,255,60,.12)}.tnode.off{opacity:.55}.tnode.top{border-style:dashed}.tnode.top.on{border-style:solid;box-shadow:inset 0 0 0 1px var(--gold,#ffd34a)}
+.tname{width:100%;font:inherit;padding:4px;background:#0b0f1a;color:#fff;border:1px solid #3a4560}
