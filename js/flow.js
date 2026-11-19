@@ -37,6 +37,14 @@ function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["char
 /* ---- 1. 走りかた（タイトルのボタン）---- */
 /* ★v0.22.61 虎雪 11-20 07:58：ホームは「スタート」1つ → キャラ → 夜 →（ミニカー）→ 走りかた（MT／AT）→ 確認 → 演出。走りかたを選ぶまでは、★の見せ方に最後に選んだ走りかたを使う */
 function TU(k,d){return TEXT.ui&&TEXT.ui[k]||d}
+/* ★v0.22.63 虎雪 11-20 08:32：「スタート」→「自分で走る」「フルオート周回」の2択。フルオートは②の画面（window.FULLAUTO.open()）へ渡すだけ */
+FULL_SCREENS.push("startpick");SCREEN_BG.startpick="garage";
+const START_TXT={self:["自分で走る","キャラ・夜・デッキ・走りかたを選んで、自分で戦う。","ミニカーを持ちこめる。いつものラン。"],auto:["フルオート周回","ランを全部オートで、くり返し走る。スマホを縦にして見る。","ログは少なめ。ミニカーは作らない。"]};
+function showStartPick(){try{termPrep()}catch(e){}setScreen("startpick");setScene("dim");setBg("garage");closeModal();SND.se("ui_ok");const fa=!!(window.FULLAUTO&&FULLAUTO.open);
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>${esc(TU("start_head","どう走る？"))}</div>${backBtn("もどる","showTitle()")}`+
+   ["self","auto"].map((k,i)=>{const t=START_TXT[k],off=k==="auto"&&!fa;return `<button class="u9 mdcard${k==="self"?" main":""}${off?" off":""}" ${at(40+i*290,60,270,220)} onclick="${k==="self"?"startFlow()":"startFullAuto()"}"><div class="mdh" style="font-size:20px">${esc(TU("start_"+k,t[0]))}</div>
+     <div class="mdt">${esc(TU("start_"+k+"_1",t[1]))}</div><div class="mdt">${esc(TU("start_"+k+"_2",t[2]))}</div>${off?`<div class="small dim">${esc(TU("start_auto_wip","準備中"))}</div>`:""}</button>`}).join("")}
+function startFullAuto(){if(window.FULLAUTO&&FULLAUTO.open){SND.se("ui_ok");try{FULLAUTO.open()}catch(e){console.error(e);toast2("フルオートを開けませんでした")}}else{SND.se("card_cant");toast2(TU("start_auto_wip_t","フルオート周回は準備中です"))}}
 function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();showChars()}
 const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
 const flowModeTag=()=>S.flow&&!S.flow.mode?"":`（${flowMode()}）`;

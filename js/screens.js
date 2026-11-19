@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.62（β2）";
+const VERSION="試作 v0.22.63（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -93,7 +93,7 @@ function showTitle(){
   ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(TEXT.names[ch]||ch)}・3エリア</div></div>
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
-   <button class="${loadRun()?"":"main"}" onclick="startFlow()">${esc(TU("flow_start","スタート"))}</button>
+   <button class="${loadRun()?"":"main"}" onclick="showStartPick()">${esc(TU("flow_start","スタート"))}</button>
    <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
@@ -719,6 +719,9 @@ function showChars(){setScreen("chars");setScene("dim");setBg("garage");closeMod
 function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C.atRuleTxt;return C.ruleTxt?(at?C.ruleTxt+"・"+C.atRuleTxt:C.ruleTxt):""}
 /* renderChars は js/flow.js（v0.22.28 キャラ選びの画面を作り直した） */
 /* ランの終わり：解放・夜・ログをスロットに書く（1ランに1回）。戻り値＝このランのログ */
+/* ★v0.22.63 ②へのつなぎ目：RR_HOOKS.runEnd に関数を足すと、ランの終わり（ログを足したあと・1ランに1回）に呼ばれる。{clear,rank,log,logParts,got,G}。G.fullAuto はフルオート周回のラン。夜なし（テスト）のランでは呼ばない */
+const RR_HOOKS=window.RR_HOOKS=window.RR_HOOKS||{};
+function rrHook(k,a){(RR_HOOKS[k]||[]).forEach(f=>{try{f(a)}catch(e){console.error(e)}})}
 function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;const p=PRF(),u=p.unlock,got=[];
   if(!G.night){S.runEndLog=0;return 0}// 夜なし（テスト・α の道）は数えない
   const beforeC=new Set(unlockedCards(p)),beforeP=new Set(unlockedParts(p));
@@ -733,7 +736,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */
    const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?(G.night>=6?2:G.night>=3?1:0):0);if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
-  const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();return lg.total}
+  const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();rrHook("runEnd",{clear,rank,log:lg.total,logParts:lg,got,G});return lg.total}
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   const ch=G&&G.char||"YUKI",sl=sRankList(ch),sc=sCountOf(p,ch);
