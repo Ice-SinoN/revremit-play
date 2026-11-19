@@ -443,3 +443,5 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .tnode{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:46px;padding:2px 5px;text-align:left;background:#141a2c;border:1px solid #3a4560;color:#e8ecf4;font:inherit}
 .tnode .tnt{font-size:11px;line-height:1.25}.tnode .tnc{margin-top:auto;font-size:9px}.tnode.on{border-color:var(--lime);background:rgba(184,255,60,.12)}.tnode.off{opacity:.55}.tnode.top{border-style:dashed}.tnode.top.on{border-style:solid;box-shadow:inset 0 0 0 1px var(--gold,#ffd34a)}
 .tname{width:100%;font:inherit;padding:4px;background:#0b0f1a;color:#fff;border:1px solid #3a4560}
+/* ★v0.22.51 QA：型のメモの名前（10字）を枠の中に（縁を細く・字を小さく・行の高さを枠に合わせる） */
+.u640 .tslots button,.tslots button{border-width:4px;padding:0 2px;font-size:9px;letter-spacing:-.4px;line-height:14px;text-overflow:clip}

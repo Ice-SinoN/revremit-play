@@ -259,3 +259,5 @@ const SEEN_KEY="revremit_seen_v1";
 /* ★v0.20：見た場面は今のデータ（SAVE.cur.profile.seen）。SEEN_KEY は v0.19 までのキー（引きつぎで読むだけ） */
 function seenGet(){try{return SAVE.cur.profile.seen}catch(e){return{}}}
 function seenSet(k){try{if(!SAVE.cur.profile.seen[k]){SAVE.cur.profile.seen[k]=1;SAVE.auto()}}catch(e){}}
+/* ★v0.22.51 text v0.22.15 27-6-3（型のメモ・キー 27-7 の tree_*） */
+TEXT.tree=Object.assign(TEXT.tree||{},{tree_autosave:"変えたところは自動で保存されます",tree_rename_toast:"保存しました"});

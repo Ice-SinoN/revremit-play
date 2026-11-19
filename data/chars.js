@@ -45,7 +45,7 @@ const CHARS={
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1000,2500],M:[2500,4500],R:[6500,7000]}},
     deck:[["n_koutotsu",2],["n_hosaki",4],["n_hachiren",2],["n_downforce",2],["n_houyoku",2],["n_phoenix",1],["braking",2],["qshift",2],["slip",2],["blip",1]],
-    pool:null,skill:"n_phoenix",rule:{shiftCap:4,perfBlk:3},ruleTxt:"シフトアップは1ターン4回まで（ほかは3回）・パーフェクトのたびに防御 +3",
+    pool:null,skill:"n_phoenix",rule:{shiftCap:4,perfBlk:3,atFirstGas:2}/* ★v0.22.51 QA 本測り NIGHT 4 AT −19.7（チーフ 02:16）：NANA だけ AT の最初の自動シフト +2 */,ruleTxt:"シフトアップは1ターン4回まで（ほかは3回）・パーフェクトのたびに防御 +3",
   },
 };
 const CHAR_ORDER=["YUKI","HINA","MOMO","NANA"];

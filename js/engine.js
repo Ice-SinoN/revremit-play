@@ -36,7 +36,7 @@ const TREE={
  MOMO:[{id:"m_chain",n:"満開",d:"チェインをつなぐ型",entry:["m_hanawa","m_haruichiban"],cards:["m_hanawa","m_haruichiban","m_touka","m_mankai","m_musubime","m_hanafubuki"],parts:["slick","carbon","pacenote","subcon","qrelease","m_jinba"],top:"花の便り：1ターン2回まで"},
    {id:"m_guard",n:"花癒",d:"チェインで守る型",entry:["m_hanaakari","m_harukaze"],cards:["m_hanaakari","m_harukaze","m_softtop","m_cruise"],parts:["grip","carbon","lsd","m_horo"],top:"桃花の抱擁：ターン終わりにチェインの数の防御",tip:"桃花の抱擁を打ったターンだけ。防御は15まで。"},
    {id:"m_rev",n:"返り咲き",d:"追いこまれて返す型",entry:["m_kaerizaki","m_openair"],cards:["m_kaerizaki","m_openair","m_hanami","m_rinjin"],parts:["cage","jack","widebody","m_light"],top:"耐久が半分以下で、桃花の抱擁のガソリン −1"}],
- NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","seq","n_paddleshifter"],top:"4回目のシフトアップで、もどるガソリン +1（1ターン1回）"},
+ NANA:[{id:"n_shift",n:"鳳翼",d:"シフトを重ねる型",entry:["n_paddle","n_houyoku"],cards:["n_paddle","n_houyoku","n_tenshou","n_gaisen","n_hachiren"],parts:["closs","clutch","flywheel","seq","n_paddleshifter"],top:"4回目のシフトアップで、もどるガソリン +1",tip:"4回目のシフトアップで、もどるガソリン +1（グッド +2・パーフェクト +3）。"/* ★v0.22.51 text 27-6-2 */},
    {id:"n_perf",n:"王宮",d:"パーフェクトで守る型",entry:["n_hiiro","n_hokori"],cards:["n_hiiro","n_hokori","n_downforce","n_teppeki"],parts:["lsd","launch","dogmt","n_activediff"],top:"パーフェクトの防御 +3 → +5"},
    {id:"n_crown",n:"戴冠",d:"最大ギアで決める型",entry:["n_hachiren","n_taikan"],cards:["n_hachiren","n_taikan","n_totsugeki","n_koutotsu","n_shukumei"],parts:["turbo","limiter","nitro","n_seat"],top:"最大ギアで、アタック +3"}]};
 const TREE_COST=[1,2,3,4],TREE_PARTW=1.25,TREE_BANDADD=0.25;
@@ -205,7 +205,7 @@ function rewardOptions(rank){
   if(rank==="boss"){const hi=pool.filter(id=>rarityOf(id)==="E");if(hi.length)out.push(pick(hi))}
   while(out.length<3){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
   /* ★v0.22.37 design 10-14：持ちこんだミニカー（ほかのキャラのもの）のカード2種だけが、3枚のうち1枚まで出る。1台 15%（2台で 30%）。強化前の形・2種（2台なら4種）から等しく1つ */
-  const other=(G.bring||[]).filter(m=>m.char!==G.char),carry=[...new Set(other.flatMap(m=>m.cards.map(c=>c.id)))].filter(id=>CARDS[id]&&!CARDS[id].gen&&!out.includes(id));
+  const other=(G.bring||[]).filter(m=>m.char!==G.char),carry=[...new Set(other.flatMap(m=>m.cards.map(c=>c.id)))].filter(id=>CARDS[id]&&!CARDS[id].gen&&!CARDS[id].fused&&!out.includes(id));/* ★v0.22.51 BUG-51：合成カードは持ちこみの候補に出さない */
   if(carry.length&&out.length&&Math.random()<RULES.carryCardP*other.length){const k=(rank==="elite"||rank==="boss")&&out.length>1?out.length-1:Math.floor(Math.random()*out.length);out[k]=pick(carry)}
   return shuffle(out);
 }
@@ -443,7 +443,7 @@ function onShiftUp(g){
   // ★v0.22.1 ローンチコントロール：戦闘で最初のシフトアップで1枚多く引く／AT の詰まりの救済（atLowDraw）：1ターン最初の自動シフトで、手札が2枚以下なら1枚引く
   if(lfirst){B.launchDrawn=true;addGas(1);addLog("ローンチコントロール：ガソリン +1")}/* ★v0.22.7 design 10-1 */
   if(G.mode==="AT"&&RULES.atLowDraw&&B.shiftsT===1&&h0<=RULES.atLowDraw&&drawN(1))addLog("手札が少ないので1枚引いた（自動シフト）");if(B.shiftsT>shiftCapNow())return;
-  let k=g==="perfect"||(G.mode==="AT"&&RULES.atFirstGas&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */if(treeTop()==="n_shift"&&B.shiftsT===4&&!B.nShiftT){B.nShiftT=true;k++;addLog("鳳翼：4回目のシフトでガソリン +1")}/* ★v0.22.50 design 11-3-5 */addGas(k);
+  let k=g==="perfect"||(G.mode==="AT"&&(RULE().atFirstGas!=null?RULE().atFirstGas:RULES.atFirstGas)&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */if(treeTop()==="n_shift"&&B.shiftsT===4&&!B.nShiftT){B.nShiftT=true;k++;addLog("鳳翼：4回目のシフトでガソリン +1")}/* ★v0.22.50 design 11-3-5 */addGas(k);
   if(B.gas>g0){addLog(`ガソリン +${B.gas-g0}`);ev({k:"gas",v:B.gas-g0})}
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
   if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});

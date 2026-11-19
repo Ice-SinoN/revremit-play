@@ -141,11 +141,12 @@ function renderTree(){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],l
     [1,2,3,4].map(k=>{const on=lv[i]>=k,can=lv[i]===k-1,need=TREE_COST[k-1],txt=k===1?`初期デッキに「${CARDS[b.entry[0]].n}」「${CARDS[b.entry[1]].n}」が入る`:k===2?`${b.n}のパーツが、店で出やすい`:k===3?`${b.n}のカードを帯で打つと ×${RULES.bandMul+TREE_BANDADD}`:b.top;
       const why=on?"":!can?"下の段のあとで、とれる":left<need?`ポイントが足りない（あと ${need-left}）`:"";
       return `<button class="tnode${on?" on":""}${!on&&why?" off":""}${k===4?" top":""}" onclick="treeTap(${i},${k})" ${b.tip&&k===4?`title="${esc(b.tip)}"`:""}><span class="tnt">${esc(txt)}</span><span class="small ${on?"ok":"dim"} tnc">${on?"とった":why||"とる"}・${need} ポイント</span></button>`}).join("")+`</div>`});
-  h+=`<div class="small dim" ${at(8,314,300,12)}>型の決め（4段目）は、1本だけ</div>
+  h+=`<div class="small dim" ${at(8,314,300,12)}>型の決め（4段目）は、1本だけ</div><div class="small dim" ${at(316,314,316,12)} style="text-align:right">${esc(TT("tree_autosave","変えたところは自動で保存されます"))}</div>
    <button class="u9" ${at(8,328,100,26)} onclick="treeReset()">振り直す</button><button class="u9" ${at(114,328,110,26)} onclick="treeRename()">名前をつける</button>
    <button class="main u9" ${at(460,328,172,26)} onclick="treePick()">この型で走る</button>`;
   ui().innerHTML=h}
 function treeSave(){SAVE.auto&&SAVE.auto()}
+function TT(k,d){return TEXT.tree&&TEXT.tree[k]||d}
 function treeSlot(i){const t=treeData(curChar());t.cur=i;SND.se("ui_ok");treeSave();renderTree()}
 function treeTap(i,k){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,left=(t.pts||0)-treeSpent(lv);
   if(lv[i]>=k){if(lv[i]!==k){SND.se("card_cant");return}lv[i]=k-1;SND.se("ui_cancel");treeSave();renderTree();return}/* いちばん上の段を外す（ポイントはもどる） */
@@ -157,7 +158,7 @@ function treeTap(i,k){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],l
   take()}
 function treeReset(){S.treeGo=()=>{closeModal();const t=treeData(curChar());t.presets[t.cur||0].lv=[0,0,0];SND.se("tree_reset");toast2("振り直しました");treeSave();renderTree()};
   modal(`<div class="h">振り直しますか？</div><div class="small">ポイントは、全部もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">振り直す</button><button onclick="closeModal()">やめる</button></div>`)}
-function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree();toast2(TEXT.tree&&TEXT.tree.saved||"保存しました",318,1000)};/* ★v0.22.50 名前を変えたときだけ1秒（文はシナリオ班から） */
+function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree();toast2(TT("tree_rename_toast","保存しました"),318,1000)};/* ★v0.22.51 text 27-6-3：名前を変えたときだけ1秒 */
   modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(curChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
 function treePick(){const ch=curChar();SND.se("ui_ok");toast2(`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
 function treeBack(){SND.se("ui_cancel");runConfirm(S.flowBring||[])}
