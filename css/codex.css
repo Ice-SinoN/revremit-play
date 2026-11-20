@@ -114,7 +114,8 @@ button.bspd.on{color:#FFD34D}
 #farmui .fc.no{color:#4A5370;border-color:#262C40;background:#0E1220}
 #farmui .fnum{display:flex;justify-content:space-between;gap:4px;align-items:baseline}
 #farmui .fnum>span,#farmui .fnum>b{white-space:nowrap;flex:0 0 auto}/* v0.5.5 ラベルが2行に折れないように */
-#farmui .fnums{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px}
+#farmui .fnums{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px 8px}
+#farmui .fnum{min-width:0}#farmui .fnum.flog{grid-column:1/3}/* ★①v0.22.87 BUG-53：列は半分ずつ・数字の側は縮めてよい（ラベルは1行のまま） */
 #farmui .fnum.wide{grid-column:1/3}
 #farmui .fbar{flex:1 1 auto;height:5px;background:#2A3350;align-self:center}#farmui .fbar i{display:block;height:100%;background:#FF4040}
 #farmui .gold{color:#FFD34D}#farmui .lime{color:#C5FF45}#farmui .red{color:#FF7A7A}#farmui .dim{color:#8E99A8}#farmui .small{font:10px 'PM10'}
@@ -144,3 +145,4 @@ button.bspd.on{color:#FFD34D}
 .modal .cloudst .cloudel{position:relative;min-height:28px;margin-top:2px}
 .modal .cdrow{display:flex;gap:8px;margin:6px 0}.modal .cdcol{flex:1 1 0;border:1px solid #3A4566;padding:4px 6px;background:#121626}
 .modal .cdcol .cdslot{white-space:normal}.modal .cdcol.cl{box-shadow:inset 0 0 0 1px #5FA8FF}
+#farmui.land .fuirot{right:auto;left:6px;top:50%;transform:translateY(-50%);max-width:calc(50vw - 120px);border-radius:4px;line-height:16px;z-index:5}/* ★①v0.22.87 BUG-52：横向きの帯は左の空きに（見出し・ボタンをふさがない） */

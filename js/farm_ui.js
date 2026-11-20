@@ -81,8 +81,8 @@ function fuiNums(){if(!G&&!FARM.on)return;const n=$("#fu-n");if(!n)return;
    <div class="fnum"><span>ヒート</span><b class="${inB&&B.rpm>=red?"red":""}">${inB?B.rpm:"－"}${inB?`<span class="dim">/${lim}</span>`:""}</b></div>
    <div class="fnum"><span>ギア</span><b>${inB?(B.gear+1)+"速":"－"}${inB?`<span class="dim"> G${B.gas}</span>`:""}</b></div>
    <div class="fnum"><span>お金</span><b>${G?G.money:"－"}</b></div>
-   <div class="fnum"><span>ログ</span><b class="gold">+${FARM.log}</b><span class="${d.dayLog>=FARM_RULE.softCap?"red":"dim"} small">今日 ${d.dayLog}/${FARM_RULE.softCap}</span></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fnum wide red small">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
-   <div class="fnum"><span>勝ち負け</span><b><span class="lime">${FARM.sum.clear}</span> / <span class="red">${FARM.sum.lose}</span></b></div>
+   <div class="fnum flog"><span>勝ち負け</span><b><span class="lime">${FARM.sum.clear}</span> / <span class="red">${FARM.sum.lose}</span></b></div>
+   <div class="fnum flog"><span>ログ</span><b class="gold">+${FARM.log}</b><span class="${d.dayLog>=FARM_RULE.softCap?"red":"dim"} small">今日 ${d.dayLog}/${FARM_RULE.softCap}</span></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fnum wide red small">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
    ${inB?`<div class="fnum wide"><span>${esc(B.e.name||(ENEMIES[B.key]||{}).n||"")}</span><span class="fbar"><i style="width:${Math.max(0,Math.round(B.e.hp/B.e.maxhp*100))}%"></i></span><b>${B.e.hp}</b></div>`:""}`}
 /* マスの帯：今のエリアの段を左から。通った段＝選んだマス、今の段＝光る枠（選ぶ前は候補を縦に小さく）、先の段＝候補を縦に小さく（裏道の先は「？」） */
 function fuiStrip(a,r0,n){const el=$("#fu-strip");if(!el)return;const key=G.row+"|"+(G.path[G.row]??"")+"|"+a;if(el.dataset.k===key)return;el.dataset.k=key;
