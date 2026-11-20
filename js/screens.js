@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.80（β2）";
+const VERSION="試作 v0.22.81（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -734,7 +734,8 @@ function labOpen(){return(PRF().unlock.nightMax||0)>=1||PRF().log>0}
 function runOpts(){const p=PRF();return{night:curNight(),ul:{cards:unlockedCards(p),parts:unlockedParts(p)},hidden:(p.unlock.nightMax||0)>=1}}
 function pickNight(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length;
   modal(`<div class="h">夜をえらぶ</div><div class="small dim">決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く</div><div class="scroll nlist" style="height:190px">`+
-    NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
+    NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
+      if(x.n>last)return`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">🔒 ${esc(typeof BETA_TXT!=="undefined"?BETA_TXT.nightLock:"正式版で")}</span></button>`;
       return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();SND.jingle('night_select',{lv:${x.n}});showTitle()"><b>${esc(lab)}</b>${bl}　<span class="small">${esc(x.add)}</span></button>`
         :`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+
     `</div><div class="row"><button onclick="closeModal()">とじる</button></div>`)}
@@ -777,7 +778,7 @@ function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   afterCarShow(got)}
 /* ★v0.22 仲間が加わる話（NIGHT 1・2・3 の初クリア）・β の終わり（NIGHT 4 のクリア＝「次の仲間は……？」） */
 function playJoins(q,done){const c=q.shift();if(!c){done();return}const next=()=>playJoins(q,done);
-  if(c==="__next"){showScene("ally_next",()=>showScene("next_sora",next));SND.jingle("ally_next");return}/* ★v0.22.2 text 15章 SORA の予告・★v0.22.4 札でジングル ally_next（会話の曲は止まる） */
+  if(c==="__next"){showScene("ally_next",()=>showScene("next_sora",()=>showBetaEnd(next)));SND.jingle("ally_next");return}/* ★v0.22.2 text 15章 SORA の予告・★v0.22.4 札でジングル ally_next（会話の曲は止まる） */
   SND.jingle("ally_join",{who:c.toLowerCase()});const k="join_"+c.toLowerCase();
   if(TEXT.scenes[k])showScene(k,next);
   else{TEXT.scenes["join_tmp"]={light:1,lines:[[null,TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)+"。"]]};showScene("join_tmp",next)}}

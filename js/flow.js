@@ -71,7 +71,8 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>夜をえらぶ（${esc(TEXT.names[ch]||ch)}${S.flow&&!S.flow.mode?"":"・"+esc(mode)}）</div>${backBtn("もどる","showChars()")}
    <div class="sign" ${at(8,30,452,324)}></div><div class="small dim ninfo" ${at(16,34,440,26)}>決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く。★＝${esc(TEXT.names[ch]||ch)}でクリアした夜（うすい★は、もう1つの走りかた）</div>
    <div class="scroll nlist2" id="nl" ${at(14,62,440,286)}>`+
-    NIGHTS.slice(0,last).map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
+    NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
+      if(x.n>last)return`<button class="nrow2 nfull" disabled><b>${esc(lab)}</b>　<span class="small dim">🔒 ${esc(BETA_TXT.nightLock)}</span></button>`;/* ★v0.22.81 虎雪 14:07：NIGHT 5 以降は正式版で */
       const st=`${starHTML(clearedNight(ch,mode,x.n),mode)}<span class="dim"> ${starHTML(clearedNight(ch,o,x.n),o)}</span>`;
       return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow2" onclick="PRF().night=${x.n};SAVE.auto();SND.jingle('night_select',{lv:${x.n}});renderNights()"><span class="nst">${st}</span><b>${esc(lab)}</b>${bl}<br><span class="small">${esc(x.add)}</span></button>`
         :`<button class="nrow2" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+`</div>
@@ -207,7 +208,7 @@ function showHub(){S.hubOpen=true;setScreen("hub");setScene("dim");setBg("garage
    B(428,62,196,66,"みおのラボ",`ログ ${p.log||0}・カードを開く／改造`,"showLab()")+
    `<div class="hubsec" ${at(20,138,600,30)}><b>型（スキルツリー）</b><span class="small dim">　キャラごとに型のメモ3つ。ランの前の「型をえらぶ」と同じもの</span></div>`+
    op.map((c,i)=>B(16+i*152,170,146,52,`${esc(TEXT.names[c]||c)}の型`,`「${esc(treeName(c))}」・ポイント ${(treeData(c).pts||0)-treeSpent(treeData(c).presets[treeData(c).cur||0].lv)}`,`S.treeHub=true;S.treeCh='${c}';showTree()`,"hubt")).join("")+
-   (typeof showCodex==="function"?B(16,240,196,56,"図鑑",typeof cdxPct==="function"&&typeof cdxAll==="function"?`${cdxPct(cdxAll())}%`:"","showCodex('card','title')"):"");
+   B(222,240,196,56,esc(BETA_TXT.noticeHead),"","showBetaEnd(()=>showHub(),true)")+(typeof showCodex==="function"?B(16,240,196,56,"図鑑",typeof cdxPct==="function"&&typeof cdxAll==="function"?`${cdxPct(cdxAll())}%`:"","showCodex('card','title')"):"");
   ui().innerHTML=h}
 /* ミニカーの保管庫：一覧（新しい順）・右に中身（mcDetail）・処分（確認あり） */
 function showMcBox(){setScreen("mcbox");setScene("dim");setBg("garage");closeModal();const mc=loadMinicars().slice().reverse();S.mcbox=mc;if(!mc.some(m=>m.id===S.mcboxSel))S.mcboxSel=mc[0]&&mc[0].id;
@@ -220,3 +221,34 @@ function showMcBox(){setScreen("mcbox");setScene("dim");setBg("garage");closeMod
   if($("#mbl"))$("#mbl").scrollTop=sc;{const d=$("#mcd");if(d&&d.scrollHeight>d.clientHeight+2){const t=document.createElement("div");t.className="small mcmore";t.textContent="▼ つづき（上下に動かせます）";d.parentNode.appendChild(t);d.onscroll=()=>{if(d.scrollTop+d.clientHeight>=d.scrollHeight-2)t.remove()}}}}
 function mcDispose(){const m=(S.mcbox||[]).find(x=>x.id===S.mcboxSel);if(!m)return;SND.se("overwrite_warn");S.mcDisGo=()=>{const a=loadMinicars().filter(x=>x.id!==m.id);saveMinicars(a);closeModal();SND.se("card_toss");toast2("ミニカーを処分しました");S.mcboxSel=null;showMcBox()};
   modal(`<div class="h">このミニカーを処分しますか？</div><div class="small">${esc(m.rank)} ${esc(TEXT.names[m.char]||m.char)}・${esc(m.mode)}／カード ${m.cards.length}枚${m.part?"・"+esc(partName(m.part)):""}</div><div class="small dim">もとにはもどせません。</div><div class="row"><button class="warn" onclick="S.mcDisGo()">処分する</button><button class="main" onclick="closeModal()">やめる</button></div>`)}
+
+/* ===== ★v0.22.81 虎雪 14:07：公開β の締め（NIGHT 4 の初クリア：SORA の予告のあと・text v0.22.21 35章）と「正式版の予告」（ガレージ）。TEXT.beta があればそれ ===== */
+const BETA_TXT=Object.assign({
+  pages:["ROAD の夜は、まだ明けない。<br>――続きは、正式版で。","まだ、走っていない記録がある。<br>？？？",
+    "β 版は、このまま遊べます。<br>NIGHT 1〜4 の周回・ミニカー集め・カード改造・スキルツリー・フルオート周回。",
+    "走ってくれて、ありがとうございました。<br>感想は X のリプライ・DM で、気軽にどうぞ。","みお：また、次の夜に。<br>こゆき：……ん。待ってる。"],
+  noticeHead:"正式版の予告",noticeBody:"仲間は、あと6人。ROAD の夜は、もっと深くなる。<br>夜明けの日まで、もうしばらくお待ちください。",
+  nightLock:"正式版で、走れます",toTitle:"タイトルへ",back:"もどる",next:"タップで次へ"},typeof TEXT!=="undefined"&&TEXT.beta||{});
+const BETA_NEXT=["SORA","KAEDE","RIN","LUNA","KURO","MIO"];/* 加わる順。SORA は予告で出たので少し明るく */
+const BETA_ART=["","","","","assets/c2/story/c2/revremit_story_ending_garage.png"];
+FULL_SCREENS.push("betaend");SCREEN_BG.betaend="garage";
+const betaSilHTML=y=>`<div class="sign besbg" ${at(40,y-4,560,136)}></div>`+BETA_NEXT.map((c,i)=>`<div class="besil${i?"":" besora"}" ${at(44+i*92,y,88,128)}><canvas id="bes${i}" width="88" height="104"></canvas><div class="small dim">？？？</div></div>`).join("");
+function showBetaEnd(done,fromHub){setScreen("betaend");setScene("dim");setBg("garage");closeModal();S.betaDone=done;S.betaHub=!!fromHub;S.betaPg=0;
+  if(!fromHub)SND.bgm("title");betaRender()}
+function betaRender(){const n=S.betaPg,hub=S.betaHub,T=BETA_TXT,last=hub||n>=T.pages.length-1;
+  const art=!hub&&BETA_ART[n]&&window.ART_HAVE&&ART_HAVE.has(BETA_ART[n])?BETA_ART[n]:null;
+  let h=art?`<img class="px beart" src="${(window.ART_EMBED&&ART_EMBED[art])||art}" ${at(0,0,640,360)} alt="">`:"";
+  if(hub){h+=`<div class="hdr" ${at(8,6,360,18)}>${esc(T.noticeHead)}</div><div class="sign bemsg" ${at(40,34,560,52)}><div>${T.noticeBody}</div></div>`+betaSilHTML(100)}
+  else{const sil=n===1;h+=`<div class="sign bemsg${art?" bebot":""}" ${art?at(40,232,560,52):sil?at(40,30,560,52):at(40,130,560,72)}><div>${T.pages[n]}</div></div>`+(sil?betaSilHTML(96):"")+
+    `<div class="small dim bepg" ${at(40,art?288:sil?236:210,560,14)}>${n+1}／${T.pages.length}${last?"":"　"+esc(T.next)}</div>`}
+  h+=last?`<div class="col" ${at(220,hub?250:308,200)}><button class="main u9" onclick="event.stopPropagation();betaEndGo()">${esc(hub?T.back:T.toTitle)}</button></div>`:"";
+  ui().innerHTML=`<div class="betap" ${at(0,0,640,360)} onclick="betaTap()"></div>`+h;
+  if(hub||n===1)betaSil()}
+function betaTap(){if(S.betaHub||S.betaPg>=BETA_TXT.pages.length-1)return;S.betaPg++;SND.se("text_next");betaRender()}
+function betaEndGo(){const d=S.betaDone;S.betaDone=null;SND.se("ui_ok");if(d)d();else showTitle()}
+async function betaSil(){try{await ensureSpr(BETA_NEXT)}catch(e){}if(window.SCREEN!=="betaend")return;
+  BETA_NEXT.forEach((c,i)=>{const cv=$("#bes"+i);if(!cv)return;const g=cv.getContext("2d"),set=SPR[c];g.clearRect(0,0,cv.width,cv.height);
+    if(!set||set.proc||!set.frames){g.fillStyle="#0b0d16";g.font="40px PM12";g.textAlign="center";g.fillText("？",44,70);return}
+    const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]],tmp=document.createElement("canvas");tmp.width=fr.width;tmp.height=fr.height;const q=tmp.getContext("2d");
+    q.drawImage(fr,0,0);q.globalCompositeOperation="source-in";q.fillStyle=i?"#05060c":"#2a3350";q.fillRect(0,0,tmp.width,tmp.height);
+    const sc=104/fr.height;g.imageSmoothingEnabled=false;g.shadowColor=i?"rgba(150,180,255,.45)":"rgba(200,230,255,.9)";g.shadowBlur=i?5:10;if(!i){g.globalAlpha=1}g.drawImage(tmp,(cv.width-fr.width*sc)/2,0,fr.width*sc,fr.height*sc)})}
