@@ -4,14 +4,14 @@
    ランの全部を自動で回す：マップのマス選び・戦闘（今のオート AUTOBOT）・報酬のカード（デッキの足りない役割を補う）・パーツ（取る／入れ替え＝外す方は売る）・
    ショップ（チューン・目玉商品）・シム（強化・合成）・休憩・ラッキー・裏道。終わったら同じ設定で次のランを自動で始める（回数指定 or 止めるまで）。
    土台：QA のボット（qa-harness policy.js の botUiStep・BOT.node／TUNE_PREF）と、オート戦闘の AI（js/bot.js の AUTOBOT。強さはオートと同じ「少し弱め」）。
-   決まり（design 10-22・FARM_RULE）：ログ 1/8・1日 150（朝4時に0）／型のポイントは全クリアで 25% に1点／整備チケット（エリアのボスで 8%・5枚まで・4種）／
+   決まり（design 10-22・FARM_RULE）：ログ 1/8・1日 150 をこえたら ×0.1（止まらない・朝4時に0）／型のポイントは全クリアで 25% に1点／整備チケット（エリアのボスで 8%・5枚まで・4種）／
      ディグ（ボスで 1.3%＋夜・天井 60ラン）／ミニカー・解放・夜の★・ストーリー・届けた数・図鑑の「見た」はなし（ランの前の profile にもどす）／ランの記録は残す（オートの印）。
    画面（★虎雪 08:31）：ホームのスタート → 「自分で走る」「フルオート周回」の2択 → フルオートは縦の専用画面（farm_ui.js・ワイヤーの OK 待ち）。今は上に「周回 n回目・合計ログ」と「止める」の帯だけ。
      止める → 「このランの終わりで」「すぐ止める（ランはオートセーブに残る＝つづきから）」。
    放置：画面が消えないように Wake Lock（できる端末だけ）。タブが裏にまわると演出（requestAnimationFrame）が止まるので、そのときは演出を飛ばして進める。
    ゲームの中身のコード（engine・data・戦闘の画面）は書きかえない。外から包む所は rr2-hooks の表（H17〜）で①に正式な口を頼む。 */
 /* ●数は design 10-22（デザイン班 08:45・★虎雪 08:38）。差しかえはここだけ */
-const FARM_RULE={logMul:1/8,dayCap:150,dayReset:4,treeClear:0.25,
+const FARM_RULE={logMul:0.125,softCap:150,overMul:0.1,resetHour:4,treeClear:0.25,/* ★design 10-22（11-20 10:22）：150 をこえたら ×0.1・止まらない */
   ticket:{drop:0.08,max:5,kinds:["discount","partPick","money","cardPick"]},
   dig:{drop:0.013,nightAdd:0.001,ceil:60},speed:4};
 const FARM_TICKET_JP={discount:"割引チケット",partPick:"パーツの選びなおし",money:"スタートダッシュ",cardPick:"ひと声"};/* 名前はシナリオ班が整える */
@@ -21,15 +21,17 @@ window.FARM=FARM;
 
 /* ---------- 入れ物（スロットごと・profile.farm）：今日のログ・整備チケット・ディグの天井 ----------
    profile.farm={day:"2026-11-20",dayLog:0,tickets:["discount",…],dig:{YUKI:ランの数,…}}。引き継ぎコードに入る（チケットは持ち物なので）。 */
-function farmDayKey(){const d=new Date(Date.now()-FARM_RULE.dayReset*3600e3),z=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`}
+function farmDayKey(){const d=new Date(Date.now()-FARM_RULE.resetHour*3600e3),z=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`}
 function farmData(){const p=PRF();let f=p.farm;if(!f||typeof f!=="object")f=p.farm={};if(!Array.isArray(f.tickets))f.tickets=[];if(!f.dig||typeof f.dig!=="object")f.dig={};
   const k=farmDayKey();if(f.day!==k){f.day=k;f.dayLog=0}f.dayLog=+f.dayLog||0;return f}
 window.farmData=farmData;
-function farmTodayLeft(){return Math.max(0,FARM_RULE.dayCap-farmData().dayLog)}
+function farmTodayLeft(){return Math.max(0,FARM_RULE.softCap-farmData().dayLog)}
+function farmOver(){return farmData().dayLog>=FARM_RULE.softCap}
+window.farmOver=farmOver;
 
 /* ---------- 決まり（10-22-2：ログ 1/8・1日 150、ポイントは全クリアで 25%、解放・★・ストーリー・図鑑の「見た」・ミニカーはなし）---------- */
 if(typeof runLog==="function"){const f=runLog;window.runLog=function(){const r=f.apply(this,arguments);
-  if(FARM.on&&r&&typeof r.total==="number"){const d=farmData(),v=Math.min(Math.floor(r.total*FARM_RULE.logMul),Math.max(0,FARM_RULE.dayCap-d.dayLog));r.farmFull=r.total;r.total=v;d.dayLog+=v}return r}}
+  if(FARM.on&&r&&typeof r.total==="number"){const d=farmData(),base=Math.floor(r.total*FARM_RULE.logMul),left=Math.max(0,FARM_RULE.softCap-d.dayLog),within=Math.min(base,left),v=within+Math.floor((base-within)*FARM_RULE.overMul);/* 150 までは 1/8、こえた分はさらに ×0.1 */r.farmFull=r.total;r.total=v;d.dayLog+=v}return r}}
 /* ランの終わり：ラン前の profile にもどす（解放・夜・★・見た場面・届けた数・sCount など）。残すのは ログ・記録・統計・profile.farm と、周回の得（ポイント・チケット・ディグ） */
 const FARM_KEEP=["log","runlog","stats","farm","tree"];
 if(typeof runEnd==="function"){const f=runEnd;window.runEnd=function(clear,rank){
@@ -136,7 +138,7 @@ setInterval(farmStep,50);
 /* ---------- ランの終わり → 次のラン ---------- */
 function farmRunDone(){if(FARM.ending)return;FARM.ending=true;FARM.n++;const lg=+S.runEndLog||0;FARM.log+=lg;const clear=!!(S.res&&S.res.clear!==false&&B&&B.result!=="dead"&&!(G.hp<=0));
   const win=!!FARM.lastClear;FARM.lastClear=false;if(win)FARM.sum.clear++;else FARM.sum.lose++;
-  farmFeed(`${win?"全クリア":"負け"}・ランク ${S.res?S.res.rank:"－"}・ログ +${lg}${farmTodayLeft()?"":"（今日の上限）"}`,win?"win":"lose");SAVE.auto();
+  farmFeed(`${win?"全クリア":"負け"}・ランク ${S.res?S.res.rank:"－"}・ログ +${lg}${farmOver()?"（今日の上限をこえました：ログ ×"+FARM_RULE.overMul+"）":""}`,win?"win":"lose");SAVE.auto();
   const more=FARM.on&&!FARM.stopEnd&&!(FARM.stopLose&&!win)&&(!FARM.limit||FARM.n<FARM.limit);
   setTimeout(()=>{S.joinQ=[];S.runGot=null;
     if(more){const c=FARM.cfg;FARM.ending=false;FARM.lastT=Date.now();FARM.snap=JSON.parse(JSON.stringify(Object.assign({},PRF(),{runlog:undefined})));newRun(c.mode,c.bring);farmBar()}

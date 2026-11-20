@@ -10,7 +10,7 @@ const FUI={view:null,sel:{char:null,night:null,mode:"MT",limit:5,stopLose:false}
 const FUI_LIMITS=[[1,"1回"],[5,"5回"],[10,"10回"],[0,"止めるまで"]];
 const FUI_TXT={/* シナリオ班が整える文（design 10-22-4 の案のまま） */
   self:"いつもの走り。ミニカー・カードの解放・夜のクリアの★・ストーリーは、こちらで走ったときだけ。",
-  farm:`クリアしたキャラと夜を、自動で走りつづける。ログは少なめ（1日 ${FARM_RULE.dayCap} まで）、ミニカーは作らない。ときどき、自分で走るときに使える整備チケットやめずらしいカードが見つかる。`,
+  farm:`クリアしたキャラと夜を、自動で走りつづける。ログは少なめ（1日 ${FARM_RULE.softCap} をこえると ×${FARM_RULE.overMul}）、ミニカーは作らない。ときどき、自分で走るときに使える整備チケットやめずらしいカードが見つかる。`,
   none:"どこかの夜を自分で全クリアすると使えます。",lock:"自分で走ってクリアすると選べます"};
 
 /* ---------- ① スタートの2択（startFlow の前）---------- */
@@ -49,10 +49,10 @@ function fuiSetup(){const s=FUI.sel,d=farmData(),U=TEXT.names,all=typeof charsOp
   <div class="fbox"><div class="fl">走りかた</div><div class="fcs">${["MT","AT"].map(m=>chip(s.mode===m,m,`FUI.sel.mode='${m}';SND.se('ui_ok');fuiRender()`)).join("")}</div></div>
   <div class="fbox"><div class="fl">回数</div><div class="fcs">${FUI_LIMITS.map(([v,n])=>chip(s.limit===v,n,`FUI.sel.limit=${v};SND.se('ui_ok');fuiRender()`)).join("")}</div>
    <div class="fcs" style="margin-top:3px">${chip(s.stopLose,`負けたら止める ${s.stopLose?"入":"切"}`,`FUI.sel.stopLose=!FUI.sel.stopLose;SND.se('ui_ok');fuiRender()`)}</div></div>
-  <div class="fbox"><div class="fnum"><span>今日のログ</span><b class="gold">${d.dayLog}／${FARM_RULE.dayCap}</b></div>
+  <div class="fbox"><div class="fnum"><span>今日のログ</span><b class="gold">${d.dayLog}／${FARM_RULE.softCap}</b></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fn red">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
    <div class="fnum"><span>整備チケット</span><b>${d.tickets.length}／${FARM_RULE.ticket.max}</b></div>${d.tickets.length?`<div class="fn">${Object.entries(tix).map(([k,n])=>`${esc(FARM_TICKET_JP[k])}×${n}`).join("・")}</div>`:""}</div>
   <div class="fbox fdk"><div class="fl">デッキ・型・ミニカー</div><div class="fn">今の設定のまま（${esc(U[s.char]||s.char)}のデッキ${TREE&&TREE[s.char]?`・型「${esc(treeName(s.char))}」`:""}）。かえるときは「自分で走る」の画面で。</div></div>
-  <div class="fn dim">全部おまかせ・早送り×${FARM_RULE.speed}。ログは 1/8、ミニカーは作らない、★はつかない。画面を消さないようにします（できる端末だけ）。</div></div>
+  <div class="fn dim">全部おまかせ・早送り×${FARM_RULE.speed}。ログは 1/8（今日 ${FARM_RULE.softCap} をこえると ×${FARM_RULE.overMul}）、ミニカーは作らない、★はつかない。画面を消さないようにします（できる端末だけ）。</div></div>
   <button class="fbtn main fgo" onclick="fuiGo()">周回スタート</button>`}
 function fuiGo(){const s=FUI.sel;SND.se("ui_ok");if(!farmGo({char:s.char,night:s.night,mode:s.mode,bring:fuiBring(s.char),limit:s.limit,stopLose:s.stopLose}))return;FUI.follow=true;fuiOpen("run")}
 /* 持ちこみのミニカー：今の設定（ガレージで選んでいるもの）。なければなし */
@@ -81,7 +81,7 @@ function fuiNums(){if(!G&&!FARM.on)return;const n=$("#fu-n");if(!n)return;
    <div class="fnum"><span>ヒート</span><b class="${inB&&B.rpm>=red?"red":""}">${inB?B.rpm:"－"}${inB?`<span class="dim">/${lim}</span>`:""}</b></div>
    <div class="fnum"><span>ギア</span><b>${inB?(B.gear+1)+"速":"－"}${inB?`<span class="dim"> G${B.gas}</span>`:""}</b></div>
    <div class="fnum"><span>お金</span><b>${G?G.money:"－"}</b></div>
-   <div class="fnum"><span>ログ</span><b class="gold">+${FARM.log}</b><span class="dim small">今日 ${d.dayLog}/${FARM_RULE.dayCap}</span></div>
+   <div class="fnum"><span>ログ</span><b class="gold">+${FARM.log}</b><span class="${d.dayLog>=FARM_RULE.softCap?"red":"dim"} small">今日 ${d.dayLog}/${FARM_RULE.softCap}</span></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fnum wide red small">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
    <div class="fnum"><span>勝ち負け</span><b><span class="lime">${FARM.sum.clear}</span> / <span class="red">${FARM.sum.lose}</span></b></div>
    ${inB?`<div class="fnum wide"><span>${esc(B.e.name||(ENEMIES[B.key]||{}).n||"")}</span><span class="fbar"><i style="width:${Math.max(0,Math.round(B.e.hp/B.e.maxhp*100))}%"></i></span><b>${B.e.hp}</b></div>`:""}`}
 /* マスの帯：今のエリアの段を左から。通った段＝選んだマス、今の段＝光る枠（選ぶ前は候補を縦に小さく）、先の段＝候補を縦に小さく（裏道の先は「？」） */
@@ -108,8 +108,8 @@ function fuiResult(){const s=FARM.sum,min=Math.round((Date.now()-(FARM.t0||Date.
   const runs=(typeof rlList==="function"?rlList():[]).filter(x=>x.farm&&x.at>=(FARM.t0||0)).slice(0,FARM.n).reverse();
   const tix={};s.tix.forEach(k=>tix[k]=(tix[k]||0)+1);
   return`<div class="fhead"><b>周回の結果</b></div>
-  <div class="fbox"><div>${FARM.n}回 走りました</div><div>全クリア <b class="lime">${s.clear}</b>・負け <b class="red">${s.lose}</b></div><div>ログ <b class="gold">+${FARM.log}</b><span class="dim small">（今日 ${d.dayLog}/${FARM_RULE.dayCap}）</span></div>
-   <div>型のポイント +${s.pts}</div><div class="dim small">かかった時間 ${min}分</div></div>
+  <div class="fbox"><div>${FARM.n}回 走りました</div><div>全クリア <b class="lime">${s.clear}</b>・負け <b class="red">${s.lose}</b></div><div>ログ <b class="gold">+${FARM.log}</b><span class="dim small">（今日 ${d.dayLog}/${FARM_RULE.softCap}）</span></div>
+   ${d.dayLog>=FARM_RULE.softCap?`<div class="fn red">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}<div>型のポイント +${s.pts}</div><div class="dim small">かかった時間 ${min}分</div></div>
   ${s.dig.length?`<div class="fbox fdig"><b>めずらしいカードを見つけた！</b><div>${s.dig.map(id=>esc(CARDS[id].n)).join("・")}</div><div class="fn">自分で走るときも使えます</div></div>`:""}
   <div class="fbox"><div class="fl">整備チケット</div><div>${s.tix.length?Object.entries(tix).map(([k,n])=>`${esc(FARM_TICKET_JP[k])}×${n}`).join("・"):"なし"}</div><div class="fn dim">持っている数 ${d.tickets.length}／${FARM_RULE.ticket.max}（自分で走るランの前に1枚使える）</div></div>
   <div class="fbox fruns"><div class="fl">1回ずつ</div>${runs.map((x,i)=>`<div class="fl1 ${x.res==="clear"?"win":"lose"}">${i+1}　${x.res==="clear"?"全クリア":x.res==="giveup"?"あきらめ":"負け（エリア"+x.area+"）"}　${x.rank||"－"}　ログ +${x.log}</div>`).join("")||`<div class="dim">－</div>`}</div>

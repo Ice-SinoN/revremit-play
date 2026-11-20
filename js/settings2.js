@@ -70,21 +70,14 @@ function fszSet(v){OPTS.fsz=v;optsSave();try{SND.se("ui_ok")}catch(e){}renderOpt
    名前（①・サウンド班とそろえる）：OPTS.engine・OPTS.weather（0〜1。端末の revremit_opts。セーブ・引き継ぎコードには入らない）。読むときは sndVol("engine"|"weather")。
    初期値：エンジン音＝今の半分（今は 効果音×0.85 → その半分）。天候の音＝かすか（仮 0.3。サウンド班が audio-list に出す値に差しかえる＝WEATHER_DEFAULT）。
    エンジン音は audio.js に engine のバスがあるので AUDIO.setVolume("engine",OPTS.engine) だけ（効果音のつまみとは切りはなす）。
-   天候の音は、今は AUDIO.ambient('wave')（潮騒）が SE のバスに入っている → 鳴らすときの大きさに OPTS.weather を掛ける（下の仮のつなぎ）。
-   ★サウンド班に頼む：audio.js に weather のバスを作り、ambient・雨・雪の音をそこへ。できたら AUDIO.setVolume("weather",v) で済む。 */
-const WEATHER_DEFAULT=0.3;
+   天候の音は audio.js v0.24 の amb のつまみ（①が OPTS.weather を渡す）。 */
+const WEATHER_DEFAULT=0.4;/* ★①：サウンド班の amb 0.4（audio-list 16章） */
 if(OPTS.engine==null)OPTS.engine=Math.round((OPTS.se!=null?OPTS.se:0.9)*0.85/2*100)/100;
 if(OPTS.weather==null)OPTS.weather=WEATHER_DEFAULT;
 function sndVol(k){const v=OPTS[k];return typeof v==="number"?Math.max(0,Math.min(1,v)):1}
 window.sndVol=sndVol;
-if(typeof optsApply==="function"){const f=optsApply;window.optsApply=function(){f.apply(this,arguments);if(window.AUDIO)try{AUDIO.setVolume("engine",sndVol("engine"));AUDIO.setVolume("weather",sndVol("weather"));weatherLive()}catch(e){}}}
-/* 仮のつなぎ：ambient の大きさに天候の音を掛ける（audio.js に weather のバスができたら外す） */
-const WX={v:null};
-if(window.AUDIO&&AUDIO.ambient&&!AUDIO.ambient.__rr2){const fa=AUDIO.ambient,fv=AUDIO.ambientVol,fs=AUDIO.ambientStop;
-  AUDIO.ambient=function(id,v,fade){WX.v=v==null?.6:v;return fa.call(this,id,WX.v*sndVol("weather"),fade)};AUDIO.ambient.__rr2=1;
-  if(fv)AUDIO.ambientVol=function(v,fade){WX.v=v;return fv.call(this,v*sndVol("weather"),fade)};
-  if(fs)AUDIO.ambientStop=function(fade){WX.v=null;return fs.call(this,fade)}}
-function weatherLive(){if(WX.v!=null&&window.AUDIO&&AUDIO.ambientVol)try{AUDIO.ambientVol(WX.v,.1)}catch(e){}}
+if(typeof optsApply==="function"){const f=optsApply;window.optsApply=function(){f.apply(this,arguments);if(window.AUDIO)try{AUDIO.setVolume("engine",sndVol("engine"))}catch(e){}}}
+/* 天候の音：audio.js v0.24 の amb のつまみに①が OPTS.weather を渡す（v0.22.65）。②の仮のつなぎ（ambient を包む・setVolume("weather")）は外した（二重にしぼって小さくなるため） */
 
 /* ---------- 設定の画面に行を足す ---------- */
 RRHOOK.on("screen",o=>{if(o.n!=="opts")return;const b=$("#modal .opts");if(!b||b.querySelector(".rr2opt"))return;const row=b.querySelector(".row");
