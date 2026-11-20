@@ -7,7 +7,7 @@
    読み込み：貼りつけ／QR（カメラ・写真）→ チェックの値を確かめる → normSave で今の版に直す（MIGRATE）。
      新しい版のセーブ（v が今より大きい）は直せないので読まない。壊れた文字列は読まずに知らせる。
    入れないもの：音量・早送り・全画面（OPTS＝端末ごとの設定。セーブの外にある）。 */
-const XFER={TAG:"RR",QRMAX:1100,
+const XFER={TAG:"RR",QRMAX:700,/* ★v0.22.79 1100 → 700：スマホのカメラで読みやすい細かさ（1枚が細かいと読めない） */
   crc32(u8){let c,t=XFER._t;if(!t){t=XFER._t=new Uint32Array(256);for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}}
     c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=t[(c^u8[i])&255]^(c>>>8);return((c^0xFFFFFFFF)>>>0).toString(16).padStart(8,"0")},
   b64(u8){let s="";for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")},
@@ -96,13 +96,13 @@ function xferRenderImport(){const I=S.xin;
   const m=$("#modal .modal .box");if(m)m.classList.add("xfbox")}
 function xferMsg(t,err){S.xin.msg=t;S.xin.err=!!err;const e=$("#xmsg");if(e){e.textContent=t;e.className="small "+(err?"ngc":"gold")}}
 async function xferRead(){const t=($("#modal .xin")||{}).value||S.xin.txt||"";const code=XFER.feed(t);if(code==null){xferMsg(XFER.colTxt());return}xferCheck(code)}
-async function xferGot(text){if(!text)return false;const code=XFER.feed(text);if(code==null){SND.se("ui_ok");xferMsg(XFER.colTxt());return true}xferCamStop();await xferCheck(code);return true}
+async function xferGot(text){if(!text)return false;const code=XFER.feed(text);if(code==null){SND.se("ui_ok");xferMsg(XFER.colTxt());return false/* ★v0.22.79 かけらを1枚読んだら、カメラは止めずに次の QR を待つ（前は止まって2枚目から読めなかった） */}xferCamStop();await xferCheck(code);return true}
 async function xferPhoto(inp){const f=inp.files&&inp.files[0];inp.value="";if(!f)return;xferMsg("写真を読んでいます…");
   const url=URL.createObjectURL(f),img=new Image();img.onload=async()=>{const t=await XFER.readImg(img);URL.revokeObjectURL(url);if(!t){SND.se("card_cant");xferMsg("写真から QR を読めませんでした（QR を大きく、まっすぐ写してください）",true);return}xferGot(t)};
   img.onerror=()=>{URL.revokeObjectURL(url);xferMsg("写真を開けませんでした",true)};img.src=url}
 async function xferCam(){xferCamStop();const w=$("#xcamw");if(!w)return;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){xferMsg("この画面ではカメラを使えません。「QR の写真」で読んでください",true);return}
-  let st;try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false})}catch(e){xferMsg("カメラを使えませんでした（許可がない・ページの中では使えない）。「QR の写真」で読んでください",true);return}
+  let st;try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}},audio:false})/* ★v0.22.79 ふつうは 640×480 で来るので、細かい QR が読めない */}catch(e){xferMsg("カメラを使えませんでした（許可がない・ページの中では使えない）。「QR の写真」で読んでください",true);return}
   w.innerHTML=`<video class="xcam" playsinline muted></video>`;const v=w.firstChild;v.srcObject=st;S.xcam={st,v,on:true};try{await v.play()}catch(e){}xferMsg(XFER.colTxt()||"QR をカメラに向けてください");
   const loop=async()=>{if(!S.xcam||!S.xcam.on)return;let t=null;try{t=await XFER.readImg(v)}catch(e){}if(t&&S.xcam&&S.xcam.last!==t){S.xcam.last=t;if(await xferGot(t))return}setTimeout(loop,250)};loop()}
 function xferCamStop(){const c=S.xcam;S.xcam=null;if(c){c.on=false;try{c.st.getTracks().forEach(t=>t.stop())}catch(e){}}const w=$("#xcamw");if(w)w.innerHTML=""}

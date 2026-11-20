@@ -22,7 +22,9 @@ const CLOUD={
 window.CLOUD=CLOUD;
 /* 端末に覚える：ログインしたか・最後に同期したときの中身の目印と時刻（セーブには入れない） */
 function cloudMem(v){try{if(v===undefined)return JSON.parse(localStorage.getItem("revremit_cloud")||"{}");localStorage.setItem("revremit_cloud",JSON.stringify(v))}catch(e){return{}}}
-function cloudHere(){try{if(window.self!==window.top)return false}catch(e){return false}/* claude.ai の中（iframe）は出さない */return CLOUD.hosts.includes(location.hostname)}
+function cloudHere(){try{if(window.self!==window.top)return false}catch(e){return false}/* claude.ai の中（iframe）は出さない */return CLOUD.hosts.includes(location.hostname)&&cloudOptIn()}
+/* ★v0.22.79 虎雪 13:28（①が足した）：β の間は ?cloud=1 を付けて開いた端末だけ（端末に覚える・?cloud=0 で外す）。localhost は確かめ用にいつも */
+function cloudOptIn(){try{const q=new URLSearchParams(location.search).get("cloud");if(q==="1")localStorage.setItem("revremit_cloud_on","1");else if(q==="0")localStorage.removeItem("revremit_cloud_on");return location.hostname==="localhost"||localStorage.getItem("revremit_cloud_on")==="1"}catch(e){return false}}
 function cloudUsable(){return!!CLOUD.clientId&&cloudHere()}
 window.cloudUsable=cloudUsable;
 

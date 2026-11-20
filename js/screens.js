@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.78（β2）";
+const VERSION="試作 v0.22.79（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -122,7 +122,7 @@ function dataName(k){return k==="auto"?"オートセーブ":"スロット"+k}
 function showData(){setScreen("data");setScene("dim");setBg("garage");closeModal();SND.bgm("title");const L=SAVE.list();
   ui().innerHTML=`<div class="hdr" ${at(40,22,130,18)}>データ</div><button class="u9 xbtn" ${at(176,18,168,30)} onclick="xferImport('data')">読み込む（引き継ぎ）</button>
   <div class="small dhint" ${at(352,24,170,24)}>あそぶと自動でセーブ。<br>オートセーブもスロットごと。</div>
-  ${backBtn("もどる","showTitle()")}
+  ${backBtn("もどる","showTitle()")}<div class="small gold sh dlocal" ${at(208,330,428,16)}>${esc(TEXT.ui&&TEXT.ui.data_local||"セーブはこの端末に保存されます。別の端末へは『引き継ぎ』の QR で移せます")}</div>
   ${L.map((r,i)=>{const y=60+i*84,cur=SAVE.slot===r.k,nm=dataName(r.k);
     const sub=r.broken?"読めないデータ（消さずに、別の名前で取ってある）":SAVE.label(r.d);
     const note=r.d?(SAVE.when(r.d)+(r.d.newer?"・新しい版のデータ":"")):"";
