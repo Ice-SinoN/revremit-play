@@ -656,8 +656,8 @@ function mcTen(){const L=G.deck.slice(),out=[];const w=c=>{const o=CD(c).own;ret
 /* リザルト（ミニカーの評価） */
 function calcResult(clear){
   const st=G.st,rate=st.shiftTry?st.perfect/st.shiftTry:0,tuneSum=Object.values(G.tune).reduce((a,b)=>a+b,0),rows=G.map.length;
-  const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0,難易度:Math.max(0,(G.night||1)-1)*5};
+  const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0};
   const total=Object.values(pts).reduce((a,b)=>a+b,0);
-  let ri=0;RANK_TH.forEach(t=>{if(total>=t)ri++});ri=Math.min(ri,RANKS.length-1);
+  let ri=0;RANKS.forEach((r,i)=>{if(total>=RANK_TH[r])ri=i});const cap=RANK_CAP[G.night||0];if(cap)ri=Math.min(ri,RANKS.indexOf(cap));
   return{pts,total,ri,rank:RANKS[ri],ten:mcTen()};
 }
