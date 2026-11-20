@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.81（β2）";
+const VERSION="試作 v0.22.82（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -194,8 +194,10 @@ function deckAdd(id,d){const dk=S.deck,k=(dk[id]||0)+d;if(k<0)return;if(d>0&&isM
 
 /* ---- ガレージ（ミニカーを2台まで） ---- */
 function mcCardName(c){return CARDS[c.id].n+(c.up?"+":"")}
+/* ★v0.22.82 窓口 15:22：ミニカーの絵（その子の minicar_{yuki…} があればそれ、なければ共通） */
+function mcIcon(m,size,cls){const k="minicar_"+String(m&&m.char||"").toLowerCase();return itemIcon(artHave(ITEM_ART(k))?k:"minicar",size,cls)}
 function mcHTML(m,o={}){const b=mcBonus(m);
-  return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}><span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
+  return `<button class="mc${o.cls?" "+o.cls:""}" ${o.attrs||""}>${mcIcon(m,28,"mci")}<span class="rk">${esc(m.rank)}</span><span class="mb"><span class="mcn">${m.cards.length?m.cards.map(c=>esc(mcCardName(c))).join("・"):"カードなし"}${m.part?"／"+esc(PARTS[m.part].n):""}</span><span class="dim">耐久+${b.hp} 攻撃+${b.atk}% ${esc(m.mode)}${m.clear?" クリア":""}</span></span></button>`}
 /* ★v0.16：背景 garage。デッキと同じ並び（左に一覧・右にボタン） */
 function showMinicarGarage(mode){SND.bgm("garage");if(!(S.flow&&!S.flow.mode))try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}/* ★v0.22.25 選んだ走り方を覚える（キャラの決まりの文） */
   setScreen("garage");setScene("dim");
@@ -211,7 +213,7 @@ function showMinicarGarage(mode){SND.bgm("garage");if(!(S.flow&&!S.flow.mode))tr
   if($("#mcl"))$("#mcl").scrollTop=sc;{const d=$("#mcd");if(d&&d.scrollHeight>d.clientHeight+2){const t=document.createElement("div");t.className="small mcmore";t.textContent="▼ つづき（上下に動かせます）";d.parentNode.appendChild(t);d.onscroll=()=>{if(d.scrollTop+d.clientHeight>=d.scrollHeight-2)t.remove()}}}}
 /* ★v0.22.61 虎雪 11-20 07:58：持ちこむミニカーの中身（ステータスアップ・カード2種の効果・パーツの効果）。2台なら両方 */
 function mcDetail(m){const b=mcBonus(m);const own=m.char!==curChar();
-  return `<div class="mcd1"><div class="h"><span class="gold">${esc(m.rank)}</span> ${esc(TEXT.names[m.char]||m.char)}・${esc(m.mode)}${m.clear?"・クリア":""}</div>
+  return `<div class="mcd1"><div class="h">${mcIcon(m,32,"mci")}<span class="gold">${esc(m.rank)}</span> ${esc(TEXT.names[m.char]||m.char)}・${esc(m.mode)}${m.clear?"・クリア":""}</div>
    <div class="small">${esc(TU("mc_up","ステータスアップ"))}：耐久 +${b.hp}・攻撃 +${b.atk}%</div>`+
    m.cards.map(c=>{const d=CARDS[c.id];if(!d)return"";return `<div class="small"><b>${esc(mcCardName(c))}</b> <span class="dim">${typeRar(d.t,rarityOf(c.id))}</span>：${esc(descOf(inst(c.id,!!c.up),!!c.up,0))}</div>`}).join("")+
    (m.part&&PARTS[m.part]?`<div class="small"><b>${esc(partName(m.part))}</b> <span class="dim">パーツ</span>：${esc(PARTS[m.part].d)}</div>`:`<div class="small dim">パーツなし</div>`)+

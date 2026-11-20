@@ -477,3 +477,5 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 .nfull{opacity:.55}
 .betap{z-index:0}.beart{object-fit:cover;image-rendering:pixelated}.bemsg>div{line-height:1.5}.bebot{background:rgba(5,6,12,.82)}.bepg{text-align:center}.besora canvas{filter:brightness(1.15)}
 .besil,.bemsg,.bepg,.beart,.besbg{pointer-events:none}
+.mc .mci{flex-shrink:0;margin-right:2px}.mcd1 .h .mci{vertical-align:middle;margin-right:4px}
+.sign .mcd1 .h .ic.mci{display:inline-block;margin:0 4px 0 0}
