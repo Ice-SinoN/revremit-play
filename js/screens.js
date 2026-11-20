@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.74（β2）";
+const VERSION="試作 v0.22.75（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -47,7 +47,7 @@ const at=(x,y,w,h)=>`style="left:${x}px;top:${y}px;${w!=null?`width:${w}px;`:""}
 /* カード（手札 62×88・★C2 v2 の規格）。絵の窓 50×38（グラフィック班の cards\c2 があれば絵、なければ種類の色と字）。
    左上＝回転、右上＝ガソリン（目盛りの数）、窓の下＝★今打ったときのダメージ・防御（14:47）、いちばん下＝名前。帯（L/M/R）は窓の左下、打ちごろなら枠が光る */
 const CARD_ART=id=>`assets/c2/cards/c2/revremit_card_art_c2_${id}_50x38.png`;
-function cardArtTag(id){if(window.FUSED_ART&&FUSED_ART[id])return `<img class="px" src="${FUSED_ART[id]}" alt="">`;const p=CARD_ART(id);return window.ART_HAVE&&ART_HAVE.has(p)?`<img class="px" src="${(window.ART_EMBED&&ART_EMBED[p])||p}" alt="">`:""}
+function cardArtTag(id){if(window.FUSED_ART&&FUSED_ART[id])return `<img class="px" src="${FUSED_ART[id]}" alt="">`;if(window.CARD_SHEET_ART&&CARD_SHEET_ART[id])return `<img class="px" src="${CARD_SHEET_ART[id]}" alt="">`;const p=CARD_ART(id);return window.ART_HAVE&&ART_HAVE.has(p)?`<img class="px" src="${(window.ART_EMBED&&ART_EMBED[p])||p}" alt="">`:""}
 const CARD_ICON=k=>`assets/c2/ui/c2/revremit_ui_card_icon_${k}.png`;
 const costK=v=>v>=1000?(Math.round(v/100)/10)+"k":String(v);
 function cardSmall(c,o){const d=CD(c),r=rarityOf(c),nm=o.num,art=cardArtTag(c.id);
