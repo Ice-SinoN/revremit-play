@@ -466,3 +466,5 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 @keyframes rft{0%{opacity:0;transform:scale(1.4)}25%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
 @keyframes rfl{from{transform:translateY(360px)}to{transform:translateY(-360px)}}
 @media (prefers-reduced-motion:reduce){.remitfx *{animation:none!important}}
+/* ★v0.22.66 ラボの改造のタブ */
+.modtabs{display:flex;gap:2px}.modtabs button{flex:1;min-width:0;min-height:22px;padding:0 2px;font-size:10px;white-space:nowrap;overflow:hidden}

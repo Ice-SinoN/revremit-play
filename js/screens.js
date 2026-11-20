@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.65（β2）";
+const VERSION="試作 v0.22.66（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -777,11 +777,13 @@ function afterCarShow(got){const p=PRF();
 function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("lab");S.labSel=S.labSel||UNLOCK.shop[0][0];S.labTab=S.labTab||"open";renderLab()}
 /* ★v0.22.47 ラボのタブ（text 27-5-1）：カードを開く／カードを改造 */
 function labTabs(){const m=S.labTab==="mod";return `<div class="labtabs" ${at(330,60,190,26)}><button class="u9${m?"":" main"}" onclick="S.labTab='open';SND.se('ui_ok');renderLab()">カードを開く</button><button class="u9${m?" main":""}" onclick="S.labTab='mod';SND.se('ui_ok');renderLab()">カードを改造</button></div>`}
-function modList(p){const ch=curChar(),have=unlockedCards(p).filter(id=>CARDS[id]&&(CARDS[id].own==="N"||CARDS[id].own===ch)&&modKind(id));
-  const fz=Object.keys((p.codex&&p.codex.fuse)||{}).filter(id=>CARDS[id]&&CARDS[id].own===ch);return have.concat(fz).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c)}
+/* ★v0.22.66 虎雪 11-20 09:33：ラボの改造は［共通］［キャラ］のタブで選ぶ（どのキャラの専用カードも改造できる）。合成カードはそのキャラのタブ */
+function modTab(){const op=charsOpen();if(S.modTab!=="N"&&!op.includes(S.modTab))S.modTab=curChar();return S.modTab}
+function modList(p){const ch=modTab(),have=unlockedCards(p).filter(id=>CARDS[id]&&CARDS[id].own===ch&&modKind(id));
+  const fz=ch==="N"?[]:Object.keys((p.codex&&p.codex.fuse)||{}).filter(id=>CARDS[id]&&CARDS[id].own===ch);return have.concat(fz).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c)}
 function renderMod(){const p=PRF();p.mods=p.mods||{};const L=modList(p);if(!L.includes(S.modSel))S.modSel=L[0]||null;const id=S.modSel,m=id?p.mods[id]||{lv:0}:null,inf=id?modInfo(id):null;
   let h=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>${backBtn("もどる","showTitle()")}${labTabs()}
-   <div class="sign" ${at(8,26,300,328)}></div><div class="small" ${at(16,30,284)}>改造できるカード（開いたカードだけ）</div><div class="scroll grid1" id="mdl" ${at(14,46,288,304)}>`+
+   <div class="sign" ${at(8,26,300,328)}></div><div class="modtabs" ${at(12,30,292,22)}>${["N"].concat(charsOpen()).map(k=>`<button class="u9${modTab()===k?" main":""}" onclick="S.modTab='${k}';S.modSel=null;SND.se('ui_ok');renderLab()">${esc(k==="N"?"共通":TEXT.names[k]||k)}</button>`).join("")}</div><div class="small dim" ${at(16,54,284)}>改造できるカード（開いたカードだけ）</div><div class="scroll grid1" id="mdl" ${at(14,68,288,282)}>`+
    L.map(x=>{const q=p.mods[x],lv=q&&q.lv||0;return `<button class="u9 lrow${x===id?" main":""}" onclick="S.modSel='${x}';renderLab()"><span class="ln">${esc(CARDS[x].n)}</span><span class="small dim"> ${RARITY_JP[rarityOf(x)]}</span><span class="lp ${lv?"gold":"dim"}">${lv?`改造 ${lv}／2${q.br?"・"+q.br:""}`:"改造なし"}</span></button>`}).join("")+`</div>`;
   if(id){MOD_PREVIEW=m.lv?{[id]:m}:null;h+=cardBig(id,{art:true,attrs:at(322,92,120,170)});MOD_PREVIEW=null;
     const p1=modPrice(id,1),p2=modPrice(id,2),ok=n=>p.log>=n;
