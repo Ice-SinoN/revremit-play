@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.66（β2）";
+const VERSION="試作 v0.22.67（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -87,7 +87,14 @@ function typeRar(t,r){const a=TYPE_JP[t],b=RARITY_JP[r];return a===b?a:a+"・"+b
 function titleLogo(){const f=window.ART_HAVE?[...ART_HAVE].filter(p=>/\/revremit_[^/]*logo[^/]*\.png$/i.test(p)&&!/_review\//.test(p)).sort((a,b)=>a.length-b.length)[0]:null;
   if(f)return `<img class="px tlogo" src="${artURL(f)}" alt="${esc(GAME_TITLE)}">`;
   return `<div class="t2">${esc(GAME_TITLE).replace(/:R/,':<span class="rr">R</span>')}</div>`}
+/* ★v0.22.67 不具合（虎雪 11-20 10:13「NANA でクリアしても HINA が出なかった」）：仲間は「その夜を初めてクリアした瞬間」にだけ加わっていたため、
+   古いセーブの引きつぎ（v0.19 までのクリア＝nightMax 1 にするが仲間は足していなかった）や、引き継ぎコード・クラウドで読んだセーブで、nightMax までの夜の仲間が抜けたままになっていた。
+   nightMax までの夜の open（仲間・話）を必ずそろえる。足した仲間は加わる話をそのとき流す */
+function nightOpenRepair(p){p=p||PRF();const u=p&&p.unlock;if(!u||typeof NIGHTS==="undefined")return[];u.chars=u.chars||["YUKI"];u.story=u.story||[];const add=[];
+  for(let n=1;n<=Math.min(u.nightMax||0,NIGHTS.length);n++){const o=NIGHTS[n-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);add.push(c)}});(o.story||[]).forEach(s=>{if(!u.story.includes(s))u.story.push(s)})}
+  if(add.length)try{SAVE.auto()}catch(e){}return add}
 function showTitle(){
+  {const add=nightOpenRepair();if(add.length&&typeof playJoins==="function"){playJoins(add.slice(),showTitle);return}}
   setScreen("title");setScene("dim");closeModal();SND.bgm("title");
   const ch=curChar(),mc=loadMinicars(),dk=loadDeck(ch);
   ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(TEXT.names[ch]||ch)}・3エリア</div></div>
@@ -748,6 +755,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
   if(clear&&G.night>(u.nightMax||0)){u.nightMax=G.night;const o=NIGHTS[G.night-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);S.joinQ.push(c)}});(o.story||[]).forEach(c=>{if(!u.story.includes(c))u.story.push(c)});
     if(G.night<Math.min(NIGHTS.length,typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99))got.push("夜："+TEXT.ui.night_open.replace("{n}",G.night+1));(o.chars||[]).forEach(c=>got.push(`仲間：${TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)}`));
     if(o.next&&typeof BETA_NIGHTS==="number"&&G.night>=BETA_NIGHTS)S.joinQ.push("__next")}
+  nightOpenRepair(p).forEach(c=>{S.joinQ.unshift(c);got.push(`仲間：${TEXT.ui.ally_join.replace("{name}",TEXT.names[c]||c)}`)});/* ★v0.22.67 抜けていた仲間もここで */
   unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push("カード："+CARDS[id].n));
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */

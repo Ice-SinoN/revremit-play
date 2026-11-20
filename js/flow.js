@@ -106,7 +106,7 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();S.flowFromMode=window
    <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
 function runBack(){SND.se("ui_cancel");closeModal();if(S.flow&&S.flowFromMode){S.flow.mode=null;showModes()}}
-function runGo(){const mode=flowMode(),bring=S.flowBring||[],tk=S.flowTicket||null;closeModal();S.flow=null;S.flowTicket=null;
+function runGo(){const mode=flowMode(),bring=S.flowBring||[],tk=S.flowTicket||null;closeModal();if(window.FARM&&FARM.on){FARM.on=false;FARM.snap=null}/* ★v0.22.67 自分で走るランはフルオートの「ラン前にもどす」を通さない */S.flow=null;S.flowTicket=null;
   if(tk&&typeof farmData==="function"){const d=farmData(),i=d.tickets.indexOf(tk);if(i>=0){d.tickets.splice(i,1);try{SAVE.auto()}catch(e){}}else tk=null}
   bootSeq(()=>{newRun(mode,bring);if(tk&&G){G.ticket={k:tk};if(tk==="money")G.money+=30}},mode,bring)}
 /* ★v0.22.65 design 10-22-6・②の H19：ランの前の小窓で整備チケットを1枚えらぶ（使わなくてもよい）。持ち物は②の farmData().tickets */
