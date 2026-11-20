@@ -27,7 +27,7 @@ function RULE(){const r=G&&CHARS[G.char]&&CHARS[G.char].rule||{};const t=G&&tree
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。キャラごとに枝3本 × 4段（1・2・3・4 ポイント）。4段目（型の決め）はプリセットで1本だけ。
    セーブ profile.tree[char]={pts, presets:[{name,lv:[0,0,0]}×3], cur}。ランのはじめに G.tree={lv:[..]} に写す */
 const TREE={
- YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","fubuki"],cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","studless","spike","dashcam"],top:"白猫の護り：2回目のシフトアップから凍結 1",tip:"白猫の護り：1ターンの2回目からのシフトアップのたびに凍結 1。"/* ★v0.22.57 文は仮 */},
+ YUKI:[{id:"y_frz",n:"吹雪の陣",d:"凍らせて止める型",entry:["sasame","sasame"]/* ★v0.22.74 LD 11-43 A：細雪・吹雪の檻 → 細雪2枚 */,cards:["sasame","fubuki","eikyu","muhyou","hyouheki","saihyou","whiteout"],parts:["emblem","studless","spike","dashcam"],top:"白猫の護り：2回目のシフトアップから凍結 1",tip:"白猫の護り：1ターンの2回目からのシフトアップのたびに凍結 1。"/* ★v0.22.57 文は仮 */},
    {id:"y_cnt",n:"白猫の構え",d:"守ってから返す型",entry:["counter","hyoujin"],cards:["counter","hyoujin","braking","shimo","shironeko"],parts:["grip","cage","jack","widebody","hook"],top:"白猫の護り：防御の半分を次のアタックに"},
    {id:"y_red",n:"紅雪の走り",d:"レッドで押し切る型",entry:["tsurara","hakunetsu"],cards:["tsurara","hakunetsu","rinkai","kyokkou","hyouen","backfire","cooldown"],parts:["hicam","pipe","limiter","oilcool","drysump","forged"],top:"白猫の護り：レッドではガソリン −1"}],
  HINA:[{id:"h_rush",n:"全開",d:"最初の番で押し切る型",entry:["h_asayake","h_hibana"],cards:["h_asayake","h_hibana","h_youda","h_gouda"],parts:["launch","boost","nitro","h_12inch"],top:"サンライズ・ダッシュ：最初の番はガソリン 0"},
@@ -659,5 +659,6 @@ function calcResult(clear){
   const pts={到達:Math.min(st.rowsDone,rows)*5+(clear?20:0),最終ステータス:tuneSum*2,走りの質:Math.round(rate*20)+st.otk*4,MTボーナス:G.mode==="MT"?12:0};
   const total=Object.values(pts).reduce((a,b)=>a+b,0);
   let ri=0;RANKS.forEach((r,i)=>{if(total>=RANK_TH[r])ri=i});const cap=RANK_CAP[G.night||0];if(cap)ri=Math.min(ri,RANKS.indexOf(cap));
-  return{pts,total,ri,rank:RANKS[ri],ten:mcTen()};
+  let lossCap=null;if(!clear){const N=(G.map[G.map.length-1][0].a|0)+1;lossCap=rankLossCap(areaIdx()+1,N);if(RANKS.indexOf(lossCap)<ri)ri=RANKS.indexOf(lossCap);else lossCap=null}/* ★v0.22.73 負けたランの上限（下げたときだけ lossCap） */
+  return{pts,total,ri,rank:RANKS[ri],lossCap,ten:mcTen()};
 }

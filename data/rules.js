@@ -25,6 +25,8 @@ const TUNE_PRICE=[30,45,65,90,120];
 /* ミニカー */
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_TH={E:0,D:20,C:35,B:50,A:65,S:78,SS:90,SSS:100};/* ★v0.22.71 design 10-23：走りの中身だけ・夜の加点なし */
+const RANK_LOSS_CAP={1:"C",2:"B",3:"A"};/* ★v0.22.73 design：負けたランは負けたエリアで上限（S 以上は全クリアだけ） */
+function rankLossCap(n,N){N=N||3;return N===3&&RANK_LOSS_CAP[n]?RANK_LOSS_CAP[n]:n>=N?"A":n===N-1?"B":"C"}/* エリアが4・5：最後 A・1つ前 B・ほか C */
 const RANK_CAP={1:"S",2:"S",3:"SS",4:"SS",5:"SS"};/* ★v0.22.71 design 10-23：夜ごとの上限（6〜11 は SSS） */
 const MC_BONUS={hp:[2,3,4,6,8,10,12,15],atk:[0,0,2,3,4,6,8,10]};
 const MINICAR_MAX=60,BRING_MAX=2,MC_CARDS=2,MC_DRAW=10;
