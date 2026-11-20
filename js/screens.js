@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.64（β2）";
+const VERSION="試作 v0.22.65（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -93,7 +93,7 @@ function showTitle(){
   ui().innerHTML=`<div class="logo" ${at(0,6,640)}><div class="t1">.50 CAL GARAGE &amp; BAR</div>${titleLogo()}<div class="t3">${esc(VERSION)}・${esc(TEXT.names[ch]||ch)}・3エリア</div></div>
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
-   <button class="${loadRun()?"":"main"}" onclick="showStartPick()">${esc(TU("flow_start","スタート"))}</button>
+   <button class="${loadRun()?"":"main"}" onclick="startFlow()">${esc(TU("flow_start","スタート"))}</button>
    <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
@@ -408,10 +408,10 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();
   saveRun({s:"win",rank:w.rank,key:w.key});
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
-  S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank);
+  {const T=G.ticket,four=T&&T.k==="cardPick"&&!T.used&&w.rank!=="hidden";if(four)T.used=1;S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank,four?4:3)}/* ★v0.22.65 整備チケット：最初の戦闘の報酬を4枚から */
   if(w.rank==="hidden")h+=(w.hidCard?cardBig(w.hidCard,{art:true,cls:"lit",attrs:`${at(LAMP_X[1]-70,52,140,184)}`})+`<div class="sign" ${at(170,240,300,40)}><div class="h">裏道のカード「${esc(CARDS[w.hidCard].n)}」を開いた</div><div class="small"><span class="commk">通信</span>みお：${esc(TEXT.ui.hidden_win.replace(/<br>/g,""))}</div><div class="small">デッキに1枚入った（次のランからも報酬に出る）</div></div>`
     :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(484,300,120,32)} onclick="takeCard(null)">つぎへ</button>`;
-  h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
+  h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(S.rewards.length>3?30+i*148:LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
    (w.rank==="hidden"?"":backBtn("もらわない","takeCard(null)"))+/* ★v0.22.1 BUG-30：裏道は「つぎへ」だけ */
    `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}</div>`;
   ui().innerHTML=h;
@@ -438,9 +438,9 @@ function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyB
 /* ---- パーツの3択 ---- */
 function partsChoice(title,done){
   setScreen("parts");setScene("dim");
-  S.partOpts=partOptions(3);S.pdone=done;const full=G.parts.length>=RULES.partsMax;
+  {const T=G.ticket,four=T&&T.k==="partPick"&&!T.used;if(four)T.used=1;S.partOpts=partOptions(four?4:3)}S.pdone=done;/* ★v0.22.65 整備チケット：最初のパーツの候補が4つ */const full=G.parts.length>=RULES.partsMax;
   ui().innerHTML=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(title)}</div>${full?`<div class="small gold">パーツが${RULES.partsMax}つ。選ぶと入れ替え</div>`:`<div class="small">ライトの下から1つ</div>`}</div>`+
-   (S.partOpts.length?S.partOpts.map((p,i)=>`<button class="pt lit" ${at(LAMP_X[i]-70,52,140,184)} onclick="takePart('${p}')"><span class="slot${PARTS[p].own!=="N"?" sp":""}">${partIcon(p,64)}</span><b>${esc(partName(p))}</b><br><span class="small">${esc(PARTS[p].d)}</span></button>`).join(""):`<div class="sign" ${at(220,120,200,24)}>候補がない</div>`)+
+   (S.partOpts.length?S.partOpts.map((p,i)=>`<button class="pt lit" ${at(S.partOpts.length>3?30+i*148:LAMP_X[i]-70,52,140,184)} onclick="takePart('${p}')"><span class="slot${PARTS[p].own!=="N"?" sp":""}">${partIcon(p,64)}</span><b>${esc(partName(p))}</b><br><span class="small">${esc(PARTS[p].d)}</span></button>`).join(""):`<div class="sign" ${at(220,120,200,24)}>候補がない</div>`)+
    backBtn("取らない","S.pdone()");
 }
 /* ★v0.22.9 パーツの入れ替え（★虎雪 18:27「効果が見えないのやだな」）：付ける方・外す方の効果を両方出す。タップで外すパーツを選ぶ → 前 → 後 の数値 → 「入れ替える」 */
@@ -471,7 +471,7 @@ function slotSellNew(){const p=S.slotNew,v=sellPart(p);closeModal();SND.se("shop
 function takePart(p){choosePartSlot(p,idx=>{addPart(p,idx);SND.se(idx>=0?"part_swap":"part_get");S.pdone()},()=>S.pdone())}
 
 /* ---- チューニングショップ ---- */
-function showShop(n){
+function showShop(n){{const T=G.ticket;if(T&&T.k==="discount"&&!T.shop){T.shop=n;T.used=1}}/* ★v0.22.65 */
   setScreen("shop");setScene("dim");closeModal();if(S.shop!==n&&(n.feat||n.sale))SND.se("shop_sale");S.shop=n;SND.bgm("shop");
   if(n.feat&&!n.featPart){const pool=partPool();n.featPart=pool.length?wPickN(pool,1,treePartW)[0]:null}
   const ut=!!S.useTicket&&G.tickets>0;

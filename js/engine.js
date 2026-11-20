@@ -198,14 +198,14 @@ function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.pu
   if(old==="forged"){G.maxhp+=10}if(p==="forged"){G.maxhp-=10;G.hp=Math.min(G.hp,G.maxhp)}// 鍛造ピストン：最大 −10（外したらもどす）
   return true}
 /* 戦闘のあとの3択。先にレア度を C60・R30・E10 で引く。エリートは R 以上を1枚、ボスは E を1枚約束 */
-function rewardOptions(rank){
+function rewardOptions(rank,nn){nn=nn||3;
   const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK"&&cardOK(id));
   const out=[];
   const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RULES.rarityW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
     for(const q of rs){x-=RULES.rarityW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
   if(rank==="elite"){const hi=pool.filter(id=>rarityOf(id)!=="C");if(hi.length)out.push(draw(hi))}
   if(rank==="boss"){const hi=pool.filter(id=>rarityOf(id)==="E");if(hi.length)out.push(pick(hi))}
-  while(out.length<3){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
+  while(out.length<nn){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
   /* ★v0.22.37 design 10-14：持ちこんだミニカー（ほかのキャラのもの）のカード2種だけが、3枚のうち1枚まで出る。1台 15%（2台で 30%）。強化前の形・2種（2台なら4種）から等しく1つ */
   const other=(G.bring||[]).filter(m=>m.char!==G.char),carry=[...new Set(other.flatMap(m=>m.cards.map(c=>c.id)))].filter(id=>CARDS[id]&&!CARDS[id].gen&&!CARDS[id].fused&&!out.includes(id));/* ★v0.22.51 BUG-51：合成カードは持ちこみの候補に出さない */
   if(carry.length&&out.length&&Math.random()<RULES.carryCardP*other.length){const k=(rank==="elite"||rank==="boss")&&out.length>1?out.length-1:Math.floor(Math.random()*out.length);out[k]=pick(carry)}
@@ -219,7 +219,7 @@ function fuseCards(o){const a=G.deck[o.ia],b=G.deck[o.ib];if(!a||!b||a.id!==o.a|
   try{const p=SAVE.cur.profile;p.codex=p.codex||{};p.codex.fuse=p.codex.fuse||{};p.codex.fuse[o.id]=1}catch(e){}return c}
 function upgradeTargets(){return G.deck.map((c,i)=>[c,i]).filter(([c])=>canUpgrade(c)).map(([,i])=>i)}
 function tunePrice(k,shop,useTicket){const lv=G.tune[k];if(lv>=5)return null;return shopPrice(TUNE_PRICE[lv],shop,useTicket)}
-function shopPrice(x,shop,useTicket){let v=x;if(shop&&shop.sale)v=Math.round(v*RULES.sale);if(has("etc"))v=Math.round(v*0.8);if(useTicket)v=Math.round(v*RULES.ticket);return v}
+function shopPrice(x,shop,useTicket){let v=x;if(shop&&shop.sale)v=Math.round(v*RULES.sale);if(has("etc"))v=Math.round(v*0.8);if(useTicket)v=Math.round(v*RULES.ticket);const T=G&&G.ticket;if(T&&T.k==="discount"&&shop&&T.shop===shop)v=Math.max(Math.round(x*0.5),Math.round(v*0.7));/* ★v0.22.65 整備チケット：最初のショップ 30% 引き（ほかと重ねて最大 50% 引き） */return v}
 function buyTune(k,price,useTicket){if(G.tune[k]>=5||G.money<price)return false;G.money-=price;if(useTicket&&G.tickets>0)G.tickets--;G.tune[k]++;
   if(k==="engine"){G.maxhp+=10;G.hp+=10}return true}
 /* 目玉商品：お金はパーツが本当に入ったときだけ払う（BUG-01） */
@@ -648,7 +648,7 @@ function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};
   if(st.bosses>=1)parts.a1=L.a1;if(st.bosses>=2)parts.a2=L.a2;if(clear)parts.clear=L.clear;
   if(st.elites)parts.elite=L.elite*st.elites;if(st.hidden)parts.hidden=L.hidden*st.hidden+(st.hiddenAll?10*st.hiddenAll:0);
   if(rank)parts.rank=L.rank[rank]||0;
-  const sum=Object.values(parts).reduce((a,b)=>a+b,0),mul=1+L.nightBonus*Math.max(0,(G.night||1)-1);
+  const sum=Object.values(parts).reduce((a,b)=>a+b,0),mul=Math.min(L.nightBonusMax||99,1+L.nightBonus*Math.max(0,(G.night||1)-1));
   return{parts,total:Math.round(sum*mul),mul}}
 /* ★v0.22.37 design 10-14：ミニカーの10枚の抽選は重みつき（自分の専用・ニュートラル 1、ほかのキャラ 0.3） */
 function mcTen(){const L=G.deck.slice(),out=[];const w=c=>{const o=CD(c).own;return o==="N"||o===G.char?1:RULES.otherCardW};

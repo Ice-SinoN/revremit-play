@@ -1,0 +1,139 @@
+{
+ "frames": [
+  {
+   "filename": "og_kousetsu_01",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_02",
+   "frame": {
+    "x": 224,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_03",
+   "frame": {
+    "x": 448,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_04",
+   "frame": {
+    "x": 672,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_05",
+   "frame": {
+    "x": 896,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_06",
+   "frame": {
+    "x": 1120,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_07",
+   "frame": {
+    "x": 1344,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_08",
+   "frame": {
+    "x": 1568,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_09",
+   "frame": {
+    "x": 1792,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_10",
+   "frame": {
+    "x": 2016,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_11",
+   "frame": {
+    "x": 2240,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kousetsu_12",
+   "frame": {
+    "x": 2464,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "size": {
+   "w": 2688,
+   "h": 224
+  },
+  "frameTags": [
+   {
+    "name": "og_kousetsu",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ],
+  "image": "revremit_chr_YUKI_c2_og_kousetsu_sheet.png"
+ }
+}

@@ -24,7 +24,7 @@ const TUNE={tire:["タイヤ","防御：ギアが上がるほど、受けるダ�
 const TUNE_PRICE=[30,45,65,90,120];
 /* ミニカー */
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
-const RANK_TH=[10,25,40,55,80,95,110];
+const RANK_TH=[20,35,50,65,80,95,110];/* ★v0.22.65 LD 11-39（★虎雪 08:45） */
 const MC_BONUS={hp:[2,3,4,6,8,10,12,15],atk:[0,0,2,3,4,6,8,10]};
 const MINICAR_MAX=60,BRING_MAX=2,MC_CARDS=2,MC_DRAW=10;
 /* マップ：[種類,重み,出はじめる段(0始まり)]（design 付録） */

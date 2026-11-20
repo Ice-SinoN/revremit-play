@@ -1,0 +1,145 @@
+/* css/codex.css（プログラム班②）：図鑑・ライブラリ・用語・ランの記録・設定の足し分。原寸 640×360 のドット */
+#rr2v{position:absolute;left:0;top:0;width:640px;height:360px;z-index:7;background:#0A0C18 center/640px 360px no-repeat;image-rendering:pixelated;font:12px/14px 'PM12',monospace;color:var(--white,#F7F9F5)}
+#rr2v>*{position:absolute}
+#rr2v button{position:absolute;margin:0}
+#rr2v .cdxbar,#rr2v .cdxlist,#rr2v .cdxdet,#rr2v .cdxflt{box-sizing:border-box}
+#rr2v .cdxt{font:12px/14px 'PM12B','PM12';text-align:center;padding:0 1px;white-space:nowrap}
+#rr2v .cdxfull{font-style:normal;color:#FFD34D;margin-left:1px}
+/* 絞りこみの行：ボタンは並べる（横にはみ出したら横に動かせる） */
+#rr2v .cdxbar{display:flex;align-items:center;gap:6px}
+#rr2v .cdxflt{position:relative;display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;height:28px;align-items:center}
+#rr2v .cdxflt::-webkit-scrollbar{display:none}
+#rr2v .cdxflt .sp{flex:0 0 6px}
+#rr2v .cdxbar button,#rr2v .cdxsc button{position:relative;flex:0 0 auto;min-width:32px;height:28px;min-height:28px;font:10px/12px 'PM10';padding:0 3px;text-align:center;white-space:nowrap}
+#rr2v .cdxr{flex:0 0 auto;font:10px/12px 'PM10';color:var(--lime,#C5FF45);white-space:nowrap}
+#rr2v .cdxr.dim{color:#8E99A8}
+/* 一覧 */
+#rr2v .cdxlist{overflow-y:auto;overflow-x:hidden;display:flex;flex-wrap:wrap;align-content:flex-start;gap:2px;padding:2px;background:rgba(10,8,18,.72);box-shadow:inset 0 0 0 1px #2A3350;scrollbar-width:thin;touch-action:pan-y}
+#rr2v .cdxlist button{position:relative;margin:0}
+#rr2v .cdxtile{width:72px;height:62px;min-height:0;padding:1px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:rgba(20,24,44,.9);box-shadow:inset 0 0 0 1px #3A4566;text-align:center}
+#rr2v .cdxtile.r-R{box-shadow:inset 0 0 0 1px #5FA8FF}#rr2v .cdxtile.r-E{box-shadow:inset 0 0 0 1px #C77DFF}#rr2v .cdxtile.r-SK{box-shadow:inset 0 0 0 1px #FFD34D}
+#rr2v .cdxtile.no{background:rgba(12,14,24,.9);box-shadow:inset 0 0 0 1px #262C40}
+#rr2v .sel,#rr2v .cdxtile.sel{box-shadow:inset 0 0 0 2px var(--lime,#C5FF45)!important}
+#rr2v .cdxa{display:flex;align-items:center;justify-content:center;height:42px;width:70px;overflow:hidden}
+#rr2v .cdxa img{image-rendering:pixelated;max-height:42px}
+#rr2v .cdxa img.en{width:auto;height:auto;max-width:70px;max-height:42px}
+#rr2v .cdx-enemy .cdxa img.en,#rr2v .cdx-boss .cdxa img.en{transform:scale(1.25)}
+#rr2v .sil{filter:brightness(0);opacity:.6}
+#rr2v .cdxq{font:16px 'PM12B','PM12';color:#4A5370}
+#rr2v .cdxn{font:10px/11px 'PM10';width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white,#F7F9F5)}
+#rr2v .no .cdxn{color:#6A7390}
+#rr2v .cdxrow{width:100%;min-height:28px;height:auto;padding:4px 6px;text-align:left;font:12px/16px 'PM12';background:rgba(20,24,44,.9);box-shadow:inset 0 0 0 1px #3A4566;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rr2v .cdxrow.no{color:#6A7390}
+#rr2v .cdxg{width:100%;font:10px/14px 'PM10';color:var(--lime,#C5FF45);padding:2px 2px 0}
+#rr2v .cdxi{width:96px;height:56px;min-height:0;padding:1px;background:#0E1020;box-shadow:inset 0 0 0 1px #3A4566;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#rr2v .cdxi img{width:94px;height:53px;object-fit:cover;image-rendering:pixelated}
+/* ミニカー：キャラ × ランク */
+#rr2v .cdx-mini{flex-direction:column;flex-wrap:nowrap}
+#rr2v .cdxmrow{display:flex;align-items:center;gap:2px;height:36px}
+#rr2v .cdxmn{width:44px;font:10px 'PM10';white-space:nowrap;overflow:hidden}
+#rr2v .cdxm{width:29px;height:32px;min-height:0;padding:0;text-align:center;font:10px 'PM10';background:#0E1020;box-shadow:inset 0 0 0 1px #262C40;color:#4A5370}
+#rr2v .cdxm.on{background:rgba(20,24,44,.9);box-shadow:inset 0 0 0 1px #FFD34D;color:#FFD34D}
+/* 1つの中身 */
+#rr2v .cdxdet{display:block!important;text-align:left!important;overflow-y:auto;padding:6px 8px!important;line-height:14px;touch-action:pan-y}
+#rr2v .cdxtop{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+#rr2v .cdxtop.en .cdxa.big{width:110px;height:96px}
+#rr2v .cdxtop.en .cdxa.big img{max-height:96px;max-width:110px}
+#rr2v .cdxa.big{width:56px;height:48px;flex:0 0 auto;background:#0E1020;box-shadow:inset 0 0 0 1px #3A4566}
+#rr2v .cdxh{font:12px/16px 'PM12B','PM12';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rr2v .cdxd{font:12px/16px 'PM12';white-space:normal;margin:4px 0}
+#rr2v .cdxd.up{color:#BFE9FF}
+#rr2v .cdxhint{font:12px/16px 'PM12';white-space:normal;margin-top:6px}
+#rr2v .cdxfoot{white-space:normal;margin-top:6px}
+#rr2v .small{white-space:normal}
+#rr2v .gold{color:#FFD34D}
+#rr2v .cdxsc{display:flex;gap:4px;margin-top:8px}
+#rr2v i.prov,.glpop i.prov{font:10px 'PM10';font-style:normal;color:#0A0812;background:#8E99A8;padding:0 2px;margin-left:4px;vertical-align:1px}
+/* イラストを大きく */
+#rr2v .cdxiv{left:0;top:0;width:640px;height:360px;background:#000;z-index:2}
+#rr2v .cdxiv>img{position:absolute;left:0;top:0;width:640px;height:360px;object-fit:contain;image-rendering:pixelated}
+#rr2v .cdxiv-c{position:absolute;left:8px;top:336px;color:#C9CED6;text-shadow:0 0 2px #000}
+/* ランの記録 */
+#rr2v .rlrow{display:flex;gap:6px;font:10px/18px 'PM10'}
+#rr2v .rlrow span{flex:0 0 auto}
+#rr2v .rlres{color:#FFD34D}#rr2v .rl-lose .rlres,#rr2v .rlres.rl-lose{color:#FF7A7A}#rr2v .rl-giveup .rlres,#rr2v .rlres.rl-giveup{color:#8E99A8}
+#rr2v .rlsc>div{margin-top:4px}
+#rr2v .rlwrap{white-space:normal;word-break:break-all}
+.modal .box textarea.rlout{width:100%;height:120px;box-sizing:border-box;font:10px/12px monospace;background:#05060C;color:#C9CED6;border:1px solid #3A4566;user-select:text;-webkit-user-select:text}
+/* 用語：点線の下線と小窓 */
+u.gl{text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}
+.glpop{position:absolute;z-index:20;max-width:240px;min-width:120px;box-sizing:border-box;padding:4px 6px;background:rgba(10,8,18,.96);box-shadow:inset 0 0 0 1px var(--lime,#C5FF45),0 0 0 1px #000;font:12px/16px 'PM12';color:var(--white,#F7F9F5);white-space:normal;pointer-events:auto}
+.glpop b{font-family:'PM12B','PM12';color:var(--lime,#C5FF45);font-weight:normal}
+.glpop div{max-height:48px;overflow-y:auto}
+.modal .glbtn{position:relative}
+/* 戦闘の速さ（手動） */
+button.bspd.on{color:#FFD34D}
+/* 設定の画面：行が多いので、間の行だけ上下に動かす（見出しと下のボタンは固定・360 の中） */
+.modal .box.rr2optbox{max-height:340px;box-sizing:border-box;display:flex;flex-direction:column}
+.modal .box.rr2optbox .opts{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+.modal .box.rr2optbox .opscroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;touch-action:pan-y}
+.modal .box.rr2optbox .row{flex:0 0 auto;margin-top:4px}
+/* ランの記録の「オート」の印 */
+#rr2v .rlauto{font:10px 'PM10';color:#0A0812;background:#FFD34D;padding:0 3px;margin-left:4px}
+/* フルオート周回の帯（上の真ん中） */
+#farmbar{position:absolute;left:200px;top:0;width:240px;height:30px;z-index:30;display:flex;align-items:center;gap:6px;padding:0 4px 0 8px;box-sizing:border-box;background:rgba(10,8,18,.92);box-shadow:inset 0 0 0 1px #FFD34D;font:10px/12px 'PM10';color:#F7F9F5;white-space:nowrap}
+#farmbar b{font-family:'PM12B','PM12';color:#C5FF45}#farmbar .fb2{color:#FFD34D}#farmbar .fb3{color:#FF7A7A}
+#farmbar .fbstop{position:relative;margin-left:auto;height:28px;min-height:28px;width:52px;font:10px 'PM10';padding:0}
+
+/* ===== フルオート周回：スタートの2択（ゲームの小窓・横）===== */
+.modal .box.fchbox{width:560px;max-width:600px}
+.fch .fchrow{display:flex;gap:10px;margin:6px 0}
+.fch .fcb{position:relative;flex:1 1 0;min-height:150px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:8px;white-space:normal}
+.fch .fcb b{font:12px/16px 'PM12B','PM12';color:#C5FF45}.fch .fcb.farm b{color:#FFD34D}
+.fch .fcb .small{white-space:normal;line-height:14px}.fch .fcb.off{opacity:.5}.fch .fcb .lock{color:#FF7A7A}
+/* ===== フルオート周回：縦の画面（原寸 220 幅を拡大）===== */
+#farmui{position:fixed;inset:0;z-index:50;display:none;justify-content:center;align-items:flex-start;background:#05060C;overflow:hidden;touch-action:pan-y}
+#farmui .fuiw{position:relative;overflow:hidden}
+#farmui .fuip{position:absolute;left:0;top:0;transform-origin:0 0;box-sizing:border-box;padding:6px 6px 6px;display:flex;flex-direction:column;gap:4px;font:12px/14px 'PM12',monospace;color:#F7F9F5;background:#0A0C18;image-rendering:pixelated}
+#farmui .fuirot{display:none;position:fixed;left:0;right:0;top:0;padding:4px;text-align:center;font:12px 'PM12';color:#0A0812;background:#FFD34D}
+#farmui.land .fuirot{display:block}
+#farmui button{font:inherit;color:inherit;cursor:pointer;margin:0}
+#farmui .fhead{display:flex;justify-content:space-between;align-items:center;min-height:28px;gap:4px}
+#farmui .fhead b{font-family:'PM12B','PM12'}
+#farmui .fbtn{border:1px solid #6C7896;background:#1D2440;padding:0 6px;min-height:28px;border-radius:2px}
+#farmui .fbtn.main{background:#C5FF45;border-color:#C5FF45;color:#0A0812;font-family:'PM12B','PM12'}
+#farmui .fbtn.warn{background:#7A1F1F;border-color:#FF6A6A;color:#fff}
+#farmui .fstop{width:56px;height:34px;flex:0 0 auto}
+#farmui .fgo{min-height:34px;margin-top:auto}
+#farmui .fbox{border:1px solid #2A3350;background:#121626;padding:3px 5px;border-radius:2px}
+#farmui .fl{font:10px/12px 'PM10';color:#8E99A8;margin-bottom:2px}
+#farmui .fn{font:10px/12px 'PM10';white-space:normal}
+#farmui .fcs{display:flex;flex-wrap:wrap;gap:2px}
+#farmui .fc{min-height:28px;min-width:28px;padding:0 5px;border:1px solid #6C7896;background:#141A2C;border-radius:2px}
+#farmui .fc.on{background:#C5FF45;color:#0A0812;border-color:#C5FF45}
+#farmui .fc.no{color:#4A5370;border-color:#262C40;background:#0E1220}
+#farmui .fnum{display:flex;justify-content:space-between;gap:4px;align-items:baseline}
+#farmui .fnums{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px}
+#farmui .fnum.wide{grid-column:1/3}
+#farmui .fbar{flex:1 1 auto;height:5px;background:#2A3350;align-self:center}#farmui .fbar i{display:block;height:100%;background:#FF4040}
+#farmui .gold{color:#FFD34D}#farmui .lime{color:#C5FF45}#farmui .red{color:#FF7A7A}#farmui .dim{color:#8E99A8}#farmui .small{font:10px 'PM10'}
+#farmui .fview{position:relative;width:208px;height:117px;flex:0 0 auto;border:1px solid #2A3350;background:#000}
+#farmui .fview canvas{width:208px;height:117px;display:block;image-rendering:pixelated}
+#farmui .fcap{position:absolute;left:4px;right:4px;bottom:4px;padding:2px 4px;font:10px/12px 'PM10';background:rgba(10,8,18,.85);box-shadow:inset 0 0 0 1px #FFD34D;white-space:normal}
+#farmui .fstrip{display:flex;align-items:center;gap:1px;overflow-x:auto;overflow-y:hidden;min-height:44px;flex:0 0 auto;scrollbar-width:none;padding:2px 0;touch-action:pan-x}
+#farmui .fstrip::-webkit-scrollbar{display:none}
+#farmui .fsn{flex:0 0 auto;width:34px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #2A3350;border-radius:3px;font:10px/11px 'PM10'}
+#farmui .fsn.multi{flex-direction:column;flex-wrap:wrap;gap:1px}
+#farmui .fsn.done{opacity:.45}#farmui .fsn.now{border:2px solid #C5FF45;background:#1C2610}
+#farmui .fsn span{white-space:nowrap;max-width:32px;font-size:9px;letter-spacing:-1px}#farmui .fsn .sm{font-size:9px}
+#farmui .fsa{flex:0 0 auto;color:#6C7896;font:10px 'PM10'}
+#farmui .ffeed{flex:1 1 auto;min-height:40px;overflow-y:auto;border:1px solid #2A3350;background:#080A14;padding:2px 4px;font:10px/13px 'PM10';touch-action:pan-y;scrollbar-width:thin}
+#farmui .fl1{white-space:normal}#farmui .fl1.head{color:#BFE9FF;margin-top:2px}#farmui .fl1.gold{color:#FFD34D}#farmui .fl1.win{color:#C5FF45}#farmui .fl1.lose{color:#FF7A7A}#farmui .fl1.dim{color:#8E99A8}#farmui .fl1.dig{color:#0A0812;background:#FFD34D}
+#farmui .fnew{display:none;position:absolute;right:10px;bottom:10px;min-height:28px}
+#farmui .fbtns{display:flex;gap:4px;margin-top:auto}#farmui .fbtns .fbtn{flex:1 1 0;min-height:34px}
+#farmui .fruns{flex:1 1 auto;min-height:30px;overflow-y:auto}
+#farmui .fdig{box-shadow:inset 0 0 0 1px #FFD34D}
+#farmui .fmodal{position:absolute;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:10px}
+#farmui .fmodal .fbox{display:flex;flex-direction:column;gap:5px;width:100%}
+#farmui .fscroll{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;touch-action:pan-y;scrollbar-width:thin}
+#farmui .fsn span{text-overflow:clip}
+#farmui .fgo{margin-top:0;flex:0 0 auto}
+/* ===== クラウドセーブ（設定の欄・どちらを使う？）===== */
+.modal .cloudst{white-space:normal;line-height:14px}.modal .cloudst .warnc{color:#FF7A7A}
+.modal .cloudst .cloudel{position:relative;min-height:28px;margin-top:2px}
+.modal .cdrow{display:flex;gap:8px;margin:6px 0}.modal .cdcol{flex:1 1 0;border:1px solid #3A4566;padding:4px 6px;background:#121626}
+.modal .cdcol .cdslot{white-space:normal}.modal .cdcol.cl{box-shadow:inset 0 0 0 1px #5FA8FF}

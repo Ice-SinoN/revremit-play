@@ -12,7 +12,7 @@ function optsSave(){try{localStorage.setItem("revremit_opts",JSON.stringify(OPTS
 
 function optsApply(){if(window.AUDIO)try{AUDIO.setVolume("bgm",OPTS.bgm);AUDIO.setVolume("se",OPTS.se);AUDIO.setVolume("engine",optVol("engine"));AUDIO.setVolume("amb",optVol("amb"))}catch(e){}}
 /* ★v0.22.64 虎雪 11-20 08:08・audio-list 16章：音量は bgm .55・se .9・engine .38（前の半分）・amb .4（天候・環境音）。②は OPTS.engine・OPTS.amb をスライダーで変えて optsApply() を呼ぶ */
-function optVol(k){const v=OPTS[k];return typeof v==="number"&&isFinite(v)?Math.max(0,Math.min(1,v)):({engine:0.38,amb:0.4}[k]??1)}
+function optVol(k){if(k==="amb"&&typeof OPTS.weather==="number")return Math.max(0,Math.min(1,OPTS.weather));/* ★v0.22.65 ②の「天候の音」スライダー（OPTS.weather）を amb のつまみに */const v=OPTS[k];return typeof v==="number"&&isFinite(v)?Math.max(0,Math.min(1,v)):({engine:0.38,amb:0.4}[k]??1)}
 function weatherVol(){return optVol("amb")}/* 天候の音は AUDIO.weather() が amb のつまみで鳴らす（掛けなくてよい） */
 addEventListener("pointerdown",()=>optsApply(),{once:true});
 

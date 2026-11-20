@@ -215,7 +215,7 @@ async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||ne
 /* ★v0.22.40 あとで使う絵（SORA〜MIO 編のキャラ・話のボス）は起動では読まない（lazy）。使う所で await ensureSpr([キー…]) */
 function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":"仮"}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
-const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_/.test(f)):[]);/* ★v0.22.64 天候の背景・天候の演出は天候を入れるまで起動で読まない */
+const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
 /* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
 const FUSED_SHEET="assets/c2/cards/c2/revremit_card_art_c2_fused_sheet";
 async function loadFusedArt(have){window.FUSED_ART={};const P=FUSED_SHEET+".png",J=FUSED_SHEET+".json";if(!have.has(P)||typeof FUSE==="undefined")return;

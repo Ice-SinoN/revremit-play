@@ -45,7 +45,7 @@ function showStartPick(){try{termPrep()}catch(e){}setScreen("startpick");setScen
    ["self","auto"].map((k,i)=>{const t=START_TXT[k],off=k==="auto"&&!fa;return `<button class="u9 mdcard${k==="self"?" main":""}${off?" off":""}" ${at(40+i*290,60,270,220)} onclick="${k==="self"?"startFlow()":"startFullAuto()"}"><div class="mdh" style="font-size:20px">${esc(TU("start_"+k,t[0]))}</div>
      <div class="mdt">${esc(TU("start_"+k+"_1",t[1]))}</div><div class="mdt">${esc(TU("start_"+k+"_2",t[2]))}</div>${off?`<div class="small dim">${esc(TU("start_auto_wip","準備中"))}</div>`:""}</button>`}).join("")}
 function startFullAuto(){if(window.FULLAUTO&&FULLAUTO.open){SND.se("ui_ok");try{FULLAUTO.open()}catch(e){console.error(e);toast2("フルオートを開けませんでした")}}else{SND.se("card_cant");toast2(TU("start_auto_wip_t","フルオート周回は準備中です"))}}
-function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();showChars()}
+function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flowTicket=null;S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();showChars()}
 const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
 const flowModeTag=()=>S.flow&&!S.flow.mode?"":`（${flowMode()}）`;
 /* ---- 2. キャラ ---- */
@@ -102,11 +102,18 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();S.flowFromMode=window
     <div class="rrow"><span class="dim">難易度</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
     <div class="rrow"><span class="dim">キャラ</span><b>${esc(TEXT.names[ch]||ch)}</b><span class="small dim">${esc(C.carName)}・${esc(mode)}</span></div>
     <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div>${TREE[ch]?`<div class="rrow"><span class="dim">型</span><b>${esc(treeName(ch))}</b><button class="u9 mini" onclick="closeModal();showTree()">型をえらぶ</button></div>`:""}</div></div>
-   <div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
+   ${ticketRow()}<div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
    <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
 function runBack(){SND.se("ui_cancel");closeModal();if(S.flow&&S.flowFromMode){S.flow.mode=null;showModes()}}
-function runGo(){const mode=flowMode(),bring=S.flowBring||[];closeModal();S.flow=null;bootSeq(()=>newRun(mode,bring),mode,bring)}
+function runGo(){const mode=flowMode(),bring=S.flowBring||[],tk=S.flowTicket||null;closeModal();S.flow=null;S.flowTicket=null;
+  if(tk&&typeof farmData==="function"){const d=farmData(),i=d.tickets.indexOf(tk);if(i>=0){d.tickets.splice(i,1);try{SAVE.auto()}catch(e){}}else tk=null}
+  bootSeq(()=>{newRun(mode,bring);if(tk&&G){G.ticket={k:tk};if(tk==="money")G.money+=30}},mode,bring)}
+/* ★v0.22.65 design 10-22-6・②の H19：ランの前の小窓で整備チケットを1枚えらぶ（使わなくてもよい）。持ち物は②の farmData().tickets */
+const TICKET_TXT={discount:"最初のショップが 30% 引き",partPick:"最初のパーツの候補が4つ",money:"はじめのお金 +30",cardPick:"最初の戦闘のカードを4枚から"};
+function ticketRow(){if(typeof farmData!=="function")return"";const t=farmData().tickets||[];if(!t.length)return"";const c={};t.forEach(k=>c[k]=(c[k]||0)+1);const nm=k=>(typeof FARM_TICKET_JP!=="undefined"&&FARM_TICKET_JP[k])||k;
+  return `<div class="rrow tkrow"><span class="dim">整備チケット</span><span class="rcs">`+[`<button class="u9 mini${!S.flowTicket?" main":""}" onclick="S.flowTicket=null;ticketRedraw()">使わない</button>`].concat(Object.keys(c).map(k=>`<button class="u9 mini${S.flowTicket===k?" main":""}" title="${esc(TICKET_TXT[k]||"")}" onclick="S.flowTicket='${k}';ticketRedraw()">${esc(nm(k))}×${c[k]}</button>`)).join("")+`</span></div>${S.flowTicket?`<div class="small gold tkd">${esc(TICKET_TXT[S.flowTicket]||"")}（このランで1回）</div>`:""}`}
+function ticketRedraw(){SND.se("ui_ok");const r=$("#modal .tkrow");if(!r)return;const n=r.nextElementSibling&&r.nextElementSibling.classList.contains("tkd")?r.nextElementSibling:null;if(n)n.remove();r.outerHTML=ticketRow()}
 /* ---- 5. キャラが光の粒にほどけて端末に吸いこまれる（★虎雪 11:35。約3秒・タップでとばす）----
    粒は戦闘の待機の絵のピクセルから作る（色はキャラの色）。★v0.22.36：端末と部屋はグラフィック班ラウンド34 の絵（ui/c2/revremit_ui_terminal.png〈640×360 の透明な層〉・revremit_bg_terminal_room.png）。
    粒の行き先は revremit_ui_terminal.json の screen（消えた画面のガラス）。絵がないときはコードの仮の絵。 */
