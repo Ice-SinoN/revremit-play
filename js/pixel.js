@@ -209,11 +209,13 @@ async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||ne
       ((js.meta&&js.meta.frameTags)||[]).forEach(t=>{tags[t.name]=[t.from,t.to]});
       if(!tags.stand)tags.stand=[0,0];
       // 絵にないタグは、仮のドットの同じ名前を使わず、今ある絵（stand）＋動きで出す
-      SPR[k]={frames,dur,tags,foot:a.foot};return true;
+      SPR[k]={frames,dur,tags,foot:a.foot};if(PRE.img)delete PRE.img[a.sheet];return true;/* ★v0.22.78 切り出したら元のシートは持たない（スマホのメモリ） */
     }catch(e){return false}
 }
 /* ★v0.22.40 あとで使う絵（SORA〜MIO 編のキャラ・話のボス）は起動では読まない（lazy）。使う所で await ensureSpr([キー…]) */
 function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":"仮"}
+/* ★v0.22.78 虎雪 13:19「キャラが仮絵」：起動で読めなかった（メモリ・通信）ときは、戦闘に入るときにもう一度読む */
+function charArtRetry(){const ks=["YUKI"].concat(typeof G!=="undefined"&&G&&G.char&&G.char!=="YUKI"?[G.char]:[]).filter(k=>ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc));if(ks.length)ensureSpr(ks).then(()=>{window.ART_STATE&&ks.forEach(k=>ART_STATE[k]=SPR[k]&&!SPR[k].proc?"絵":"仮")})}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
 const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
 /* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
