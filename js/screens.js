@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.67（β2）";
+const VERSION="試作 v0.22.68（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -90,9 +90,16 @@ function titleLogo(){const f=window.ART_HAVE?[...ART_HAVE].filter(p=>/\/revremit
 /* ★v0.22.67 不具合（虎雪 11-20 10:13「NANA でクリアしても HINA が出なかった」）：仲間は「その夜を初めてクリアした瞬間」にだけ加わっていたため、
    古いセーブの引きつぎ（v0.19 までのクリア＝nightMax 1 にするが仲間は足していなかった）や、引き継ぎコード・クラウドで読んだセーブで、nightMax までの夜の仲間が抜けたままになっていた。
    nightMax までの夜の open（仲間・話）を必ずそろえる。足した仲間は加わる話をそのとき流す */
-function nightOpenRepair(p){p=p||PRF();const u=p&&p.unlock;if(!u||typeof NIGHTS==="undefined")return[];u.chars=u.chars||["YUKI"];u.story=u.story||[];const add=[];
+/* ★v0.22.68 クリアの★（キャラ × 走りかた × 夜）が抜けたセーブ（v0.22.28 より前の形・読みこんだセーブ）：②のランの記録（自分で走った全クリア）から足す。nightMax もそれに合わせる */
+function clearRecRepair(p){p=p||PRF();if(!p||!p.unlock)return 0;let n=0;const L=Array.isArray(p.runlog)?p.runlog:(p.runlog&&Array.isArray(p.runlog.list)?p.runlog.list:[]);
+  const r=(typeof clearRecOf==="function")?clearRecOf(p):(p.clearRec=p.clearRec||{});
+  L.forEach(x=>{if(x&&x.res==="clear"&&!x.farm&&x.night>0&&x.char&&x.mode){const k=x.char+"|"+x.mode;r[k]=Array.isArray(r[k])?r[k]:[];if(!r[k].includes(x.night)){r[k].push(x.night);n++}if(x.night>(p.unlock.nightMax||0)){p.unlock.nightMax=x.night;n++}}});
+  /* ★v0.22.68 虎雪 10:19：★の記録が入る前（v0.22.28 より前）のクリアは「夜は不明＝0」。夜のないころのクリアは NIGHT 1 と同じなので、0 だけのキャラ × 走りかたは NIGHT 1 をクリア済みにする */
+  Object.keys(r).forEach(k=>{const a=r[k];if(Array.isArray(a)&&a.includes(0)&&!a.some(x=>x>=1)){a.push(1);n++}const mx=Math.max(0,...(Array.isArray(a)?a:[]));if(mx>(p.unlock.nightMax||0)){p.unlock.nightMax=mx;n++}});
+  return n}
+function nightOpenRepair(p){p=p||PRF();const u=p&&p.unlock;if(!u||typeof NIGHTS==="undefined")return[];u.chars=u.chars||["YUKI"];u.story=u.story||[];const add=[];const fixed=clearRecRepair(p);
   for(let n=1;n<=Math.min(u.nightMax||0,NIGHTS.length);n++){const o=NIGHTS[n-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);add.push(c)}});(o.story||[]).forEach(s=>{if(!u.story.includes(s))u.story.push(s)})}
-  if(add.length)try{SAVE.auto()}catch(e){}return add}
+  if(add.length||fixed)try{SAVE.auto()}catch(e){}return add}
 function showTitle(){
   {const add=nightOpenRepair();if(add.length&&typeof playJoins==="function"){playJoins(add.slice(),showTitle);return}}
   setScreen("title");setScene("dim");closeModal();SND.bgm("title");
@@ -214,7 +221,7 @@ function toggleBring(i){const m=S.mcAll[i];if(!m)return;const s=S.mcSel,k=s.inde
 function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];S.flow=S.flow||{mode:S.mcMode};flowToMode(p)}/* ★v0.22.28 確認の画面へ */
 /* ボット用：newRun("MT") でガレージを飛ばして走れる（組んだデッキを使う） */
 /* ★つづきから */
-function continueRun(){const r=loadRun();if(!r){showTitle();return}G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
+function continueRun(){const r=loadRun();if(!r){showTitle();return}if(window.FARM&&FARM.on&&!(r.G&&r.G.fullAuto)){FARM.on=false;FARM.snap=null}/* ★v0.22.68 */G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
   const st=r.stage||{};if(st.s==="battle"&&ENEMIES[st.key]){if(st.j!=null)G.path[G.row]=st.j;startBattleState(st.key);enterBattle()}
   else if(st.s==="link"||st.s==="win"&&st.key&&ENEMIES[st.key]&&ENEMIES[st.key].ally){allyBossAfter(true)}/* ★v0.22.64 つなぎの会話から再開 */
   else if(st.s==="win"){const rk=st.rank;if(rk==="boss")bossParts(nextRow);else if(rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
