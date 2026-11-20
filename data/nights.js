@@ -3,12 +3,12 @@
    決まりは前の夜のぶんに足していく。nightRules(n) で n までの合計を返す。
    開く：クリアで次の夜（unlock.nightMax）・仲間（chars）・話（story）・パーツ（9-5）。 */
 /* ★v0.22.77 design 10-23：夜ごとの敵の体力（10-2 の ×1.15 の上にかける。9-4 の「NIGHT 4 +10%」を置きかえ。N5 以降は仮） */
-const NIGHT_HP={1:1.0,2:2.2,3:2.3,4:2.5,5:2.7,6:2.9,7:3.1,8:3.3,9:3.5,10:3.7,11:3.9};
+const NIGHT_HP={1:1.0,2:2.2,3:2.2,4:2.3,/* ★v0.22.85 LD balance 11-45：N3 2.3→2.2・N4 2.5→2.3 */5:2.7,6:2.9,7:3.1,8:3.3,9:3.5,10:3.7,11:3.9};
 const NIGHTS=[
  {n:1, add:"（基準）ブローなし",                         open:{chars:["HINA"],story:["n1"]}},
  {n:2, add:"エリートのマスが出やすい・敵の体力 ×2.2",open:{chars:["MOMO"],story:["n2"],parts:["drysump","forged"]}},
- {n:3, add:"ブローあり・敵の体力 ×2.3",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
- {n:4, add:"敵の体力 ×2.5",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
+ {n:3, add:"ブローあり・敵の体力 ×2.2",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
+ {n:4, add:"敵の体力 ×2.3",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
  {n:5, add:"ボスのあとの回復 30% → 10%・敵の体力 ×2.7",                 open:{chars:["KAEDE"],story:["n5"],parts:["subcon","qrelease"]}},
  {n:6, add:"エリートの体力・攻撃 +20%・敵の体力 ×2.9",                  open:{chars:["RIN"],story:["n6"],parts:["dashcam","etc","aero"]}},
  {n:7, add:"敵の攻撃 +10%・敵の体力 ×3.1",                              open:{chars:["LUNA"],story:["n7"]}},
