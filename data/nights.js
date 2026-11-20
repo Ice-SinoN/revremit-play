@@ -2,25 +2,27 @@
 /* ===== ★v0.21 夜（NIGHT 1〜11）：design v0.6 9-4（おすすめで進めた・★progression 1-5）=====
    決まりは前の夜のぶんに足していく。nightRules(n) で n までの合計を返す。
    開く：クリアで次の夜（unlock.nightMax）・仲間（chars）・話（story）・パーツ（9-5）。 */
+/* ★v0.22.77 design 10-23：夜ごとの敵の体力（10-2 の ×1.15 の上にかける。9-4 の「NIGHT 4 +10%」を置きかえ。N5 以降は仮） */
+const NIGHT_HP={1:1.0,2:2.2,3:2.3,4:2.5,5:2.7,6:2.9,7:3.1,8:3.3,9:3.5,10:3.7,11:3.9};
 const NIGHTS=[
  {n:1, add:"（基準）ブローなし",                         open:{chars:["HINA"],story:["n1"]}},
  {n:2, add:"エリートのマスが出やすい・敵の体力 ×2.2",open:{chars:["MOMO"],story:["n2"],parts:["drysump","forged"]}},
- {n:3, add:"ブローあり",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
- {n:4, add:"敵の体力 +10%",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
- {n:5, add:"ボスのあとの回復 30% → 10%",                 open:{chars:["KAEDE"],story:["n5"],parts:["subcon","qrelease"]}},
- {n:6, add:"エリートの体力・攻撃 +20%",                  open:{chars:["RIN"],story:["n6"],parts:["dashcam","etc","aero"]}},
- {n:7, add:"敵の攻撃 +10%",                              open:{chars:["LUNA"],story:["n7"]}},
- {n:8, add:"お金が少ない（最初 0・戦闘のお金 −20%）",    open:{chars:["MIO"],story:["n8"]}},
- {n:9, add:"ボスの体力 +15%",                            open:{chars:["KURO"],story:["n9"]}},
- {n:10,add:"初めのデッキに泥はね1枚",                    open:{story:["n10"]}},
- {n:11,add:"エンジン耐久の最大 −10",                     open:{story:["n11"]}},
+ {n:3, add:"ブローあり・敵の体力 ×2.3",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
+ {n:4, add:"敵の体力 ×2.5",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
+ {n:5, add:"ボスのあとの回復 30% → 10%・敵の体力 ×2.7",                 open:{chars:["KAEDE"],story:["n5"],parts:["subcon","qrelease"]}},
+ {n:6, add:"エリートの体力・攻撃 +20%・敵の体力 ×2.9",                  open:{chars:["RIN"],story:["n6"],parts:["dashcam","etc","aero"]}},
+ {n:7, add:"敵の攻撃 +10%・敵の体力 ×3.1",                              open:{chars:["LUNA"],story:["n7"]}},
+ {n:8, add:"お金が少ない（最初 0・戦闘のお金 −20%）・敵の体力 ×3.3",    open:{chars:["MIO"],story:["n8"]}},
+ {n:9, add:"ボスの体力 +15%・敵の体力 ×3.5",                            open:{chars:["KURO"],story:["n9"]}},
+ {n:10,add:"初めのデッキに泥はね1枚・敵の体力 ×3.7",                    open:{story:["n10"]}},
+ {n:11,add:"エンジン耐久の最大 −10・敵の体力 ×3.9",                     open:{story:["n11"]}},
 ];
 /* ★v0.22 β は NIGHT 4 まで（design 9-10・チーフ 11-18 10:26）。NIGHT 4 のクリアで「次の仲間は……？」だけ見せる */
 const BETA_NIGHTS=4;
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）
   eliteW:n>=2?20:null,        // エリートの重み 12 → 20
-  hpMul:n===2?2.2:n>=4?1.1:1, // 敵の体力（全部）★v0.22.72 design 10-23：NIGHT 2 は ×2.2
+  hpMul:n>0&&NIGHT_HP[n]||1,  // 敵の体力（全部）★v0.22.77 design 10-23 の表（v0.22.72 の N2 ×2.2・9-4 の N4 ×1.1 を置きかえ）
   areaHeal:n>=5?0.1:null,     // ボスのあとの回復
   eliteMul:n>=6?1.2:1,        // エリートの体力・攻撃
   atkMul:n>=7?1.1:1,          // 敵の攻撃（全部）
