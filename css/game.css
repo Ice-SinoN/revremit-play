@@ -468,3 +468,6 @@ button.autob.on{box-shadow:inset 0 0 0 2px var(--lime);color:var(--lime)}
 @media (prefers-reduced-motion:reduce){.remitfx *{animation:none!important}}
 /* ★v0.22.66 ラボの改造のタブ */
 .modtabs{display:flex;gap:2px}.modtabs button{flex:1;min-width:0;min-height:22px;padding:0 2px;font-size:10px;white-space:nowrap;overflow:hidden}
+/* ★v0.22.69 ガレージ */
+.hubb{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:4px 10px;text-align:left}.hubb b{font-size:14px}.hubb.hubt b{font-size:12px}.hubb .small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hubsec{color:#e8ecf4;font-size:12px;line-height:30px;border-bottom:1px solid #3a4560;background:rgba(10,14,30,.7);padding-left:6px}

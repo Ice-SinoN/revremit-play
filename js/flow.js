@@ -101,7 +101,7 @@ function runConfirm(bring){S.flowBring=(bring||[]).slice();S.flowFromMode=window
    <div class="rtop"><canvas class="chav" data-ch="${ch}" width="72" height="72"></canvas><div class="rcol">
     <div class="rrow"><span class="dim">難易度</span><b>${esc(lab)}</b>${starHTML(clearedNight(ch,mode,n),"")}<span class="small dim">${nightRules(n).noBlow||n<3?"ブローなし":"ブローあり"}</span></div>
     <div class="rrow"><span class="dim">キャラ</span><b>${esc(TEXT.names[ch]||ch)}</b><span class="small dim">${esc(C.carName)}・${esc(mode)}</span></div>
-    <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div>${TREE[ch]?`<div class="rrow"><span class="dim">型</span><b>${esc(treeName(ch))}</b><button class="u9 mini" onclick="closeModal();showTree()">型をえらぶ</button></div>`:""}</div></div>
+    <div class="rrow"><span class="dim">ミニカー</span><span class="rcs">${mc}</span></div>${TREE[ch]?`<div class="rrow"><span class="dim">型</span><b>${esc(treeName(ch))}</b><button class="u9 mini" onclick="closeModal();S.treeHub=false;showTree()">型をえらぶ</button></div>`:""}</div></div>
    ${ticketRow()}<div class="small dim">デッキ（はじめのカード ${deckCount(dk)}枚）</div><div class="rcs rdeck">${cards}</div>
    <div class="row"><button class="main" onclick="runGo()">OK</button><button onclick="runBack()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("rcbox");SND.se("ui_ok");chavStart()}
@@ -163,8 +163,8 @@ function bootEnd(){const b=S.boot;if(!b||b.end)return;b.end=true;S.boot=null;SND
 /* ★v0.22.48 スキルツリー（design 11-3・text 27-6）。ランの前（確認の小窓の「型をえらぶ」）から。振り直し・メモの切りかえはタダ。今のメモに自動で残る */
 function treeData(ch){const p=PRF();p.tree=p.tree||{};const t=p.tree[ch]=p.tree[ch]||{pts:0,cur:0,presets:[]};for(let i=0;i<3;i++)t.presets[i]=t.presets[i]||{name:"",lv:[0,0,0]};return t}
 function treeName(ch,i){const t=treeData(ch),k=i==null?t.cur||0:i,pr=t.presets[k],top=pr.lv.indexOf(4);return pr.name||(top>=0?TREE[ch][top].n+"型":`型のメモ ${k+1}`)}
-function showTree(){SND.call(A=>A.bgmFor?A.bgmFor("tree",curChar()):A.bgm("garage"));setScreen("tree");setScene("dim");setBg("garage");closeModal();const ch=curChar();renderTree();if(!S.treeIntro){S.treeIntro=1;toast2(ch==="MIO"?"こゆき：……どれで行く？":"みお：今夜は、どの型で行きますか？",300)}}
-function renderTree(){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,used=treeSpent(lv),left=(t.pts||0)-used,br=TREE[ch];
+function showTree(){SND.call(A=>A.bgmFor?A.bgmFor("tree",treeChar()):A.bgm("garage"));setScreen("tree");setScene("dim");setBg("garage");closeModal();const ch=treeChar();renderTree();if(!S.treeIntro){S.treeIntro=1;toast2(ch==="MIO"?"こゆき：……どれで行く？":"みお：今夜は、どの型で行きますか？",300)}}
+function renderTree(){const ch=treeChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,used=treeSpent(lv),left=(t.pts||0)-used,br=TREE[ch];
   let h=`<div class="hdr" ${at(8,6,300,18)}>${esc(TEXT.names[ch]||ch)}の型</div><div class="small" ${at(8,26,300,14)}>ポイント ${left}／${t.pts||0}（${esc(TEXT.names[ch]||ch)}で走るとたまる）</div>${backBtn("もどる","treeBack()")}
    <div class="tslots" ${at(316,58,316,24)}>`+t.presets.map((x,i)=>`<button class="u9${i===(t.cur||0)?" main":""}" onclick="treeSlot(${i})">${esc(treeName(ch,i))}</button>`).join("")+`</div>`;
   br.forEach((b,i)=>{const x=8+i*210;h+=`<div class="tbr" ${at(x,86,204,226)}><div class="tbn"><b>${esc(b.n)}</b> <span class="small dim">${esc(b.d)}</span></div>`+
@@ -177,21 +177,46 @@ function renderTree(){const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],l
   ui().innerHTML=h}
 function treeSave(){SAVE.auto&&SAVE.auto()}
 function TT(k,d){return TEXT.tree&&TEXT.tree[k]||d}
-function treeSlot(i){const t=treeData(curChar());t.cur=i;SND.se("ui_ok");treeSave();renderTree()}
+function treeSlot(i){const t=treeData(treeChar());t.cur=i;SND.se("ui_ok");treeSave();renderTree()}
 /* ★v0.22.58 text 27-7：4段目の長押しで説明（満開は AT のとき段の文を灰色・説明だけ） */
-function treeLP(i){treeLPx();S.treeLPt=setTimeout(()=>{S.treeLPf=1;const b=TREE[curChar()][i];toast2(b.tip,290,2500)},450)}
+function treeLP(i){treeLPx();S.treeLPt=setTimeout(()=>{S.treeLPf=1;const b=TREE[treeChar()][i];toast2(b.tip,290,2500)},450)}
 function treeLPx(){if(S.treeLPt){clearTimeout(S.treeLPt);S.treeLPt=0}}
-function treeTap(i,k){if(S.treeLPf){S.treeLPf=0;return}const ch=curChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,left=(t.pts||0)-treeSpent(lv);
+function treeTap(i,k){if(S.treeLPf){S.treeLPf=0;return}const ch=treeChar(),t=treeData(ch),pr=t.presets[t.cur||0],lv=pr.lv,left=(t.pts||0)-treeSpent(lv);
   if(lv[i]>=k){if(lv[i]!==k){SND.se("card_cant");return}lv[i]=k-1;SND.se("tree_down");treeSave();renderTree();return}/* いちばん上の段を外す（ポイントはもどる） */
   if(lv[i]!==k-1||left<TREE_COST[k-1]){SND.se("card_cant");return}
   const o=k===4?lv.findIndex((l,j)=>j!==i&&l===4):-1;
-  const take=()=>{if(o>=0)lv[o]=3;lv[i]=k;SND.se(k===4?"tree_cap":"tree_up",{lv:k,who:curChar().toLowerCase()});treeSave();renderTree()};
+  const take=()=>{if(o>=0)lv[o]=3;lv[i]=k;SND.se(k===4?"tree_cap":"tree_up",{lv:k,who:treeChar().toLowerCase()});treeSave();renderTree()};
   if(o>=0){const B2=TREE[ch];if((t.pts||0)-treeSpent(lv.map((l,j)=>j===o?3:l))<TREE_COST[3]){SND.se("card_cant");return}
     S.treeGo=()=>{closeModal();take()};modal(`<div class="h">「${esc(B2[o].n)}」の型の決めを外して、「${esc(B2[i].n)}」にしますか？</div><div class="small">外した段のポイントは、もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">入れかえる</button><button onclick="closeModal()">やめる</button></div>`);return}
   take()}
-function treeReset(){S.treeGo=()=>{closeModal();const t=treeData(curChar());t.presets[t.cur||0].lv=[0,0,0];SND.se("tree_reset");toast2("振り直しました");treeSave();renderTree()};
+function treeReset(){S.treeGo=()=>{closeModal();const t=treeData(treeChar());t.presets[t.cur||0].lv=[0,0,0];SND.se("tree_reset");toast2("振り直しました");treeSave();renderTree()};
   modal(`<div class="h">振り直しますか？</div><div class="small">ポイントは、全部もどります。</div><div class="row"><button class="main" onclick="S.treeGo()">振り直す</button><button onclick="closeModal()">やめる</button></div>`)}
-function treeRename(){const t=treeData(curChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree();toast2(TT("tree_rename_toast","保存しました"),318,1000)};/* ★v0.22.51 text 27-6-3：名前を変えたときだけ1秒 */
-  modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(curChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
-function treePick(){const ch=curChar();SND.se("ui_ok");toast2(`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
-function treeBack(){SND.se("ui_cancel");runConfirm(S.flowBring||[])}
+function treeRename(){const t=treeData(treeChar()),pr=t.presets[t.cur||0];S.treeGo=()=>{const v=($("#tname")||{}).value||"";pr.name=v.trim().slice(0,10);closeModal();treeSave();renderTree();toast2(TT("tree_rename_toast","保存しました"),318,1000)};/* ★v0.22.51 text 27-6-3：名前を変えたときだけ1秒 */
+  modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(treeChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
+function treePick(){const ch=treeChar();SND.se("ui_ok");toast2(S.treeHub?`「${treeName(ch)}」にしました`:`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
+function treeChar(){return S.treeHub&&S.treeCh||curChar()}
+function treeBack(){SND.se("ui_cancel");if(S.treeHub){S.treeHub=false;showHub();return}runConfirm(S.flowBring||[])}
+/* ===== ★v0.22.69 ガレージ（★虎雪 11-20 10:47）：ランの外のメニューをまとめる。ミニカー（一覧・中身・処分）・型（スキルツリー）・デッキ・みおのラボ・図鑑 ===== */
+FULL_SCREENS.push("hub","mcbox");Object.assign(SCREEN_BG,{hub:"garage",mcbox:"garage"});
+function hubBack(){if(S.hubOpen)showHub();else showTitle()}
+function showHub(){S.hubOpen=true;setScreen("hub");setScene("dim");setBg("garage");closeModal();SND.bgm("garage");const p=PRF(),mc=loadMinicars(),ch=curChar(),op=charsOpen().filter(c=>TREE[c]);
+  const B=(x,y,w,h,t,s,on,cls)=>`<button class="u9 hubb${cls?" "+cls:""}" ${at(x,y,w,h)} onclick="${on}"><b>${t}</b>${s?`<span class="small dim">${s}</span>`:""}</button>`;
+  let h=`<div class="hdr" ${at(8,6,300,18)}>ガレージ</div>${backBtn("タイトルへ","S.hubOpen=false;showTitle()")}`+
+   B(16,62,196,66,"ミニカー",`${mc.length}／${MINICAR_MAX}台・中身を見る・処分`,"showMcBox()")+
+   B(222,62,196,66,"デッキを組む",`${esc(TEXT.names[ch]||ch)}・${deckCount(loadDeck(ch))}枚`,"showDeck()")+
+   B(428,62,196,66,"みおのラボ",`ログ ${p.log||0}・カードを開く／改造`,"showLab()")+
+   `<div class="hubsec" ${at(20,138,600,30)}><b>型（スキルツリー）</b><span class="small dim">　キャラごとに型のメモ3つ。ランの前の「型をえらぶ」と同じもの</span></div>`+
+   op.map((c,i)=>B(16+i*152,170,146,52,`${esc(TEXT.names[c]||c)}の型`,`「${esc(treeName(c))}」・ポイント ${(treeData(c).pts||0)-treeSpent(treeData(c).presets[treeData(c).cur||0].lv)}`,`S.treeHub=true;S.treeCh='${c}';showTree()`,"hubt")).join("")+
+   (typeof showCodex==="function"?B(16,240,196,56,"図鑑",typeof cdxPct==="function"&&typeof cdxAll==="function"?`${cdxPct(cdxAll())}%`:"","showCodex('card','title')"):"");
+  ui().innerHTML=h}
+/* ミニカーの保管庫：一覧（新しい順）・右に中身（mcDetail）・処分（確認あり） */
+function showMcBox(){setScreen("mcbox");setScene("dim");setBg("garage");closeModal();const mc=loadMinicars().slice().reverse();S.mcbox=mc;if(!mc.some(m=>m.id===S.mcboxSel))S.mcboxSel=mc[0]&&mc[0].id;
+  const sel=mc.find(m=>m.id===S.mcboxSel),sc=$("#mbl")?$("#mbl").scrollTop:0;
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ミニカー ${mc.length}／${MINICAR_MAX}台</div><div class="sign" ${at(8,26,300,328)}></div>
+   <div class="scroll grid1" id="mbl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:m.id===S.mcboxSel?"on":"",attrs:`onclick="S.mcboxSel='${m.id}';SND.se('ui_ok');showMcBox()"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
+   ${backBtn("もどる","showHub()")}
+   <div class="sign mcdet" ${at(312,58,320,226)}><div class="scroll" id="mcd">${sel?mcDetail(sel):`<div class="small dim">ミニカーを選ぶと中身が出ます。</div>`}</div></div>
+   ${sel?`<div class="col" ${at(452,292,180)}><button class="u9 warn" onclick="mcDispose()">このミニカーを処分</button></div>`:""}`;
+  if($("#mbl"))$("#mbl").scrollTop=sc;{const d=$("#mcd");if(d&&d.scrollHeight>d.clientHeight+2){const t=document.createElement("div");t.className="small mcmore";t.textContent="▼ つづき（上下に動かせます）";d.parentNode.appendChild(t);d.onscroll=()=>{if(d.scrollTop+d.clientHeight>=d.scrollHeight-2)t.remove()}}}}
+function mcDispose(){const m=(S.mcbox||[]).find(x=>x.id===S.mcboxSel);if(!m)return;SND.se("overwrite_warn");S.mcDisGo=()=>{const a=loadMinicars().filter(x=>x.id!==m.id);saveMinicars(a);closeModal();SND.se("card_toss");toast2("ミニカーを処分しました");S.mcboxSel=null;showMcBox()};
+  modal(`<div class="h">このミニカーを処分しますか？</div><div class="small">${esc(m.rank)} ${esc(TEXT.names[m.char]||m.char)}・${esc(m.mode)}／カード ${m.cards.length}枚${m.part?"・"+esc(partName(m.part)):""}</div><div class="small dim">もとにはもどせません。</div><div class="row"><button class="warn" onclick="S.mcDisGo()">処分する</button><button class="main" onclick="closeModal()">やめる</button></div>`)}

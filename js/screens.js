@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.68（β2）";
+const VERSION="試作 v0.22.69（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -108,11 +108,11 @@ function showTitle(){
   <div class="col" ${at(230,140,180)}>
    ${loadRun()?`<button class="main" onclick="continueRun()">つづきから<br><span class="small">${esc(runLabel(loadRun()))}</span></button>`:""}
    <button class="${loadRun()?"":"main"}" onclick="startFlow()">${esc(TU("flow_start","スタート"))}</button>
-   <button onclick="showDeck()">デッキを組む（${deckCount(dk)}枚）</button>
+   <button onclick="showHub()">ガレージ<span class="small">（ミニカー・型・デッキ・ラボ・図鑑）</span></button>
    <button onclick="startTutorial(showTitle)">あそびかた（練習）</button>
    <button onclick="SND.toggle();showTitle()">音：${SND.on?"あり":"なし"}</button></div>
   <button class="mini dataBtn" ${at(8,8,132,28)} onclick="showData()">データ：スロット${SAVE.slot}</button>
-  ${labOpen()?`<button class="mini labBtn" ${at(8,40,132,28)} onclick="showLab()">みおのラボ（ログ ${SAVE.cur.profile.log}）</button>`:""}
+  ${labOpen()?``:""}
   ${FS_OK()?`<button class="mini fsb" ${at(552,8,80,28)} onclick="toggleFS()">${isFS()?"全画面をやめる":"全画面"}</button>`:""}
   <button class="mini" ${at(552,326,80,16)} onclick="showHowto()">ルール一覧</button><div class="small dim tinfo" ${at(8,344,200)}>ミニカー ${mc.length}/${MINICAR_MAX}台</div>`;
 }
@@ -165,7 +165,7 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
     return `<div class="dr r-${rarityOf(id)}${S.dkSel===id?" on":S.dkCmp===id?" cmp":""}" onclick="deckPick('${id}')"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
      <button class="mini" ${k?"":"disabled"} onclick="event.stopPropagation();deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini${k>=lim||n>=RULES.deckSize?" off":""}" onclick="event.stopPropagation();deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
-  ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;showTitle()")}
+  ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;hubBack()")}
   ${deckDetail(dk)}
   <div class="sign side" ${at(316,262,150,92)}><div class="big ${n===RULES.deckSize?"ok":"ng"}">${n}/${RULES.deckSize}<span class="small">枚</span></div>
    <div class="small dim">同じカードは<br>C${RULES.deckLimit.C}・R${RULES.deckLimit.R}・E${RULES.deckLimit.E}・固有${RULES.deckLimit.SK}枚まで</div>${(()=>{const k=deckModCount(dk);return k?`<div class="small ${k>MOD_CAP?"ngc":"gold"}">改造したカード ${k}／${MOD_CAP}</div>`:""})()}</div>
@@ -797,7 +797,7 @@ function modTab(){const op=charsOpen();if(S.modTab!=="N"&&!op.includes(S.modTab)
 function modList(p){const ch=modTab(),have=unlockedCards(p).filter(id=>CARDS[id]&&CARDS[id].own===ch&&modKind(id));
   const fz=ch==="N"?[]:Object.keys((p.codex&&p.codex.fuse)||{}).filter(id=>CARDS[id]&&CARDS[id].own===ch);return have.concat(fz).sort((a,b)=>"SKERC".indexOf(rarityOf(b))-"SKERC".indexOf(rarityOf(a))||CARDS[a].c-CARDS[b].c)}
 function renderMod(){const p=PRF();p.mods=p.mods||{};const L=modList(p);if(!L.includes(S.modSel))S.modSel=L[0]||null;const id=S.modSel,m=id?p.mods[id]||{lv:0}:null,inf=id?modInfo(id):null;
-  let h=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>${backBtn("もどる","showTitle()")}${labTabs()}
+  let h=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>${backBtn("もどる","hubBack()")}${labTabs()}
    <div class="sign" ${at(8,26,300,328)}></div><div class="modtabs" ${at(12,30,292,22)}>${["N"].concat(charsOpen()).map(k=>`<button class="u9${modTab()===k?" main":""}" onclick="S.modTab='${k}';S.modSel=null;SND.se('ui_ok');renderLab()">${esc(k==="N"?"共通":TEXT.names[k]||k)}</button>`).join("")}</div><div class="small dim" ${at(16,54,284)}>改造できるカード（開いたカードだけ）</div><div class="scroll grid1" id="mdl" ${at(14,68,288,282)}>`+
    L.map(x=>{const q=p.mods[x],lv=q&&q.lv||0;return `<button class="u9 lrow${x===id?" main":""}" onclick="S.modSel='${x}';renderLab()"><span class="ln">${esc(CARDS[x].n)}</span><span class="small dim"> ${RARITY_JP[rarityOf(x)]}</span><span class="lp ${lv?"gold":"dim"}">${lv?`改造 ${lv}／2${q.br?"・"+q.br:""}`:"改造なし"}</span></button>`}).join("")+`</div>`;
   if(id){MOD_PREVIEW=m.lv?{[id]:m}:null;h+=cardBig(id,{art:true,attrs:at(322,92,120,170)});MOD_PREVIEW=null;
@@ -820,7 +820,7 @@ function modAsk(id,lv,br){const p=PRF(),m=p.mods[id]||{lv:0,spent:0},n=CARDS[id]
   modal(`<div class="h">${q}</div><div class="row"><button class="main" onclick="S.modGo()">${lv===0?"もどす":lv===3?"変える":"改造する"}</button><button onclick="closeModal()">やめる</button></div>`)}
 function renderLab(){if(S.labTab==="mod"){renderMod();return}const p=PRF(),have=new Set(unlockedCards(p)),sel=S.labSel,pr=(UNLOCK.shop.find(x=>x[0]===sel)||[])[1];
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>みおのラボ</div><div class="sign" ${at(330,26,190,30)}><div class="h">${itemIcon("money",24)} ログ ${p.log}</div></div>
-  ${backBtn("もどる","showTitle()")}${labTabs()}<div class="sign" ${at(8,26,300,260)}></div>
+  ${backBtn("もどる","hubBack()")}${labTabs()}<div class="sign" ${at(8,26,300,260)}></div>
   <div class="small" ${at(16,32,284)}><span class="nmtag">みお</span>ロガーに残った記録から、カードを作れます……！</div>`+
   UNLOCK.shop.map(([id,price],i)=>{const d=CARDS[id],own=have.has(id);return `<button class="u9 lrow${sel===id?" main":""}" ${at(16,52+i*38,284,35)} onclick="S.labSel='${id}';renderLab()"><span class="ln">${esc(d.n)}</span><span class="small dim"> ${RARITY_JP[d.r]}</span><span class="lp ${own?"dim":p.log>=price?"gold":"ngc"}">${own?"解放ずみ":"ログ "+price}</span></button>`}).join("")+
   (sel?cardBig(sel,{art:true,attrs:at(380,92,140,170)})+(have.has(sel)?`<div class="small dim" ${at(330,268,240)}>解放ずみ（報酬・デッキに出る）</div>`:
