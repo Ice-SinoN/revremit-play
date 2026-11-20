@@ -4,7 +4,7 @@
    開く：クリアで次の夜（unlock.nightMax）・仲間（chars）・話（story）・パーツ（9-5）。 */
 const NIGHTS=[
  {n:1, add:"（基準）ブローなし",                         open:{chars:["HINA"],story:["n1"]}},
- {n:2, add:"エリートのマスが出やすい",                   open:{chars:["MOMO"],story:["n2"],parts:["drysump","forged"]}},
+ {n:2, add:"エリートのマスが出やすい・敵の体力 ×2.2",open:{chars:["MOMO"],story:["n2"],parts:["drysump","forged"]}},
  {n:3, add:"ブローあり",                                 open:{chars:["NANA"],story:["n3"],parts:["dogmt","synchro"]}},
  {n:4, add:"敵の体力 +10%",                              open:{chars:[],next:"SORA",story:["n4"],parts:["studless","spike"]}},
  {n:5, add:"ボスのあとの回復 30% → 10%",                 open:{chars:["KAEDE"],story:["n5"],parts:["subcon","qrelease"]}},
@@ -20,7 +20,7 @@ const BETA_NIGHTS=4;
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）
   eliteW:n>=2?20:null,        // エリートの重み 12 → 20
-  hpMul:n>=4?1.1:1,           // 敵の体力（全部）
+  hpMul:n===2?2.2:n>=4?1.1:1, // 敵の体力（全部）★v0.22.72 design 10-23：NIGHT 2 は ×2.2
   areaHeal:n>=5?0.1:null,     // ボスのあとの回復
   eliteMul:n>=6?1.2:1,        // エリートの体力・攻撃
   atkMul:n>=7?1.1:1,          // 敵の攻撃（全部）
