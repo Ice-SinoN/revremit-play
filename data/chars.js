@@ -24,7 +24,7 @@ const CHARS={
       idle:1000,brake:3000,hp:70/* ★v0.22.71 design 10-23：60→70 */,spd:15,minShift:3000,
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1500,3500],M:[3500,6000],R:[7500,8500]}},
-    deck:[["h_youda",3],["h_gouda",2],["h_kagerou",2],["h_kneegrip",2],["h_hidamari",2],["h_sunrise",1],["h_kickstart",2],["braking",2],["qshift",2],["slip",1],["blip",1]],
+    deck:[["h_youda",4],["h_gouda",2],["h_kagerou",2],["h_saitenka",2],["braking",1],["h_kneegrip",2],["h_hidamari",1],["h_sunrise",1],["h_kickstart",2],["qshift",2],["slip",1]],/* ★v0.22.83 design 10-12-3・LD 案 A（★虎雪 16:10）：アタック 7→10 */
     pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
   },
   MOMO:{
