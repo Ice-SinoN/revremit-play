@@ -148,8 +148,8 @@ function farmRunDone(){if(FARM.ending)return;FARM.ending=true;FARM.n++;const lg=
 /* ---------- 始める・止める ---------- */
 function farmStart(cfg,limit,stopLose){Object.assign(FARM,{on:true,stopEnd:false,stopLose:!!stopLose,n:0,limit:limit||0,log:0,cfg,t:0,last:"",lastT:Date.now(),ending:false,spd0:AUTO.speed,t0:Date.now(),fullTold:0,sum:{clear:0,lose:0,pts:0,tix:[],dig:[]},feed:[]});
   FARM.snap=JSON.parse(JSON.stringify(Object.assign({},PRF(),{runlog:undefined})));
-  AUTO.speed=FARM_RULE.speed;farmWake(true);farmBar()}
-function farmStop(now,msg){const was=FARM.on;FARM.on=false;FARM.stopEnd=false;FARM.ending=false;AUTO.on=false;if(FARM.spd0)AUTO.speed=FARM.spd0;farmWake(false);farmBar();
+  AUTO.speed=FARM_RULE.speed;farmWake(true);farmBar();try{window.AUDIO&&AUDIO.farmMode&&AUDIO.farmMode(true)}catch(e){}/* ★①v0.22.80 サウンド班 頼み⑩ A：周回の間は farm の曲だけ */}
+function farmStop(now,msg){const was=FARM.on;try{if(window.AUDIO&&AUDIO.farmMode){AUDIO.farmMode(false);setTimeout(()=>{try{if(!FARM.on)SND.bgm(window.SCREEN==='title'?'title':'result')}catch(e){}},700)}}catch(e){}/* ★①v0.22.80 周回の終わり：もとの曲へ */FARM.on=false;FARM.stopEnd=false;FARM.ending=false;AUTO.on=false;if(FARM.spd0)AUTO.speed=FARM.spd0;farmWake(false);farmBar();
   if(now&&was){try{flushAnim();SND.engineStop()}catch(e){}showTitle();toast2(msg||"周回を止めました（ランはオートセーブに残っています＝つづきから）")}}
 function farmStopAsk(){S.farmAskWas=AUTO.on;modal(`<div class="h">フルオート周回を止めますか？</div><div class="small">周回 ${FARM.n+1}回目を走っています。</div>
   <div class="row"><button class="main" onclick="FARM.stopEnd=true;closeModal();farmBar()">このランの終わりで</button><button class="warn" onclick="closeModal();farmStop(true)">すぐ止める</button><button onclick="closeModal()">つづける</button></div>`)}

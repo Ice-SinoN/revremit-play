@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.24（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.25（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -845,6 +845,19 @@ Object.assign(LV,{tree_up:2.2,tree_down:2.4});
 {const capBase=SEFN('tree_cap');const capSE=SE.find(x=>x.id==='tree_cap');capSE.dur=1.7;capSE.fn=(c,o,t,p)=>{const w=p&&p.who&&OUGI[String(p.who).toLowerCase()];
  if(!w){capBase(c,o,t,p);return;}w.m.forEach((n,i)=>wLead(c,o,t+i*.08,mf(n),.1,w.lt));capBase(c,o,t+.34,p);};}
 
+// ---------- v0.25（2026-11-20）：勝ち曲の残り6人・フルオート周回の曲。正本：revremit-audio-list.md 13-1・17章 ----------
+Object.assign(JINGLES,{
+ win_sora:winJ([[0,69,4],[4,72,4],[8,76,4],[12,74,2],[14,72,2],[16,76,2],[18,79,2],[20,84,4]],.09,'pulse',[60,64,67],84,{kick:[0,8,16],bells:true}),
+ win_kaede:winJ([[0,64,4],[4,64,2],[6,67,2],[8,69,2],[10,70,2],[12,71,2],[14,74,2],[16,76,4],[20,79,2],[22,83,2]],.085,'saw',[64,68,71],88,{kick:[0,4,8,12,16,20],echo:true}),
+ win_rin:winJ([[0,62,2],[2,67,2],[4,70,3],[7,69,1],[8,67,4],[16,71,2],[18,74,2],[20,79,4]],.1,'organ',[55,59,62],79,{kick:[0,16]}),
+ win_luna:winJ([[0,70,4],[4,79,6],[10,77,2],[12,75,4],[16,82,4],[20,87,4]],.1,'pulse',[63,67,70],87,{bells:true,arp:true}),
+ win_kuro:winJ([[0,67,1],[2,67,1],[4,70,2],[6,74,2],[8,73,1],[9,74,3],[14,61,2],[16,74,2],[18,78,2],[20,79,4]],.09,'pulse',[55,59,62],79,{kick:[0,4,16,20],echo:true}),
+ win_mio:winJ([[0,64,2],[2,65,2],[4,67,4],[8,71,4],[12,72,2],[14,76,2],[16,77,2],[18,79,2],[20,83,2],[22,84,2]],.1,'pulse',[60,64,67],84,{kick:[0,8,16],arp:true}),
+});
+Object.assign(LVJ,{win_sora:1,win_kaede:1,win_rin:1,win_luna:1,win_kuro:1,win_mio:1});
+const V25={"farm":{"bpm":84,"dr":"half","soft":true,"lead":"soft","ep":true,"bells":true,"ch":["Bb","Gm","Eb","F","Bb","Gm","Cm","F","Eb","F","Dm","Gm","Eb","F","Bb","Bb"],"ld":[[[0,77,6],[6,74,2],[12,75,2],[14,77,2]],[[0,79,8]],[[0,82,6],[6,79,2],[12,77,2],[14,75,2]],[[0,72,12]],[[0,77,6],[6,74,2],[12,82,2],[14,84,2]],[[0,86,8]],[[0,87,4],[4,84,4],[8,82,4],[12,79,4]],[[0,81,12]],[[0,79,4],[4,82,4],[8,87,8]],[[0,89,6],[6,87,2],[8,84,8]],[[0,86,4],[4,89,4],[8,81,8]],[[0,82,12]],[[0,79,4],[4,82,4],[8,87,6],[14,86,2]],[[0,84,4],[4,81,4],[8,77,8]],[[0,74,6],[6,77,2],[8,82,8]],[[0,82,16]]]}};SONGS.farm=V25.farm;BGM.farm={s:'farm'};
+let FARMON=false;
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -867,7 +880,7 @@ function ctx(){
  document.addEventListener('visibilitychange',()=>{if(!C)return;if(document.hidden)C.suspend();else C.resume();});
  return C;
 }
-function applyVol(){if(!C)return;M.gain.value=muted?0:vol.master*.6;Object.keys(BUS).forEach(k=>BUS[k].gain.value=vol[k]*(k==='engine'?engMuf:1));}
+function applyVol(){if(!C)return;M.gain.value=muted?0:vol.master*.6;Object.keys(BUS).forEach(k=>BUS[k].gain.value=vol[k]*(k==='engine'?engMuf:1)*(k==='se'&&FARMON?.3:1)*(k==='engine'&&FARMON?0:1));}
 function ok(){const c=ctx();if(!c)return null;if(c.state==='suspended')c.resume();return c;}
 function playSE(id,o){
  id=ALIAS[id]||id;const s=BYID[id];if(!s){console.warn('AUDIO: SE がない',id);return;}
@@ -882,7 +895,7 @@ function engineStopNow(){warnT.forEach(clearTimeout);warnT=[];if(cur&&C){cur.sto
 // 影のエンジン：同じ回転の動きを、0.12秒先に・250回転上で・小さく・こもらせて
 function ghostBurst(c,o,t,from,to,dur){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;const g=c.createGain();g.gain.value=.4;lp.connect(g).connect(o);return burst(c,lp,t,from+250,to+250,'real',{dur,car});}
 function engineBurst(from,to,opt){
- const c=ok();if(!c)return;opt=opt||{};engineStopNow();
+ if(FARMON)return;const c=ok();if(!c)return;opt=opt||{};engineStopNow();
  const dur=opt.dur||(to<from?1.6:2.0);
  cur=burst(c,BUS.engine,c.currentTime+(ghost?.13:.01),from,to,engType,{dur,car,limiter:opt.limiter});if(ghost)cur2=ghostBurst(c,BUS.engine,c.currentTime+.01,from,to,dur);
  // レッドの警告は SE として別に（2秒の間に2〜3回。リミットに近いほど速く）
@@ -895,7 +908,7 @@ function engineBurst(from,to,opt){
 let P=null,hbT=null,hbHP=1,AMB=null,LAYERS='DBHMX',RL=null,REDLV=1;
 // v0.21：何速でどのパートか（デザイン班が決める。setGearLayers で上書き）。仮：1〜2速＝ドラム＋ベース、3〜4速＋和音と飾り、5〜6速＋メロディ、7〜8速＋リード（L は全部入り 'DBHMX' のときは鳴らない）
 let GEARMAP={1:'DB',2:'DB',3:'DBHX',4:'DBHX',5:'DBHXM',6:'DBHXM',7:'DBHXML',8:'DBHXML'};
-function setLayers(ls,fade,beat){LAYERS=Array.isArray(ls)?ls.join(''):String(ls||'DBHMX');if(!P||!P.parts||!C)return;let t=C.currentTime;
+function setLayers(ls,fade,beat){const PM={p1:'DBX',p2:'M',p3:'H',p4:'L'};LAYERS=Array.isArray(ls)?ls.map(x=>PM[x]||x).join(''):String(ls||'DBHMX').replace(/p[1-4]/g,m=>PM[m]);if(!P||!P.parts||!C)return;let t=C.currentTime;
  if(beat){const bt=P.bd/4;t=t+((P.t-t)%bt+bt)%bt;} // v0.22：次の拍から（design 10-18-3：0.5秒で入り、1秒で抜ける）
  Object.keys(P.parts).forEach(k=>{const g=P.parts[k].gain,on=LAYERS.includes(k),f=fade==null?(beat?(on?.5:1):.25):fade;g.cancelScheduledValues(C.currentTime);g.setValueAtTime(g.value,C.currentTime);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(on?1:0,t+f);});}
 // design 10-18：4パート＝①リズム＋ベース（＋飾り）はいつも／②メロディは中のギアから／③和音は高いギアから／④リードは最大ギア。段の数 max から：中＝半分（切り上げ）、高い＝max−1、最大＝max（6速なら 3・5・6）
@@ -924,7 +937,7 @@ const AMBGEN={
   if(r()<.6)tone(c,g,t+2+r()*2,{f:mf(74+Math.floor(r()*4)*2),dur:2.5,g:.012,a:.8});return len;},
 };
 function ambStop(f){if(!AMB||!C){AMB=null;return;}const A=AMB;AMB=null;clearInterval(A.timer);(A.beds||[]).forEach(s=>{try{s.stop(C.currentTime+f+.1)}catch(x){}});const t=C.currentTime;A.g.gain.cancelScheduledValues(t);A.g.gain.setValueAtTime(A.g.gain.value,t);A.g.gain.linearRampToValueAtTime(0,t+f);setTimeout(()=>A.g.disconnect(),(f+7)*1000);}
-function bgm(id){const c=ok();if(!c)return;if(!(P&&P.id===id))PHASE=1;if(!BGM[id]){console.warn('AUDIO: BGM がない',id);return;}
+function bgm(id){if(FARMON&&id!=='farm')return;const c=ok();if(!c)return;if(!(P&&P.id===id))PHASE=1;if(!BGM[id]){console.warn('AUDIO: BGM がない',id);return;}
  if(P&&P.id===id)return;bgmStop(.4);
  const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.7,c.currentTime+.3);g.connect(bgmIn);
  const sg=SONGS[BGM[id].s];P={id,g,b:0,t:c.currentTime+.08,bd:barDur(sg)};
@@ -935,11 +948,11 @@ function bgm(id){const c=ok();if(!c)return;if(!(P&&P.id===id))PHASE=1;if(!BGM[id
 function bgmStop(fade){if(!P||!C){P=null;return;}const p=P;P=null;clearInterval(p.timer);const t=C.currentTime,f=fade==null?.5:fade;
  p.g.gain.cancelScheduledValues(t);p.g.gain.setValueAtTime(p.g.gain.value,t);p.g.gain.linearRampToValueAtTime(0,t+f);setTimeout(()=>p.g.disconnect(),(f+(p.bd||2)+.5)*1000);}
 function redFilter(on){if(!C)return;const t=C.currentTime;hp.frequency.setTargetAtTime(on?650:20,t,.15);trem._d.gain.setTargetAtTime(on?.12:0,t,.15);}
-function jingle(id,opt){const c=ok();if(!c)return;const j=JINGLES[id];if(!j){console.warn('AUDIO: ジングルがない',id);return;}bgmStop(.15);
+function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGLES[id];if(!j){console.warn('AUDIO: ジングルがない',id);return;}bgmStop(.15);
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.24',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.25',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
@@ -950,6 +963,8 @@ window.AUDIO={
  engineStop:engineStopNow,
  setEngineType(t){engType='real';}, // 本物寄りだけ（呼んでも変わらない）
  bgm,bgmStop,redFilter,jingle,
+ farmMode(on){FARMON=!!on;if(FARMON){engineStopNow();if(RL){const R=RL;RL=null;try{R.e.stop(C.currentTime)}catch(x){}}bgmStop(.6);setTimeout(()=>{if(FARMON)bgm('farm');},650);applyVol();}
+  else{bgmStop(.6);applyVol();}},
  bgmFor(kind,who){const id=kind+'_'+String(who||'').toLowerCase();bgm(BGM[id]?id:kind);}, // v0.23：その子の版があればそれ、なければ共通（例：bgmFor('tree','HINA')）
  bgmPhase(n){PHASE=n||1;}, // v0.11：曲の後半へ（次の小節から）。bgm() で別の曲にすると 1 にもどる
  // v0.12（β のあと）：影線の2台目のエンジン（勝ったら false で1台にもどす）／KURO の心拍（耐久の割合 0〜1。null で止める）／場面の環境音（今は 'wave'＝潮騒の波）
