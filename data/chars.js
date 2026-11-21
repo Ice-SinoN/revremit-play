@@ -21,7 +21,7 @@ const CHARS={
     name:"HINA",carName:"モンキー125",weapon:"ピストンハンマー",type:"速攻",join:1,
     car:{type:"mt",gears:5,mult:[1,1.35,1.7,2.05,2.4],/* ★v0.22.7 design 10-3・★v0.22.8 10-6（仮）5速 2.4 */
       red:7500,limit:8500,band:[4500,5500],core:[4800,5200],
-      idle:1000,brake:3000,hp:70/* ★v0.22.71 design 10-23：60→70 */,spd:15,minShift:3000,
+      idle:1000,brake:3000,hp:80/* ★v0.22.92 LD balance 11-48：70→80（v0.22.71 で 60→70） */,spd:15,minShift:3000,
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1500,3500],M:[3500,6000],R:[7500,8500]}},
     deck:[["h_youda",4],["h_gouda",2],["h_kagerou",2],["h_saitenka",2],["braking",1],["h_kneegrip",2],["h_hidamari",1],["h_sunrise",1],["h_kickstart",2],["qshift",2],["slip",1]],/* ★v0.22.83 design 10-12-3・LD 案 A（★虎雪 16:10）：アタック 7→10 */
