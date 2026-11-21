@@ -102,6 +102,7 @@ button.bspd.on{color:#FFD34D}
 #farmui .fhead b{font-family:'PM12B','PM12'}
 #farmui .fbtn{border:1px solid #6C7896;background:#1D2440;padding:0 6px;min-height:28px;border-radius:2px}
 #farmui .fbtn.main{background:#C5FF45;border-color:#C5FF45;color:#0A0812;font-family:'PM12B','PM12'}
+#farmui .fbtn.main.off{background:#3a3a46;border-color:#3a3a46;color:#8a8a99}/* v0.5.6 走れるキャラがいないとき */
 #farmui .fbtn.warn{background:#7A1F1F;border-color:#FF6A6A;color:#fff}
 #farmui .fstop{width:56px;height:34px;flex:0 0 auto}
 #farmui .fgo{min-height:34px;margin-top:auto}

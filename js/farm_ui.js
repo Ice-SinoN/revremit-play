@@ -1,4 +1,4 @@
-/* js/farm_ui.js（プログラム班②） */
+/* js/farm_ui.js（プログラム班②）v0.5.6 */
 "use strict";
 /* ===== フルオート周回の画面（★虎雪 08:31・08:33・design 10-22-4）=====
    ① スタートの2択（横・ゲームの小窓）：「自分で走る」「フルオート周回」（説明つき）。今のタイトルの「MT／AT で走る」（startFlow）の前に出す。
@@ -22,8 +22,11 @@ function farmChoice(mode){S.farmChoiceMode=mode;const ok=farmAvailable();SND.se(
     <div class="row"><button onclick="closeModal()">もどる</button></div></div>`);
   const m=$("#modal .modal .box");if(m)m.classList.add("fchbox")}
 function farmChoiceSelf(){closeModal();S.farmChoiceOk=true;startFlow(S.farmChoiceMode)}
-function farmChoiceFarm(){closeModal();const cs=farmChars();const s=FUI.sel;if(!cs.includes(s.char))s.char=cs.includes(curChar())?curChar():cs[0];
-  const ns=farmNights(s.char);if(!ns.includes(s.night))s.night=ns.includes(curNight())?curNight():ns[ns.length-1];s.mode=S.farmChoiceMode||PRF().lastMode||"MT";fuiOpen("setup")}
+function farmChoiceFarm(){closeModal();if(!farmChars().length){SND.se("card_cant");toast2(FUI_TXT.none);return}/* v0.5.6 走れるキャラがいないときは開かない */
+  fuiPick();FUI.sel.mode=S.farmChoiceMode||PRF().lastMode||"MT";fuiOpen("setup")}
+/* v0.5.6 キャラと夜を、走れるものに合わせなおす（いなければ null のまま） */
+function fuiPick(){const cs=farmChars(),s=FUI.sel;if(!cs.includes(s.char))s.char=cs.includes(curChar())?curChar():(cs[0]||null);
+  const ns=s.char?farmNights(s.char):[];if(!ns.includes(s.night))s.night=ns.includes(curNight())?curNight():(ns.length?ns[ns.length-1]:null);return!!(s.char&&s.night)}
 
 /* ---------- 縦の画面の入れ物 ---------- */
 function fuiRoot(){let r=document.getElementById("farmui");if(!r){r=document.createElement("div");r.id="farmui";r.innerHTML=`<div class="fuiw"><div class="fuip" id="fuip"></div></div><div class="fuirot">スマホを縦にすると見やすくなります</div>`;document.body.appendChild(r);addEventListener("resize",fuiFit);if(window.visualViewport)visualViewport.addEventListener("resize",fuiFit)}return r}
@@ -40,7 +43,7 @@ function fuiRender(){const p=$("#fuip");if(!p)return;p.className="fuip v-"+FUI.v
   if(FUI.view==="run"){fuiRunBind();fuiLoop()}}
 
 /* ---------- ② 準備 ---------- */
-function fuiSetup(){const s=FUI.sel,d=farmData(),U=TEXT.names,all=typeof charsOpen==="function"?charsOpen():["YUKI"],ok=farmChars();
+function fuiSetup(){const can=fuiPick();const s=FUI.sel,d=farmData(),U=TEXT.names,all=typeof charsOpen==="function"?charsOpen():["YUKI"],ok=farmChars();
   const chip=(on,lab,click,off)=>`<button class="fc${on?" on":""}${off?" no":""}" onclick="${off?"SND.se('card_cant');toast2('"+FUI_TXT.lock+"')":click}">${lab}</button>`;
   const ns=farmNights(s.char);const tix={};d.tickets.forEach(k=>tix[k]=(tix[k]||0)+1);
   return`<div class="fhead"><b>フルオート周回</b><button class="fbtn sub" onclick="fuiClose();SND.se('ui_cancel')">◀ もどる</button></div>
@@ -51,10 +54,10 @@ function fuiSetup(){const s=FUI.sel,d=farmData(),U=TEXT.names,all=typeof charsOp
    <div class="fcs" style="margin-top:3px">${chip(s.stopLose,`負けたら止める ${s.stopLose?"入":"切"}`,`FUI.sel.stopLose=!FUI.sel.stopLose;SND.se('ui_ok');fuiRender()`)}</div></div>
   <div class="fbox"><div class="fnum"><span>今日のログ</span><b class="gold">${d.dayLog}／${FARM_RULE.softCap}</b></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fn red">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
    <div class="fnum"><span>整備チケット</span><b>${d.tickets.length}／${FARM_RULE.ticket.max}</b></div>${d.tickets.length?`<div class="fn">${Object.entries(tix).map(([k,n])=>`${esc(FARM_TICKET_JP[k])}×${n}`).join("・")}</div>`:""}</div>
-  <div class="fbox fdk"><div class="fl">デッキ・型・ミニカー</div><div class="fn">今の設定のまま（${esc(U[s.char]||s.char)}のデッキ${TREE&&TREE[s.char]?`・型「${esc(treeName(s.char))}」`:""}）。かえるときは「自分で走る」の画面で。</div></div>
+  ${can?`<div class="fbox fdk"><div class="fl">デッキ・型・ミニカー</div><div class="fn">今の設定のまま（${esc(U[s.char]||s.char)}のデッキ${TREE&&TREE[s.char]?`・型「${esc(treeName(s.char))}」`:""}）。かえるときは「自分で走る」の画面で。</div></div>`:`<div class="fbox fdk"><div class="fn red">${esc(FUI_TXT.none)}</div></div>`}
   <div class="fn dim">全部おまかせ・早送り×${FARM_RULE.speed}。ログは 1/8（今日 ${FARM_RULE.softCap} をこえると ×${FARM_RULE.overMul}）、ミニカーは作らない、★はつかない。画面を消さないようにします（できる端末だけ）。</div></div>
-  <button class="fbtn main fgo" onclick="fuiGo()">周回スタート</button>`}
-function fuiGo(){const s=FUI.sel;SND.se("ui_ok");if(!farmGo({char:s.char,night:s.night,mode:s.mode,bring:fuiBring(s.char),limit:s.limit,stopLose:s.stopLose}))return;FUI.follow=true;fuiOpen("run")}
+  <button class="fbtn main fgo${can?"":" off"}" ${can?"":"aria-disabled=\"true\""} onclick="${can?"fuiGo()":"SND.se('card_cant')"}">周回スタート</button>`}
+function fuiGo(){const s=FUI.sel;if(!fuiPick()){SND.se("card_cant");toast2(FUI_TXT.none);fuiRender();return}SND.se("ui_ok");if(!farmGo({char:s.char,night:s.night,mode:s.mode,bring:fuiBring(s.char),limit:s.limit,stopLose:s.stopLose}))return;FUI.follow=true;fuiOpen("run")}
 /* 持ちこみのミニカー：今の設定（ガレージで選んでいるもの）。なければなし */
 function fuiBring(ch){try{const L=loadMinicars(),sel=(S.mcSel||[]);return sel.map(i=>L[i]).filter(Boolean)}catch(e){return[]}}
 
