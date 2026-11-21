@@ -231,7 +231,8 @@ function restAmount(){return Math.round(G.maxhp*RULES.restRate)}
 function startBattleState(key){
   const E=ENEMIES[key];const C=car();const AR=curArea(),nr=NR(),node=G.map&&G.map[G.row]&&G.map[G.row][G.path[G.row]]||null,hid=!!(node&&node.k==="hidden");
   const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
-  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm);
+  const abm=RULE().areaBossHp&&(G.night||0)>=2&&AREAS.some(a=>a.boss===key)?RULE().areaBossHp:1;/* ★v0.22.90 LD 11-47 A：HINA・NANA は NIGHT 2 からエリアのボス（残光・白夜・零号）×0.75 */
+  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm*abm);
   B={key,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?2500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,

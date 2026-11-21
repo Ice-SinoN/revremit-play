@@ -25,7 +25,7 @@ const CHARS={
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1500,3500],M:[3500,6000],R:[7500,8500]}},
     deck:[["h_youda",4],["h_gouda",2],["h_kagerou",2],["h_saitenka",2],["braking",1],["h_kneegrip",2],["h_hidamari",1],["h_sunrise",1],["h_kickstart",2],["qshift",2],["slip",1]],/* ★v0.22.83 design 10-12-3・LD 案 A（★虎雪 16:10）：アタック 7→10 */
-    pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
+    pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2,areaBossHp:0.75/* ★v0.22.90 LD balance 11-47 A：NIGHT 2 からエリアのボスの体力 ×0.75 */},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
   },
   MOMO:{
     name:"MOMO",carName:"ロードスター ND",weapon:"ロードスピナー",type:"チェイン",join:2,
@@ -45,7 +45,7 @@ const CHARS={
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1000,2500],M:[2500,4500],R:[6500,7000]}},
     deck:[["n_koutotsu",2],["n_hosaki",4],["n_hachiren",2],["n_downforce",2],["n_houyoku",2],["n_phoenix",1],["braking",2],["qshift",2],["slip",2],["blip",1]],
-    pool:null,skill:"n_phoenix",rule:{shiftCap:4,perfBlk:3,atFirstGas:2}/* ★v0.22.51 QA 本測り NIGHT 4 AT −19.7（チーフ 02:16）：NANA だけ AT の最初の自動シフト +2 */,ruleTxt:"シフトアップは1ターン4回まで（ほかは3回）・パーフェクトのたびに防御 +3",
+    pool:null,skill:"n_phoenix",rule:{shiftCap:4,perfBlk:3,atFirstGas:2,areaBossHp:0.75/* ★v0.22.90 LD 11-47 A */}/* ★v0.22.51 QA 本測り NIGHT 4 AT −19.7（チーフ 02:16）：NANA だけ AT の最初の自動シフト +2 */,ruleTxt:"シフトアップは1ターン4回まで（ほかは3回）・パーフェクトのたびに防御 +3",
   },
 };
 const CHAR_ORDER=["YUKI","HINA","MOMO","NANA"];
