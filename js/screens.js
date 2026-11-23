@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.97（β2）";
+const VERSION="試作 v0.22.98（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -408,13 +408,14 @@ function renderBattle(){
   ${METER.blank?"":`<div class="tachn ${red?"ngc":""}" ${at(...L.tachn)}>${B.rpm}<span class="dim">rpm</span></div><div class="gasn" ${at(...L.gasn)}>${B.gas}/${maxGas()}</div>`}
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
+  if(!window.TUTORIAL_ON&&driveOn())h+=driveCtl(locked);/* ★v0.22.98 design 14-3③ ドライブモード */
   if(!window.TUTORIAL_ON)h+=`<div class="modeban ${G.mode==="AT"?"at":"mt"} small" ${at(4,226,172,28)}>${modeBanner().map(esc).join("<br>")}</div>`;/* ★v0.22.95 design 14-3①（文は仮・シナリオ班へ） */
   {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
 }
 /* ★v0.22.95 design 14-3①：MT と AT の差の見せ方 */
 function modeMark(c){const r=CARDS[c.id||c];return r&&(r.at||r.atShift)?G.mode:""}
-function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT")return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"];
+function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",D.mult%1?D.mult:D.mult.toFixed(1)).replace("{g}",D.gas)]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
   return[T.mode_ban_mt1||"MT：パーフェクトで伸びる",noBlow()?(T.mode_ban_mt2a||"ブローなし（オーバーレブだけ）"):(T.mode_ban_mt2||"回しすぎるとブロー")]}
 /* MT：シフトできるカードの上に札（色＝出来）。選んだカードは下に「シフトで打つ」（2回目のタップでシフトを選べる） */
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
@@ -422,6 +423,12 @@ function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)
     if(sel)h+=`<button class="stab sel g-${g}" ${at(x,L.hand.y-L.hand.selUp+L.hand.ch+2,L.hand.cw,15)} onclick="tabShift(${i})">${esc((TEXT.ui||{}).stab_play||"シフトで打つ")}</button>`;
     else{const w=Math.min(L.hand.cw,i<n-1?stepX-1:L.hand.cw);h+=`<button class="stab g-${g}" ${at(x,L.hand.y-11,w,11)} onclick="tabShift(${i})">${w>=34?"▲シフト":"▲"}</button>`}});
   return h}
+/* ★v0.22.98 ドライブモード（AT）：番のはじめ（まだカードを打っていない）に1回だけ切りかえ。押せないときに押すと説明 */
+function driveCtl(locked){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();
+  return `<div class="drvc${can?"":" off"}" ${at(4,198,172,24)}><span class="dl">${esc(T.drive_pick||"ドライブモード")}</span>`+["eco","sport"].map(k=>`<button class="dv${k===cur?" on":""}" onclick="drivePick('${k}')">${esc(T["drive_"+k]||(k==="eco"?"エコ":"スポーツ"))}</button>`).join("")+`</div>`}
+function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
+  if((B.drive||"eco")===k||!canDrive()){SND.se(canDrive()?"ui_cancel":"card_cant");toast2(`${T.drive_pick_d||"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"}　${T["drive_"+(B.drive||"eco")+"_d"]||""}`,56,3000);return}
+  if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");toast2(`${T["drive_"+k]||k}：${T["drive_"+k+"_d"]||""}`,56,2000);A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle()}}
 function tabShift(i){if(B.over)return;if(busy())uiSkip();const c=B.hand[i];if(!c)return;const p=preview(c);
   if(S.sel===i&&p.ok&&p.canShift&&tutAllow("play",{i,shift:true})){doPlay(i,true);return}clickCard(i)}
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
