@@ -295,7 +295,7 @@ function startPlayerTurn(first){
   if(first)drawN(RULES.hand0+(has("hook")?1:0)+(has("h_12inch")?2:0)+(has("boost")?1:0));
   else if(B.hand.length===0&&drawN(1))addLog("手札がないので1枚引いた（救済）");
   // AT：番のはじめに回転が低ければ自動で1段シフトダウン（design 0-7）
-  if(!first&&G.mode==="AT"&&RULES.atAutoDown&&B.gear>0&&B.rpm<RULES.atAutoDown){B.gear--;B.rpm=Math.round(B.rpm/car().downDiv/100)*100;addLog(`自動シフトダウン → ${B.gear+1}速`);ev({k:"down"})}
+  if(!first&&G.mode==="AT"&&RULES.atAutoDown&&B.gear>0&&B.rpm<RULES.atAutoDown){B.gear--;B.rpm=Math.round(B.rpm/car().downDiv/100)*100;addLog(`自動シフトダウン → ${B.gear+1}速`);ev({k:"down",auto:1})}
   // ★v0.22.1 MT の詰みの救済（design 0-8・5-1b mtLockDraw）：MT・1速・手札に打てるカードが1枚もない番だけ1枚引く
   if(!first&&RULES.mtLockDraw&&G.mode==="MT"&&B.gear===0&&B.hand.length&&!B.hand.some(c=>preview(c).ok)&&drawN(1))addLog("打てるカードがないので1枚引いた（救済）");
   addLog(`— あなたの番（${B.gear+1}速・${B.rpm}回転・ガソリン ${B.gas}）`);

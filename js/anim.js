@@ -95,7 +95,9 @@ const MOTIONS={
   skill(){return[ys("skill",0,{d:220,on(){A.dim=0.5}}),ys("skill",0,{d:500,on(){fxCat(A.P.x-6,A.P.y-40,700);fxRing(A.P.x+10,A.P.y-34,26,"#F7F9F5",500)}}),ys("skill",1,{d:260,on(){A.dim=0}})]},
 };
 /* システムのモーション */
-function mShift(g,sub){const f=FIST(),at=G&&G.mode==="AT";sub=sub||[];return{d:150,on(){if(g==="perfect")fxSheet("fx_perfect",PC().x,PC().y,1);SND.se(g==="perfect"?"shift_perfect":g==="good"?"shift_good":"shift_early");A.P.tint="#C5FF45";fxRing(f.x-10,f.y,8,g==="perfect"?"#C5FF45":"#F7F9F5",200);
+function mShift(g,sub){const f=FIST(),at=G&&G.mode==="AT";sub=sub||[];return{d:150,on(){if(g==="perfect")fxSheet("fx_perfect",PC().x,PC().y,1);
+  /* ★v0.22.96 audio v0.26：AT は at_shift（カチッ）、MT のパーフェクトは perfect_kime {n}＋画面が 90ms 止まる */
+  if(at)SND.se("at_shift");else if(g==="perfect"){const se=sub.find(x=>x.k==="shift")||{};SND.se("perfect_kime",{n:se.pc||1});A.hitStop=A.now+90}else SND.se(g==="good"?"shift_good":"shift_early");A.P.tint="#C5FF45";fxRing(f.x-10,f.y,8,g==="perfect"?"#C5FF45":"#F7F9F5",200);
   /* ★v0.22.95 design 14-3①：AT は小さく「SHIFT」。MT のパーフェクトは金の字と、得を一度に（+0.3 ／ 1枚 ／ G+n） */
   if(at){fxWord(A.P.x+10,A.P.y-74,"SHIFT","#46E6FF",600);return}
   const y0=RES.bars.y-30;/* HP のバーの上（顔にかからない） */
@@ -154,7 +156,7 @@ function playEvents(evs){
       if(e.band)push({d:1,on(){fxWord(PC().x,PC().y-90,"BAND "+(CD(e.id).band||""),"#7FD8FF")}});
       continue;
     }
-    if(e.k==="down"){push({d:160,on(){SND.se(G&&G.mode==="AT"?"parking":"shift_down");A.P.tag="stand";A.P.dy=2;fxParts(A.P.x-4,A.P.y-30,5,["#FF8A3D","#FFD34D"],{a:Math.PI,spread:0.5,v:30,g:-10,life:250})},end(){A.P.dy=0}});i++;
+    if(e.k==="down"){push({d:160,on(){SND.se(e.auto?"at_down":G&&G.mode==="AT"?"parking":"shift_down");/* ★v0.22.96 audio v0.26：自動シフトダウンは at_down */A.P.tag="stand";A.P.dy=2;fxParts(A.P.x-4,A.P.y-30,5,["#FF8A3D","#FFD34D"],{a:Math.PI,spread:0.5,v:30,g:-10,life:250})},end(){A.P.dy=0}});i++;
       while(i<evs.length&&evs[i].k==="draw")i++;if(i<evs.length&&evs[i].k==="over"){push(mOver(evs[i]));i++}continue}
     if(e.k==="eact"){if(i===0||evs[i-1].k!=="phit"&&evs[i-1].k!=="eact"&&evs[i-1].k!=="eblk")push({d:1,on(){SND.se("enemy_turn")}});const sub=[];i++;while(i<evs.length&&["phit","eblk"].includes(evs[i].k))sub.push(evs[i++]);
       push(...mEnemyAct(e.p,sub.filter(x=>x.k==="phit")));continue}
@@ -172,7 +174,7 @@ function playEvents(evs){
 /* ---- 描く ---- */
 let lastT=0;
 function loop(t){requestAnimationFrame(loop);const dt=Math.min(50,t-(lastT||t));lastT=t;A.now=t;
-  try{step(dt*(typeof animSpeed==="function"?animSpeed():1));draw(dt)}catch(e){if(!A.errLogged){A.errLogged=1;console.error(e)}}}
+  try{step(A.hitStop&&t<A.hitStop?0:dt*(typeof animSpeed==="function"?animSpeed():1));draw(dt)}/* ★v0.22.96 パーフェクトのキメ：画面が一瞬止まる */catch(e){if(!A.errLogged){A.errLogged=1;console.error(e)}}}
 /* ★零号の第2形態：ノイズを強めて見せる（横の帯をずらす・色ずれ。決定 2026-11-07） */
 let GLC=null;
 function glitchCanvas(cv){const w=cv.width,h=cv.height;if(!GLC||GLC.width!==w||GLC.height!==h){GLC=mkCanvas(w,h)}const g=GLC.getContext("2d");g.clearRect(0,0,w,h);

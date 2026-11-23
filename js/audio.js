@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.25（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.26（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -858,6 +858,30 @@ Object.assign(LVJ,{win_sora:1,win_kaede:1,win_rin:1,win_luna:1,win_kuro:1,win_mi
 const V25={"farm":{"bpm":84,"dr":"half","soft":true,"lead":"soft","ep":true,"bells":true,"ch":["Bb","Gm","Eb","F","Bb","Gm","Cm","F","Eb","F","Dm","Gm","Eb","F","Bb","Bb"],"ld":[[[0,77,6],[6,74,2],[12,75,2],[14,77,2]],[[0,79,8]],[[0,82,6],[6,79,2],[12,77,2],[14,75,2]],[[0,72,12]],[[0,77,6],[6,74,2],[12,82,2],[14,84,2]],[[0,86,8]],[[0,87,4],[4,84,4],[8,82,4],[12,79,4]],[[0,81,12]],[[0,79,4],[4,82,4],[8,87,8]],[[0,89,6],[6,87,2],[8,84,8]],[[0,86,4],[4,89,4],[8,81,8]],[[0,82,12]],[[0,79,4],[4,82,4],[8,87,6],[14,86,2]],[[0,84,4],[4,81,4],[8,77,8]],[[0,74,6],[6,77,2],[8,82,8]],[[0,82,16]]]}};SONGS.farm=V25.farm;BGM.farm={s:'farm'};
 let FARMON=false;
 
+// ---------- v0.26（2026-11-24）：MT と AT の差（design 14-3）。正本：revremit-audio-list.md 18章 ----------
+SE.push(
+// MT のパーフェクト（画面が一瞬止まる所）：「パキッ」と割れる一撃＋低い「ドン」＋金属の短い鳴り。shift_perfect より強く・短く（0.35秒）。
+// {n:連続の数}＝PERFECT ×n：2つ目から半音2つずつ高く、3つ目から高い重ね、4つ目から和音（最大 ×5）
+{id:'perfect_kime',name:'MT のパーフェクト（画面が止まる「キメ」。{n:1〜5}＝連続で高く）',dur:.5,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(5,(p&&p.n)||1)),k=(n-1)*2,m=84+k;
+ nz(c,o,t,{ft:'highpass',f:3500,dur:.035,g:.55});tone(c,o,t,{type:'square',f:mf(m+12),dur:.03,g:.12});
+ tone(c,o,t,{f:150,f2:45,dur:.16,g:.85});nz(c,o,t,{ft:'lowpass',f:1800,dur:.06,g:.4});
+ tone(c,o,t+.01,{type:'triangle',f:mf(m),dur:.32,g:.16});tone(c,o,t+.01,{f:mf(m)*2.76,dur:.14,g:.05});tone(c,o,t+.01,{wave:.25,f:mf(m+7),dur:.07,g:.1});
+ if(n>=3)tone(c,o,t+.03,{f:mf(m+19),dur:.25,g:.05});
+ if(n>=4)[0,4,7].forEach(d=>tone(c,o,t+.02,{wave:.25,f:mf(m+12+d),dur:.18,g:.05}));
+ if(n>=5)nz(c,o,t+.02,{ft:'highpass',f:6000,f2:9000,dur:.3,g:.12});}},
+// AT の自動シフト：小さく気持ちよい機械の「カチッ」（ラッチの2段）＋ギアが入る短い上がり音
+{id:'at_shift',name:'AT の自動シフト（「カチッ」）',dur:.2,fn:(c,o,t)=>{nz(c,o,t,{ft:'highpass',f:5000,dur:.012,g:.35});tone(c,o,t,{type:'triangle',f:2400,dur:.02,g:.08});
+ nz(c,o,t+.035,{ft:'bandpass',f:2600,q:2,dur:.02,g:.3});tone(c,o,t+.035,{type:'triangle',f:1700,dur:.03,g:.1});tone(c,o,t+.05,{wave:.25,f:mf(88),dur:.05,g:.06});}},
+// AT の自動シフトダウン：低めの「カコン」＋回転が上がる短いうなり（パーキングより軽い）
+{id:'at_down',name:'AT の自動シフトダウン（「カコン」）',dur:.35,fn:(c,o,t)=>{nz(c,o,t,{ft:'bandpass',f:1200,q:2,dur:.025,g:.35});tone(c,o,t,{type:'triangle',f:900,dur:.03,g:.1});
+ nz(c,o,t+.05,{ft:'bandpass',f:800,q:2,dur:.03,g:.3});tone(c,o,t+.05,{type:'triangle',f:600,dur:.04,g:.1});tone(c,o,t+.06,{type:'sawtooth',f:90,f2:150,dur:.2,g:.1,a:.02,lp:900});}},
+// ドライブモード：エコ＝やわらかく下りる2音と息を吐くような風（手数）／スポーツ＝低いうなりが上がって2音が上がる（火力）
+{id:'drive_eco',name:'AT のドライブモード：エコ',dur:.45,fn:(c,o,t)=>{click(c,o,t,.25);tone(c,o,t+.03,{f:mf(84),dur:.18,g:.1});tone(c,o,t+.13,{f:mf(79),dur:.28,g:.1});nz(c,o,t+.05,{f:1800,f2:800,dur:.3,g:.06,a:.05,q:.6});}},
+{id:'drive_sport',name:'AT のドライブモード：スポーツ',dur:.45,fn:(c,o,t)=>{click(c,o,t,.35);tone(c,o,t,{type:'sawtooth',f:80,f2:160,dur:.25,g:.12,a:.03,lp:1000});
+ tone(c,o,t+.08,{wave:.25,f:mf(81),dur:.07,g:.13});tone(c,o,t+.15,{wave:.25,f:mf(88),dur:.18,g:.14,hold:.05});nz(c,o,t+.12,{ft:'highpass',f:4000,dur:.05,g:.15});}},
+);
+Object.assign(LV,{perfect_kime:1.3,at_shift:1.1,at_down:1.8,drive_eco:2.4,drive_sport:1.4});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -952,7 +976,7 @@ function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGL
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.25',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.26',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
