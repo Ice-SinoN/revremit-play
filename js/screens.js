@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.94（β2）";
+const VERSION="試作 v0.22.95（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -59,6 +59,7 @@ function cardSmall(c,o){const d=CD(c),r=rarityOf(c),nm=o.num,art=cardArtTag(c.id
   return `<button class="cs t-${d.t} r-${r}${o.band?" inb":""}${d.charge?" chg":""}${tight?" tight":""}${nl>10?" lng":""}${o.cls?" "+o.cls:""}" ${tight?(o.attrs||"").replace('style="',`style="--vis:${o.vis}px;`):o.attrs||""}>`+
    `<span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span>`+
    `<span class="cc">${costK(o.cost)}</span><span class="ca${o.gas>(o.gasNow==null?99:o.gasNow)?" lack":""}">G${o.gas}</span>`+plate+
+   (o.modeMk?`<span class="cmd ${o.modeMk}">${o.modeMk}</span>`:"")+/* ★v0.22.95 design 14-3①：AT で効果が変わるカードの印 */
    `<span class="cn">${esc(d.n)}${c.up?'<b class="cu">+</b>':""}</span>${d.band?`<span class="cbd b-${d.band}">${d.band}</span>`:""}<span class="crr"></span></button>`}
 /* ★BUG-35（v0.22.24）：手札の名前が2行に入らないとき ①字を小さく（9px） ②3行（上へのばす・絵の下の端に重ねる） ③それでも入らなければ「…」で切る（全部の名前は説明の窓に出る） */
 function fitHandNames(){const over=e=>e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1;
@@ -384,13 +385,14 @@ function renderBattle(){
   ${toastNow()}`;
   // 手札
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
-    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
+    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" ${locked?"disabled":""}`})}).join("");
+  h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
     h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${typeRar(d.t,rarityOf(c))}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
-      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
+      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx${G.mode==="AT"&&modeMark(c)?" atv":""}">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
   // 右下：ボタン
@@ -405,9 +407,22 @@ function renderBattle(){
   ${METER.blank?"":`<div class="tachn ${red?"ngc":""}" ${at(...L.tachn)}>${B.rpm}<span class="dim">rpm</span></div><div class="gasn" ${at(...L.gasn)}>${B.gas}/${maxGas()}</div>`}
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
+  if(!window.TUTORIAL_ON)h+=`<div class="modeban ${G.mode==="AT"?"at":"mt"} small" ${at(4,226,172,28)}>${modeBanner().map(esc).join("<br>")}</div>`;/* ★v0.22.95 design 14-3①（文は仮・シナリオ班へ） */
   {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
 }
+/* ★v0.22.95 design 14-3①：MT と AT の差の見せ方 */
+function modeMark(c){const r=CARDS[c.id||c];return r&&(r.at||r.atShift)?G.mode:""}
+function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT")return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"];
+  return[T.mode_ban_mt1||"MT：パーフェクトで伸びる",noBlow()?(T.mode_ban_mt2a||"ブローなし（オーバーレブだけ）"):(T.mode_ban_mt2||"回しすぎるとブロー")]}
+/* MT：シフトできるカードの上に札（色＝出来）。選んだカードは下に「シフトで打つ」（2回目のタップでシフトを選べる） */
+function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
+  B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok||!p.canShift)return;const g=p.grade,sel=S.sel===i,x=L.hand.x+i*stepX;
+    if(sel)h+=`<button class="stab sel g-${g}" ${at(x,L.hand.y-L.hand.selUp+L.hand.ch+2,L.hand.cw,15)} onclick="tabShift(${i})">${esc((TEXT.ui||{}).stab_play||"シフトで打つ")}</button>`;
+    else{const w=Math.min(L.hand.cw,i<n-1?stepX-1:L.hand.cw);h+=`<button class="stab g-${g}" ${at(x,L.hand.y-11,w,11)} onclick="tabShift(${i})">${w>=34?"▲シフト":"▲"}</button>`}});
+  return h}
+function tabShift(i){if(B.over)return;if(busy())uiSkip();const c=B.hand[i];if(!c)return;const p=preview(c);
+  if(S.sel===i&&p.ok&&p.canShift&&tutAllow("play",{i,shift:true})){doPlay(i,true);return}clickCard(i)}
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
 function gimLines(e){return e.gimTxt.split("・").map((t,i)=>t+(i===0&&e.five?`（今 ${B.cards}枚）`:"")+(i===0&&e.cap?`（今 ${B.atks}/${e.cap}）`:""))}
 /* BUG-22：予告の文は「　」で区切った語ごとに折り返さない（「ガソリ／ン −2」にならない） */

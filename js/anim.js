@@ -95,8 +95,15 @@ const MOTIONS={
   skill(){return[ys("skill",0,{d:220,on(){A.dim=0.5}}),ys("skill",0,{d:500,on(){fxCat(A.P.x-6,A.P.y-40,700);fxRing(A.P.x+10,A.P.y-34,26,"#F7F9F5",500)}}),ys("skill",1,{d:260,on(){A.dim=0}})]},
 };
 /* システムのモーション */
-function mShift(g){const f=FIST();return{d:150,on(){if(g==="perfect")fxSheet("fx_perfect",PC().x,PC().y,1);SND.se(g==="perfect"?"shift_perfect":g==="good"?"shift_good":"shift_early");A.P.tint="#C5FF45";fxRing(f.x-10,f.y,8,g==="perfect"?"#C5FF45":"#F7F9F5",200);
-  fxWord(A.P.x+10,A.P.y-80,g==="perfect"?"PERFECT":g==="good"?"GOOD":g==="early"?"EARLY":"LATE",g==="perfect"?"#C5FF45":"#F7F9F5",800)},end(){A.P.tint=null}}}
+function mShift(g,sub){const f=FIST(),at=G&&G.mode==="AT";sub=sub||[];return{d:150,on(){if(g==="perfect")fxSheet("fx_perfect",PC().x,PC().y,1);SND.se(g==="perfect"?"shift_perfect":g==="good"?"shift_good":"shift_early");A.P.tint="#C5FF45";fxRing(f.x-10,f.y,8,g==="perfect"?"#C5FF45":"#F7F9F5",200);
+  /* ★v0.22.95 design 14-3①：AT は小さく「SHIFT」。MT のパーフェクトは金の字と、得を一度に（+0.3 ／ 1枚 ／ G+n） */
+  if(at){fxWord(A.P.x+10,A.P.y-74,"SHIFT","#46E6FF",600);return}
+  const y0=RES.bars.y-30;/* HP のバーの上（顔にかからない） */
+  if(g==="perfect"){const gs=sub.find(x=>x.k==="gas"),T=(typeof TEXT!=="undefined"&&TEXT.ui)||{};fxText(A.P.x,y0-16,"PERFECT","big",1400);fxText(A.P.x,y0+2,(T.perfect_gain||"+0.3 ／ 1枚{g}").replace("{g}",gs?` ／ G+${gs.v}`:""),"",1400)}
+  else if(g==="good")fxText(A.P.x,y0,"GOOD +0.1","good",900);
+  else fxWord(A.P.x+10,A.P.y-80,g==="early"?"EARLY":"LATE","#F7F9F5",800)},end(){A.P.tint=null}}}
+/* DOM の字（漢字・数字が要る演出）：#fxd に置いて、時間で消す */
+function fxText(x,y,txt,cls,life){const L=document.getElementById("fxd");if(!L)return;const e=document.createElement("div");e.className="fxt"+(cls?" "+cls:"");e.style.left=Math.round(x)+"px";e.style.top=Math.round(y)+"px";e.style.setProperty("--life",(life||1200)+"ms");e.textContent=txt;L.appendChild(e);setTimeout(()=>e.remove(),(life||1200)+50)}
 function mPlayerHit(e){const t=ytag("hit");return{d:220,on(){SND.se(e.v>0?"hit_player":"guard_block");if(e.v>0){A.P.tag=t;A.P.fi=0;A.P.tint="#FF4040";A.P.dx=-6;A.shake=2;fxNum(PC().x,PC().y-24,e.v,"#FF4040")}else{A.P.tag=ytag("guard");A.P.fi=0;fxRing(A.P.x+22,A.P.y-36,12,"#F7F9F5",200)}
   if(e.blk)fxNum(PC().x+14,PC().y-12,"-"+e.blk,"#8B95A3");A.disp.php=Math.max(0,A.disp.php-e.v);A.disp.pblk=Math.max(0,A.disp.pblk-(e.blk||0))},up(k){if(k>0.5){A.P.tint=null;if(A.P.tag===t)A.P.fi=yfi(t,1)}},end(){A.P.tag="stand";A.P.fi=0;A.P.dx=0}}}
 function mEnemyAct(p,subs){const s=A.E.scale;
@@ -114,12 +121,13 @@ function mWin(){return[{d:700,on(){fxSheet("fx_remit",EC().x,EC().y,2);SND.engin
 
 /* engine の B.ev から、見せる順を組み立てる */
 function playEvents(evs){
+  meterQueue(evs);
   let i=0;
   while(i<evs.length){const e=evs[i];
     if(e.k==="card"){
-      if(e.shift)push(mShift(e.shift));
       // このカードで起きたこと（次の card・eact・turn まで）
       const sub=[];i++;while(i<evs.length&&!["card","eact","turn","win","dead","down"].includes(evs[i].k))sub.push(evs[i++]);
+      if(e.shift)push(mShift(e.shift,sub));
       const hits=sub.filter(x=>x.k==="ehit"),mo=MOTIONS[e.mo]?e.mo:"rev";
       const dmg=hits.reduce((a,x)=>a+x.v,0),cardSE={guard:"card_guard",skill:"card_skill",/* ★v0.22.6 audio-list 6-0 */debuff:"card_attack_s",draw:"card_draw"}[mo];
       push({d:1,on(){if(hits.length)SND.attack(dmg);else if(cardSE)SND.se(cardSE);if(e.chain>=1)SND.se("chain_up",{lv:e.chain})}});
@@ -318,25 +326,41 @@ function drawStageC2_(g,dt,st){const t=A.now,S=BG_FX.strength;g.drawImage(st.bas
     g.globalAlpha=sn.alpha[p.k]*S/0.6>1?sn.alpha[p.k]:sn.alpha[p.k]*S/0.6;if(sn.ims[p.k])g.drawImage(sn.ims[p.k],Math.round(ax+p.x+Math.sin(p.ph)*p.sw),Math.round(p.y))});g.globalAlpha=1}
 }
 /* ===== ★メーター（ui\c2）：下地＋LED の弧（打ちごろの帯は水色・レッドは赤・触ったカードの帯は光る）＋ギア・回転・燃料のコマ ===== */
-const MCOL={lime:[197,255,69],limeD:[40,56,14],cyan:[70,230,255],cyanD:[20,80,100],red:[255,52,64],redD:[170,24,40],hi:[244,246,240]};// ★meter_c2_frame.json の colors
+const MCOL={gold:[255,211,77],goldD:[110,84,20],lime:[197,255,69],limeD:[40,56,14],cyan:[70,230,255],cyanD:[20,80,100],red:[255,52,64],redD:[170,24,40],hi:[244,246,240]};// ★meter_c2_frame.json の colors
+/* ★v0.22.95 design 14-3①：メーターの回転の見せ方。MT＝打つたびに跳ねる（ばね）／AT＝なめらかに上がり、シフトの前の回転まで行ってから落ちる */
+function meterQueue(evs){if(!B)return;meterSync();evs.forEach(e=>{if(e.k==="shift"&&e.from!=null){A.mq.push({r:e.from,gear:e.gear-1},{r:e.to,gear:e.gear})}})}
+function meterSync(){if(A.mB!==B){A.mB=B;A.mr=B.rpm;A.mv=0;A.mq=[];A.mg=B.gear;A.mt=A.now;A.gRoll=0}}
+function meterStep(){meterSync();const dt=Math.min(0.05,Math.max(0,(A.now-A.mt)/1000));A.mt=A.now;
+  const q=A.mq[0],t=q?q.r:B.rpm,at=G.mode==="AT";
+  if(at){const d=t-A.mr;A.mr+=Math.sign(d)*Math.min(Math.abs(d),Math.max(2500,Math.abs(d)*7)*dt);A.mv=0}
+  else{A.mv+=((t-A.mr)*320-A.mv*15)*dt;A.mr+=A.mv*dt}
+  if(q&&Math.abs(t-A.mr)<(at?40:150)){A.mq.shift();if(q.gear!==A.mg){A.mg=q.gear;A.gRoll=A.now}}
+  if(!A.mq.length&&A.mg!==B.gear&&Math.abs(B.rpm-A.mr)<400){A.mg=B.gear;A.gRoll=A.now}
+  if(!at&&!A.mq.length&&Math.abs(B.rpm-A.mr)<3&&Math.abs(A.mv)<20){A.mr=B.rpm;A.mv=0}
+  return Math.max(0,Math.round(A.mr))}
 function meterC2(g,x0,y0){const M=METER;g.drawImage(M.blank,x0,y0);if(!B||!G)return;
-  const L=limit(),MAX=Math.ceil((L+1000)/1000)*1000,b=bandRange(),rl=redLo(),rv=B.rpm+tachWobble(),hb=A.pv&&A.pv.band,blink=0.5+0.5*Math.sin(A.now/120);
-  const key=[Math.round(rv/50),hb?hb.join():"",Math.round(blink*4),L].join("|");
+  const mt=G.mode==="MT",mr=meterStep(),L=limit(),MAX=Math.ceil((L+1000)/1000)*1000,b=bandRange(),rl=redLo(),rv=mr+tachWobble(),hb=A.pv&&A.pv.band,blink=0.5+0.5*Math.sin(A.now/120);
+  const key=[Math.round(rv/50),hb?hb.join():"",Math.round(blink*4),L,G.mode].join("|");
   if(M.key!==key){M.key=key;if(!M.ring_cv){M.ring_cv=mkCanvas(M.W,M.H);M.ring_g=M.ring_cv.getContext("2d")}const id=M.ring_g.createImageData(M.W,M.H),d=id.data;
     M.ring.forEach(p=>{const v=M.frame?(p.seg+0.5)*M.segRpm:p.t*MAX,on=v<=rv;let c;
       if(hb&&v>=hb[0]&&v<=hb[1])c=on?MCOL.hi:[Math.round(40+80*blink),Math.round(90+90*blink),Math.round(110+90*blink)];
-      else if(v>=rl)c=on?MCOL.red:MCOL.redD;else if(v>=b.lo&&v<=b.hi)c=on?MCOL.cyan:MCOL.cyanD;else c=on?MCOL.lime:MCOL.limeD;
+      else if(v>=rl)c=on?MCOL.red:MCOL.redD;else if(mt&&v>=b.clo&&v<=b.chi)c=on?MCOL.gold:MCOL.goldD;else if(v>=b.lo&&v<=b.hi)c=on?MCOL.cyan:MCOL.cyanD;else c=on?MCOL.lime:MCOL.limeD;
       const i=(p.y*M.W+p.x)*4;d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];d[i+3]=255});
     M.ring_g.putImageData(id,0,0)}
   g.drawImage(M.ring_cv,x0,y0);
   // ★枠の絵のとき：打ちごろの帯の外側の弧（band_arc_r の円周・水色）。触ったカードの帯は白く点滅
-  if(M.frame){const top=M.segs*M.segRpm,arc=(lo,hi,col,al)=>{lo=Math.max(0,lo);hi=Math.min(top,hi);if(hi<=lo)return;g.globalAlpha=al;g.fillStyle=col;
-      const n=Math.ceil((hi-lo)/top*270*M.arcR*Math.PI/180*1.5);let last="";
-      for(let k=0;k<=n;k++){const t=(lo+(hi-lo)*k/n)/top,ang=(-135+270*t)*Math.PI/180,px=Math.round(x0+M.cx+M.arcR*Math.sin(ang)),py=Math.round(y0+M.cy-M.arcR*Math.cos(ang)),kk=px+","+py;if(kk!==last){g.fillRect(px,py,1,1);last=kk}}g.globalAlpha=1};
-    arc(b.lo,b.hi,"#46E6FF",0.7+0.3*blink);if(hb)arc(hb[0],hb[1],"#F4F6F0",0.4+0.6*blink)}
+  if(M.frame){const top=M.segs*M.segRpm,arc=(lo,hi,col,al,dr)=>{lo=Math.max(0,lo);hi=Math.min(top,hi);if(hi<=lo)return;g.globalAlpha=al;g.fillStyle=col;const R=M.arcR+(dr||0);
+      const n=Math.ceil((hi-lo)/top*270*R*Math.PI/180*1.5);let last="";
+      for(let k=0;k<=n;k++){const t=(lo+(hi-lo)*k/n)/top,ang=(-135+270*t)*Math.PI/180,px=Math.round(x0+M.cx+R*Math.sin(ang)),py=Math.round(y0+M.cy-R*Math.cos(ang)),kk=px+","+py;if(kk!==last){g.fillRect(px,py,1,1);last=kk}}g.globalAlpha=1};
+    arc(b.lo,b.hi,"#46E6FF",0.7+0.3*blink);
+    if(mt){arc(b.clo,b.chi,"#FFD34D",1);arc(b.clo,b.chi,"#FFD34D",0.8,1);/* ★v0.22.95：MT はシフトの帯の芯（パーフェクト）を金色 */
+      if(!noBlow()){const w=Math.max(60,M.segRpm/3);for(let dr=-9;dr<=2;dr++)arc(L-w,L+w,dr<-1?"#FF6070":"#FF3040",1,dr)}}/* 「⚠ブロー」のリミットの線を赤く太く */
+    if(hb)arc(hb[0],hb[1],"#F4F6F0",0.4+0.6*blink)}
   // ギア（大きく）と回転の数字
-  const gear=String(B.gear+1),over=B.rpm>L,gc=over?"#FF4040":B.rpm>=rl?"#FF8A40":"#C5FF45",gw=digitsW(gear,5);
-  digits(g,gear,x0+M.cx-Math.round(gw/2),y0+M.gearCy-12,gc,5);
+  const gear=String((A.mg!=null?A.mg:B.gear)+1),over=B.rpm>L,gc=over?"#FF4040":B.rpm>=rl?"#FF8A40":"#C5FF45",gw=digitsW(gear,5);
+  {const gx=x0+M.cx-Math.round(gw/2),gy=y0+M.gearCy-12,k=A.gRoll?Math.min(1,(A.now-A.gRoll)/220):1;
+    if(k<1&&!mt){g.save();g.beginPath();g.rect(gx-2,gy-1,gw+4,28);g.clip();digits(g,gear,gx,gy+Math.round((1-k)*22),gc,5);g.restore()}else digits(g,gear,gx,gy,gc,5);/* ★v0.22.95 AT：ギアの数字が下から入れかわる */
+    if(!mt){wordPx(g,"D",gx-7,gy+7,"#46E6FF");wordPx(g,"AUTO",x0+M.cx+40,y0+8,"#46E6FF")}}
   const rs=String(B.rpm),rw=digitsW(rs,1);digits(g,rs,x0+M.cx-Math.round(rw/2),y0+75,over?"#FF4040":"#F4F6F0",1);
   // 燃料のコマ（下から。触ったカードの消費は点滅、シフトでもどる分は水色）
   const mg=maxGas(),use=A.pv&&A.pv.ok?A.pv.gas:0,aft=A.pv&&A.pv.gasAfter!=null?A.pv.gasAfter:null,top=M.cells[0][0],bot=M.cells[M.cells.length-1][1],ch=Math.floor((bot-top+3)/mg)-3;

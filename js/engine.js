@@ -498,8 +498,8 @@ function playCard(i,shift){
     const drop=g==="early"?C.earlyDrop:d.halfDrop?0.5:has("flywheel")&&G.mode==="MT"?0.5:C.upDrop;B.lastGrade=g;
     B.gear++;G.st.shiftTry++;B.shifts++;
     if(g==="perfect"){bonus=0.3;G.st.perfect++}else if(g==="good"){bonus=0.1;G.st.good++}
-    nr=Math.round(nr*drop/100)*100;B.rpm=nr;
-    addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear});
+    const nr0=nr;nr=Math.round(nr*drop/100)*100;B.rpm=nr;
+    addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear,from:nr0,to:nr});/* ★v0.22.95 design 14-3：メーターがシフトの前の回転まで上がってから落ちる */
     if(g==="perfect"){addLog(drawN(1)?"パーフェクト：1枚引いた":"パーフェクト：手札がいっぱい");if(has("lsd")){B.block+=8;addLog("LSD：防御 +8")}}
     if(g==="good"&&has("clutch")&&!B.clutchT&&!(G.mode==="AT"&&B.clutchAT)){B.clutchT=true;if(G.mode==="AT")B.clutchAT=true;if(drawN(1))addLog("強化クラッチ：1枚引いた")}// BUG-14：1ターン1回／★design 10-8（チーフ決め）：AT は1戦に1回
     if(G.mode==="AT"&&B.atShiftDraw>0){B.atShiftDraw--;if(drawN(1))addLog("クラッチ蹴り：1枚引いた")}
