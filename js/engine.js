@@ -262,7 +262,12 @@ function perfChainAdd(n){n=n==null?B.perfChain||0:n;const R=RULES.perfChain||{st
 function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
 /* ★ガソリン（design 0-1） */
-function maxGas(){return RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0)}
+function maxGas(){const g=RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0),D=driveDef();return D&&D.gas?Math.max(g,Math.min(RULES.driveGasCap||7,g+D.gas)):g}
+/* ★v0.22.98 design 14-3③ ドライブモード（AT だけ）：B.drive＝"eco"|"sport"（番のはじめに1回だけ切りかえ・初めはエコ・次の番もそのまま） */
+function driveDef(){return G&&G.mode==="AT"&&B&&RULES.drive?RULES.drive[B.drive||"eco"]:null}
+function atMultNow(){if(G.mode!=="AT")return 1;const D=driveDef();return D?D.mult:RULES.atMult}
+function canDrive(){return G.mode==="AT"&&!!RULES.drive&&B&&!B.over&&B.cards===0&&!B.driveT}
+function setDrive(k){if(!canDrive()||!RULES.drive[k]||(B.drive||"eco")===k)return false;const g0=maxGas();B.drive=k;B.driveT=true;const d=maxGas()-g0;B.gas=Math.max(0,B.gas+d);addLog(`ドライブモード：${k==="eco"?"エコ":"スポーツ"}`);return true}
 /* ★v0.22.41 走りかたで変わるガソリン（gasMT＝MT のときの値。強化の gasu があればそちら） */
 function gasMode(){return (typeof G!=="undefined"&&G&&G.mode)||(typeof PRF==="function"&&PRF()&&PRF().lastMode)||"MT"}
 function gasRaw(d,up,mode){if(up&&d.gasu!=null)return d.gasu;if((mode||gasMode())==="MT"&&d.gasMT!=null)return d.gasMT;return d.gas||0}
@@ -284,9 +289,9 @@ function chainMul(n){return 1+chainStep()*Math.min(n==null?B.chain:n,RULES.chain
 function isTopGear(){return B.gear>=car().gears-1}
 function shiftLeft(){return B.shiftsT<shiftCapNow()}
 /* 今のギアの倍率（表示用。AT の ×0.9 も入れる：BUG-06） */
-function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
+function gearMult(){return Math.round(car().mult[B.gear]*atMultNow()*100)/100}
 function startPlayerTurn(first){
-  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.perfChain=0;/* ★v0.22.96 design 14-3② */B.gas=Math.max(0,maxGas()-B.apPen);
+  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.perfChain=0;/* ★v0.22.96 design 14-3② */B.driveT=false;if(G.mode==="AT"&&RULES.drive){if(!B.drive)B.drive="eco";if(typeof DRIVE_PICK==="function"){const k=DRIVE_PICK();if(RULES.drive[k])B.drive=k}}/* ★v0.22.98 ドライブモード：ボット・測りは DRIVE_PICK で選ぶ */B.gas=Math.max(0,maxGas()-B.apPen);
   if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.nShiftT=false;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
@@ -301,7 +306,7 @@ function startPlayerTurn(first){
   addLog(`— あなたの番（${B.gear+1}速・${B.rpm}回転・ガソリン ${B.gas}）`);
 }
 /* 自動シフト（AT）／シフトできるか（MT） */
-function wouldAutoShift(c,nr){const b=bandRange();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=(RULE().atShiftAt||b.lo)&&costOf(c)>0}/* ★v0.22.25 design v0.11.13 10-12-4c：MOMO の AT は 5000 から */
+function wouldAutoShift(c,nr){const b=bandRange(),at=RULE().atShiftAt,th=B.drive==="sport"&&RULES.drive?Math.max(at||0,b.hi):(at||b.lo);return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=th&&costOf(c)>0}/* ★v0.22.98 スポーツは帯の上のはしまで待つ *//* ★v0.22.25 design v0.11.13 10-12-4c：MOMO の AT は 5000 から */
 /* カードを打つ前の見込み（打てるか・シフト・危ない）。数字は simulateCard */
 /* ★design 11-1 ローテーション（pitsign）：打てないカード＝ガソリン・回転・条件で打てないカードとジャマ。nr＝打ったあとの回転で見る。ほかのローテーションは同じターンに打てないので打てない扱い */
 function rotTargets(self,nr){const r0=B.rpm,c0=B.cards;B.rpm=nr;B.cards++;try{return B.hand.filter(x=>x!==self&&(CD(x).t==="jam"||CD(x).fx.some(f=>f[0]==="rotate")||!preview(x).ok))}finally{B.rpm=r0;B.cards=c0}}
@@ -452,11 +457,11 @@ function onShiftUp(g){
   let k=g==="perfect"||(G.mode==="AT"&&(RULE().atFirstGas!=null?RULE().atFirstGas:RULES.atFirstGas)&&B.shiftsT===1)?RULES.gasPerfect:RULES.gasUp,g0=B.gas;if(g==="perfect"&&has("dogmt"))k=0;/* ★v0.22.7 design 10-1：ドグミッションのパーフェクトはガソリン +0 */if(treeTop()==="n_shift"&&B.shiftsT===4&&!B.nShiftT){B.nShiftT=true;k++;addLog("鳳翼：4回目のシフトでガソリン +1")}/* ★v0.22.50 design 11-3-5 */addGas(k);
   if(B.gas>g0){addLog(`ガソリン +${B.gas-g0}`);ev({k:"gas",v:B.gas-g0})}
   if(g==="perfect"||G.mode==="AT")addCharge(G.mode==="AT"?"自動シフト":"パーフェクト");
-  if(B.onUp.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);ev({k:"onup"});
+  if(B.onUp.length){const m=car().mult[B.gear]*atMultNow(),x=mkCtx(m);ev({k:"onup"});
     B.onUp.forEach(([op,...a])=>{if(OPS[op])OPS[op](x,...a)})}
   if(RULE().perfBlk&&(g==="perfect"||(G.mode==="AT"&&B.shiftsT===1))){B.block+=RULE().perfBlk;addLog(`パーフェクトの守り：防御 +${RULE().perfBlk}`);ev({k:"pblk",v:RULE().perfBlk})}/* ★v0.22.7 NANA（design 10-3） */
   const atP=G.mode==="AT"&&B.shiftsT===1;/* ★v0.22.24 誇り：AT は1ターン最初の自動シフトをパーフェクトに数える */
-  if((g==="perfect"||atP)&&B.onPerf.length){const m=car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1),x=mkCtx(m);B.onPerf.forEach(([op,...a])=>{if(OPS[op]&&(g==="perfect"||op==="atkAllAdd"))OPS[op](x,...a)})}
+  if((g==="perfect"||atP)&&B.onPerf.length){const m=car().mult[B.gear]*atMultNow(),x=mkCtx(m);B.onPerf.forEach(([op,...a])=>{if(OPS[op]&&(g==="perfect"||op==="atkAllAdd"))OPS[op](x,...a)})}
   if(has("n_activediff")){if(g==="perfect"){B.perfStreak++;if(B.perfStreak>=3){B.perfStreak=0;B.curDouble=true;addLog("アクティブデフ：次のアタック2倍")}}else B.perfStreak=0}
   if(B.perfTwice&&(g==="perfect"||G.mode==="AT")){B.perfTwice=false;B.atkTwice=true;addLog("次のアタックは2回当たる")}
 }
@@ -513,7 +518,7 @@ function playCard(i,shift){
   if(has("h_bigbore")&&B.gear===3)m+=0.4;
   if(d.t==="atk"&&B.ftStep){m+=B.ftAcc;B.ftAcc=Math.min(0.5,Math.round((B.ftAcc+B.ftStep)*100)/100)}
   if(d.t==="atk"&&has("nitro")&&!B.nitroUsed){m+=1;B.nitroUsed=true;addLog("ニトロ！倍率 +1.0")}
-  if(G.mode==="AT")m*=RULES.atMult;
+  if(G.mode==="AT")m*=atMultNow();/* ★v0.22.98 ドライブモード（エコ ×0.85・スポーツ ×1.0） */
   const L=limit();
   if(B.rpm>L&&B.limitGuard){B.rpm=L;addLog("フューエルカット：リミットで止まった")}
   else if(B.rpm>L){// BUG-15：リミットを「こえたら」
