@@ -257,6 +257,8 @@ function canDraw(){return B.hand.length<RULES.handMax&&(B.draw.length+B.disc.len
 function limit(){return car().limit+(has("limiter")?500:0)}
 function bandExt(){return 150*G.tune.shift+(has("closs")?200:0)}
 function bandRange(){const C=car(),x=bandExt();return{lo:C.band[0]-x,hi:C.band[1]+x,clo:C.core[0]-x/2,chi:C.core[1]+x/2}}
+/* ★v0.22.96 design 14-3② パーフェクト連続：今の連続の数（B.perfChain）での上乗せ。+0.1 ずつ・最大 +0.2（パーフェクトの +0.3 と合わせて +0.5） */
+function perfChainAdd(n){n=n==null?B.perfChain||0:n;const R=RULES.perfChain||{step:0.1,max:0.5};return G&&G.mode==="MT"&&n>1?Math.round(Math.min(R.max-0.3,R.step*(n-1))*100)/100:0}
 function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
 /* ★ガソリン（design 0-1） */
@@ -284,7 +286,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 /* 今のギアの倍率（表示用。AT の ×0.9 も入れる：BUG-06） */
 function gearMult(){return Math.round(car().mult[B.gear]*(G.mode==="AT"?RULES.atMult:1)*100)/100}
 function startPlayerTurn(first){
-  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.gas=Math.max(0,maxGas()-B.apPen);
+  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.perfChain=0;/* ★v0.22.96 design 14-3② */B.gas=Math.max(0,maxGas()-B.apPen);
   if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.nShiftT=false;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
@@ -497,14 +499,14 @@ function playCard(i,shift){
     const g=G.mode==="AT"?"good":grade(nr);B.forcePerfect=false;B.launchUsed=true;
     const drop=g==="early"?C.earlyDrop:d.halfDrop?0.5:has("flywheel")&&G.mode==="MT"?0.5:C.upDrop;B.lastGrade=g;
     B.gear++;G.st.shiftTry++;B.shifts++;
-    if(g==="perfect"){bonus=0.3;G.st.perfect++}else if(g==="good"){bonus=0.1;G.st.good++}
+    if(g==="perfect"){B.perfChain=G.mode==="MT"?(B.perfChain||0)+1:0;bonus=0.3+perfChainAdd();G.st.perfect++}else{B.perfChain=0;if(g==="good"){bonus=0.1;G.st.good++}}/* ★v0.22.96 design 14-3② パーフェクト連続（MT だけ・1ターンの中・2回目 +0.4・3回目から +0.5） */
     const nr0=nr;nr=Math.round(nr*drop/100)*100;B.rpm=nr;
-    addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear,from:nr0,to:nr});/* ★v0.22.95 design 14-3：メーターがシフトの前の回転まで上がってから落ちる */
+    addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}${B.perfChain>1?` ×${B.perfChain}・倍率 +${bonus}`:""}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear,from:nr0,to:nr,pc:B.perfChain||0,bonus});/* ★v0.22.95 design 14-3：メーターがシフトの前の回転まで上がってから落ちる */
     if(g==="perfect"){addLog(drawN(1)?"パーフェクト：1枚引いた":"パーフェクト：手札がいっぱい");if(has("lsd")){B.block+=8;addLog("LSD：防御 +8")}}
     if(g==="good"&&has("clutch")&&!B.clutchT&&!(G.mode==="AT"&&B.clutchAT)){B.clutchT=true;if(G.mode==="AT")B.clutchAT=true;if(drawN(1))addLog("強化クラッチ：1枚引いた")}// BUG-14：1ターン1回／★design 10-8（チーフ決め）：AT は1戦に1回
     if(G.mode==="AT"&&B.atShiftDraw>0){B.atShiftDraw--;if(drawN(1))addLog("クラッチ蹴り：1枚引いた")}
     onShiftUp(g);
-  }else B.rpm=nr;
+  }else{B.rpm=nr;B.perfChain=0}/* ★v0.22.96：シフトしないで打つと連続は切れる */
   let m=C.mult[B.gear]+bonus;
   m+=B.nextBonus;B.nextBonus=0;
   if(has("turbo")&&B.gear>=2)m+=0.2;

@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.95（β2）";
+const VERSION="試作 v0.22.96（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -334,7 +334,7 @@ function doParking(){if(B.over)return;flushAnim();const r0=B.rpm;afterAct(parkin
 function cardActions(i){const c=B.hand[i],p=preview(c);if(!p.ok)return[];
   if(G.mode==="AT")return p.paddle?[["打つ",false,"main"],["パドルで上げて打つ",true,""]]:[["打つ",false,"main"]];
   if(CD(c).shiftCard&&p.canShift)return[["シフトアップ",true,"main"]];
-  if(p.canShift){const g=p.grade,up=[`シフトして打つ（${GRADE_JP[g]}${g==="perfect"?" +0.3・1枚":g==="good"?" +0.1":""}）`,true,g==="perfect"||g==="good"?"main":""],
+  if(p.canShift){const g=p.grade,pb=Math.round((0.3+perfChainAdd((B.perfChain||0)+1))*100)/100,up=[`シフトして打つ（${GRADE_JP[g]}${g==="perfect"?` +${pb}・1枚`:g==="good"?" +0.1":""}）`,true,g==="perfect"||g==="good"?"main":""],
       no=[`${B.gear+1}速のまま打つ${p.danger==="over"?"（オーバーレブ）":""}`,false,p.danger==="over"?"warn":""];
     return g==="perfect"||g==="good"||p.danger==="over"?[up,no]:[no,up]}
   if(p.danger==="blow")return[["打つ（エンジンブロー＝即死）",false,"warn"]];
@@ -375,6 +375,7 @@ function renderBattle(){
   <div class="hud small" ${at(...L.hud)}><span class="md">${G.mode}</span> ${esc(curArea().n)}　お金${G.money}　パーツ${G.parts.length}</div>
   <div class="logl small" ${at(...L.log)}>${esc(B.log[B.log.length-1]||"")}</div>
   ${B.chain?`<div class="chain" ${at(...L.chain)}>CHAIN <b>${B.chain}</b> <span>+${chainPct}%</span></div>`:""}
+  ${G.mode==="MT"&&B.perfChain>0?`<button class="pchain" ${at(6,55,96,14)} onclick="toast2(TU('perfect_chain_help','パーフェクトが続いた数。'),56,3000)">${esc(TU("perfect_chain","PERFECT ×{n}").replace("{n}",B.perfChain))}</button>`:""}
   <div class="ename${isBoss?" boss":""}" ${at(...(isBoss?LB.ename:L.ename))}>${esc(e.n)}${form?`<span class="small">・${form}</span>`:""}${tag?`<span class="tg">${tag}</span>`:""}</div>
   <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}

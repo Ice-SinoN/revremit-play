@@ -3,7 +3,7 @@
 const RULES={
   hand0:7,handMax:10,
   // ★ガソリン（虎雪 11-06 07:32）：5目盛り・番のはじめに満タン
-  gasMax:5,gasUp:1,gasPerfect:2,gasDown:1,gasPark:2,gasSpeed:0.1,
+  perfChain:{step:0.1,max:0.5},/* ★v0.22.96 design 14-3② パーフェクトの倍率は連続で +0.3 → +0.4 → +0.5（最大） */gasMax:5,gasUp:1,gasPerfect:2,gasDown:1,gasPark:2,gasSpeed:0.1,
   // ★つながり（虎雪 11-06 07:26）
   chainStep:0.10,chainMax:10,bandMul:1.5,
   // 止め（design 0-6）

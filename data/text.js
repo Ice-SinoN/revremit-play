@@ -261,3 +261,11 @@ function seenGet(){try{return SAVE.cur.profile.seen}catch(e){return{}}}
 function seenSet(k){try{if(!SAVE.cur.profile.seen[k]){SAVE.cur.profile.seen[k]=1;SAVE.auto()}}catch(e){}}
 /* ★v0.22.51 text v0.22.15 27-6-3（型のメモ・キー 27-7 の tree_*） */
 TEXT.tree=Object.assign(TEXT.tree||{},{tree_autosave:"変えたところは自動で保存されます",tree_rename_toast:"保存しました"});
+
+/* ★v0.22.96 text v0.22.24 36章（MT と AT の差の見せ方）。mode_at_2 はドライブモードが入るまで「今の版」の文 */
+TEXT.ui=Object.assign(TEXT.ui||{},{mode_head:"走りかたをえらぶ",mode_mt_name:"マニュアル",mode_at_name:"オートマ",
+  mode_mt_1:"シフトの瞬間を、自分で決める。",mode_mt_2:"パーフェクトを続けるほど伸びる。回しすぎるとブロー（NIGHT 3 から）。",
+  mode_at_1:"シフトは自動。ブローしない。",mode_at_2:"そのかわり、火力は ×0.9。",
+  mode_ban_mt1:"MT：パーフェクトで伸びる",mode_ban_mt2:"回しすぎるとブロー",mode_ban_mt2a:"ブローなし（オーバーレブだけ）",mode_ban_at1:"AT：シフトは自動",mode_ban_at2:"ブローしない・火力 ×0.9",
+  perfect_gain:"倍率 +0.3 ／ 1枚引く{g}",perfect_gain_gas:" ／ ガソリン +{n}",perfect_chain:"PERFECT ×{n}",perfect_chain_help:"パーフェクトが続いた数。続くほど、パーフェクトの得が大きくなる。",
+  drive_eco:"エコ",drive_eco_d:"火力をおさえて、手数をふやす。",drive_sport:"スポーツ",drive_sport_d:"手数をおさえて、火力を上げる。",drive_pick:"ドライブモード",drive_pick_d:"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"});

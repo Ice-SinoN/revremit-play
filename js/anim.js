@@ -99,7 +99,9 @@ function mShift(g,sub){const f=FIST(),at=G&&G.mode==="AT";sub=sub||[];return{d:1
   /* ★v0.22.95 design 14-3①：AT は小さく「SHIFT」。MT のパーフェクトは金の字と、得を一度に（+0.3 ／ 1枚 ／ G+n） */
   if(at){fxWord(A.P.x+10,A.P.y-74,"SHIFT","#46E6FF",600);return}
   const y0=RES.bars.y-30;/* HP のバーの上（顔にかからない） */
-  if(g==="perfect"){const gs=sub.find(x=>x.k==="gas"),T=(typeof TEXT!=="undefined"&&TEXT.ui)||{};fxText(A.P.x,y0-16,"PERFECT","big",1400);fxText(A.P.x,y0+2,(T.perfect_gain||"+0.3 ／ 1枚{g}").replace("{g}",gs?` ／ G+${gs.v}`:""),"",1400)}
+  if(g==="perfect"){const gs=sub.find(x=>x.k==="gas"),se=sub.find(x=>x.k==="shift")||{},n=se.pc||1,T=(typeof TEXT!=="undefined"&&TEXT.ui)||{};
+    fxText(A.P.x,y0-16,n>1?(T.perfect_chain||"PERFECT ×{n}").replace("{n}",n):"PERFECT","big",1400);/* ★v0.22.96 パーフェクト連続（text 36-3） */
+    fxText(A.P.x,y0+2,(T.perfect_gain||"倍率 +0.3 ／ 1枚引く{g}").replace("+0.3","+"+(se.bonus||0.3)).replace("{g}",gs?(T.perfect_gain_gas||" ／ ガソリン +{n}").replace("{n}",gs.v):""),"",1400)}
   else if(g==="good")fxText(A.P.x,y0,"GOOD +0.1","good",900);
   else fxWord(A.P.x+10,A.P.y-80,g==="early"?"EARLY":"LATE","#F7F9F5",800)},end(){A.P.tint=null}}}
 /* DOM の字（漢字・数字が要る演出）：#fxd に置いて、時間で消す */
