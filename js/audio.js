@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.26（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.27（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -882,6 +882,16 @@ SE.push(
 );
 Object.assign(LV,{perfect_kime:1.3,at_shift:1.1,at_down:1.8,drive_eco:2.4,drive_sport:1.4});
 
+// ---------- v0.27（2026-11-24）：パーフェクト連続が切れた（design 14-3）。正本：revremit-audio-list.md 18章 ----------
+// perfect_kime と対：同じ金属の鳴り（同じ高さ）から2音でやわらかく下がり、息が抜けるように小さく消える。割れ音・ブザー・不協和音なし。
+// {n:切れたときの連続の数}＝その数のキメの高さから下がる（×2 で切れた→キメ×2 の高さから）。0.4秒・キメより小さめ
+SE.push({id:'perfect_break',name:'パーフェクト連続が切れた（「PERFECT ×n」の字が小さく消える所。{n}＝切れた連続の数）',dur:.55,fn:(c,o,t,p)=>{const n=Math.max(2,Math.min(5,(p&&p.n)||2)),m=84+(n-1)*2;
+ tone(c,o,t,{type:'triangle',f:mf(m),dur:.12,g:.11});tone(c,o,t,{f:mf(m)*2.76,dur:.06,g:.025});
+ tone(c,o,t+.1,{type:'triangle',f:mf(m-5),f2:mf(m-7),dur:.3,g:.09,a:.01});
+ tone(c,o,t+.1,{f:mf(m-17),f2:mf(m-19),dur:.28,g:.05});
+ nz(c,o,t+.08,{f:2400,f2:700,dur:.32,g:.05,a:.04,q:.7});}});
+Object.assign(LV,{perfect_break:2.6});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -976,7 +986,7 @@ function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGL
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.26',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.27',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},

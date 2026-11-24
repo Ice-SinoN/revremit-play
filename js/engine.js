@@ -258,6 +258,7 @@ function limit(){return car().limit+(has("limiter")?500:0)}
 function bandExt(){return 150*G.tune.shift+(has("closs")?200:0)}
 function bandRange(){const C=car(),x=bandExt();return{lo:C.band[0]-x,hi:C.band[1]+x,clo:C.core[0]-x/2,chi:C.core[1]+x/2}}
 /* ★v0.22.96 design 14-3② パーフェクト連続：今の連続の数（B.perfChain）での上乗せ。+0.1 ずつ・最大 +0.2（パーフェクトの +0.3 と合わせて +0.5） */
+function perfBreak(){const n=B.perfChain||0;B.perfChain=0;if(n>=2&&G.mode==="MT")ev({k:"pbreak",n})}/* ★v0.22.100 連続が切れた（2以上のときだけ・番の終わりの0は数えない）→ anim で perfect_break */
 function perfChainAdd(n){n=n==null?B.perfChain||0:n;const R=RULES.perfChain||{step:0.1,max:0.5};return G&&G.mode==="MT"&&n>1?Math.round(Math.min(R.max-0.3,R.step*(n-1))*100)/100:0}
 function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
@@ -307,7 +308,8 @@ function startPlayerTurn(first){
   addLog(`— あなたの番（${B.gear+1}速・${B.rpm}回転・ガソリン ${B.gas}）`);
 }
 /* 自動シフト（AT）／シフトできるか（MT） */
-function wouldAutoShift(c,nr){const b=bandRange(),at=RULE().atShiftAt,th=B.drive==="sport"&&RULES.drive?Math.max(at||0,b.hi):(at||b.lo);return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=th&&costOf(c)>0}/* ★v0.22.98 スポーツは帯の上のはしまで待つ *//* ★v0.22.25 design v0.11.13 10-12-4c：MOMO の AT は 5000 から */
+function atShiftTh(){const b=bandRange(),eco=RULE().atShiftAt||b.lo;return B.drive==="sport"&&driveOn()?Math.max(eco,Math.min(eco+Math.round((b.hi-b.lo)/2/100)*100,(car().red||redLo())-500)):eco}/* ★v0.22.100 design 14-3 v0.11.69：スポーツ＝エコの回転＋帯の幅の半分（レッドの 500 手前まで） */
+function wouldAutoShift(c,nr){const th=atShiftTh();return G.mode==="AT"&&!isTopGear()&&shiftLeft()&&nr>=th&&costOf(c)>0}/* ★v0.22.98 スポーツは帯の上のはしまで待つ *//* ★v0.22.25 design v0.11.13 10-12-4c：MOMO の AT は 5000 から */
 /* カードを打つ前の見込み（打てるか・シフト・危ない）。数字は simulateCard */
 /* ★design 11-1 ローテーション（pitsign）：打てないカード＝ガソリン・回転・条件で打てないカードとジャマ。nr＝打ったあとの回転で見る。ほかのローテーションは同じターンに打てないので打てない扱い */
 function rotTargets(self,nr){const r0=B.rpm,c0=B.cards;B.rpm=nr;B.cards++;try{return B.hand.filter(x=>x!==self&&(CD(x).t==="jam"||CD(x).fx.some(f=>f[0]==="rotate")||!preview(x).ok))}finally{B.rpm=r0;B.cards=c0}}
@@ -505,14 +507,14 @@ function playCard(i,shift){
     const g=G.mode==="AT"?"good":grade(nr);B.forcePerfect=false;B.launchUsed=true;
     const drop=g==="early"?C.earlyDrop:d.halfDrop?0.5:has("flywheel")&&G.mode==="MT"?0.5:C.upDrop;B.lastGrade=g;
     B.gear++;G.st.shiftTry++;B.shifts++;
-    if(g==="perfect"){B.perfChain=G.mode==="MT"?(B.perfChain||0)+1:0;bonus=0.3+perfChainAdd();G.st.perfect++}else{B.perfChain=0;if(g==="good"){bonus=0.1;G.st.good++}}/* ★v0.22.96 design 14-3② パーフェクト連続（MT だけ・1ターンの中・2回目 +0.4・3回目から +0.5） */
+    if(g==="perfect"){B.perfChain=G.mode==="MT"?(B.perfChain||0)+1:0;bonus=0.3+perfChainAdd();G.st.perfect++}else{perfBreak();if(g==="good"){bonus=0.1;G.st.good++}}/* ★v0.22.96 design 14-3② パーフェクト連続（MT だけ・1ターンの中・2回目 +0.4・3回目から +0.5） */
     const nr0=nr;nr=Math.round(nr*drop/100)*100;B.rpm=nr;
     addLog(`シフトアップ → ${B.gear+1}速（${GRADE_JP[g]}${B.perfChain>1?` ×${B.perfChain}・倍率 +${bonus}`:""}）回転 ${nr}`);ev({k:"shift",g,gear:B.gear,from:nr0,to:nr,pc:B.perfChain||0,bonus});/* ★v0.22.95 design 14-3：メーターがシフトの前の回転まで上がってから落ちる */
     if(g==="perfect"){addLog(drawN(1)?"パーフェクト：1枚引いた":"パーフェクト：手札がいっぱい");if(has("lsd")){B.block+=8;addLog("LSD：防御 +8")}}
     if(g==="good"&&has("clutch")&&!B.clutchT&&!(G.mode==="AT"&&B.clutchAT)){B.clutchT=true;if(G.mode==="AT")B.clutchAT=true;if(drawN(1))addLog("強化クラッチ：1枚引いた")}// BUG-14：1ターン1回／★design 10-8（チーフ決め）：AT は1戦に1回
     if(G.mode==="AT"&&B.atShiftDraw>0){B.atShiftDraw--;if(drawN(1))addLog("クラッチ蹴り：1枚引いた")}
     onShiftUp(g);
-  }else{B.rpm=nr;B.perfChain=0}/* ★v0.22.96：シフトしないで打つと連続は切れる */
+  }else{B.rpm=nr;perfBreak()}/* ★v0.22.96：シフトしないで打つと連続は切れる */
   let m=C.mult[B.gear]+bonus;
   m+=B.nextBonus;B.nextBonus=0;
   if(has("turbo")&&B.gear>=2)m+=0.2;

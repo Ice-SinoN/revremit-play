@@ -151,6 +151,7 @@ function playEvents(evs){
         if(x.k==="phase")push({d:300,on(){phaseArt(x);A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
         if(x.k==="rotate")push({d:1,on(){for(let k=0;k<x.n;k++){setTimeout(()=>SND.se("card_toss"),k*120)}const dn=x.drawn!=null?x.drawn:x.n;for(let k=0;k<dn;k++)setTimeout(()=>SND.se("card_draw"),x.n*120+80+k*120)}});/* ★audio-check 2：引く音は引けた枚数だけ *//* ★audio-list 11-2：捨てる 0.12秒ずつ → 同じ枚数引く */
         if(x.k==="rescue")push({d:1,on(){fxWord(PC().x-20,PC().y-74,"花の便り","#FF9FC8");fxParts(PC().x,PC().y-30,8,["#FF9FC8","#F7F9F5"],{v:22,g:-8});SND.se("card_draw");if(x.first&&typeof toast2==="function")toast2("MOMO：ふふ、お届けものよ。",226)}});/* ★design 10-10・text 27-2 */
+        if(x.k==="pbreak")push({d:1,on(){const T=(typeof TEXT!=="undefined"&&TEXT.ui)||{};fxText(A.P.x,RES.bars.y-46,(T.perfect_chain||"PERFECT ×{n}").replace("{n}",x.n),"brk",700);SND.se("perfect_break",{n:x.n})}});/* ★v0.22.100 audio v0.27：連続が切れた（字が小さく消える） */
         if(x.k==="cage")push({d:1,on(){fxWord(PC().x,PC().y-60,"CAGE","#FFD34D")}});
       });
       if(e.band)push({d:1,on(){fxWord(PC().x,PC().y-90,"BAND "+(CD(e.id).band||""),"#7FD8FF")}});
