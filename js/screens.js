@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.104（β2）";
+const VERSION="試作 v0.22.105（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -794,7 +794,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;cons
   S.ogGot=[];{/* ★v0.22.102 奥義の解放（design 10-15-1）：その枝の4段目を選んだ型で NIGHT 4 以上を全クリア。MT なら金の縁（見た目だけ） */
    const top=typeof treeTop==="function"?treeTop():null,og=top&&typeof OG_OF_BRANCH!=="undefined"&&OG_OF_BRANCH[top];
    if(clear&&og&&CARDS[og]&&G.night>=(RULES.ogNight||4)){if(!u.cards.includes(og))u.cards.push(og);if(G.mode==="MT"){p.ogGold=Object.assign({},p.ogGold);if(!p.ogGold[og]){p.ogGold[og]=1;S.ogGot.push({id:og,gold:1})}}if(!beforeC.has(og))S.ogGot.unshift({id:og})}}
-  unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push((CARDS[id].r==="OG"?"奥義 解放：":"カード：")+CARDS[id].n));
+  unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push(CARDS[id].r==="OG"?(TEXT.ui.og_got||"奥義「{名前}」を手に入れた").replace("{名前}",CARDS[id].n):"カード："+CARDS[id].n));
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */
    const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?(G.night>=6?2:G.night>=3?1:0):0);if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
