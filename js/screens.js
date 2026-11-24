@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.117（β2）";
+const VERSION="試作 v0.22.118（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -164,7 +164,7 @@ function renderDeck(){const ch=curChar(),dk=S.deck,pool=deckPool(ch).sort((a,b)=
   const sc=$("#dkl")?$("#dkl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>デッキを組む（${esc(ch)}）</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="dkl" ${at(14,30,288,320)}>`+pool.map(id=>{const k=dk[id]||0,lim=deckLimitOf(id),d=CARDS[id];
-    return `<div class="dr r-${rarityOf(id)}${S.dkSel===id?" on":S.dkCmp===id?" cmp":""}" onclick="deckPick('${id}')"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span><span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
+    return `<div class="dr r-${rarityOf(id)}${S.dkSel===id?" on":S.dkCmp===id?" cmp":""}" onclick="deckPick('${id}')"><i class="rare r${rarityOf(id).toLowerCase()}"></i><span class="nm">${esc(d.n)}</span>${(d.starter||[]).includes(ch)?`<span class="sttag">${esc((TEXT.ui&&TEXT.ui.starter_tag)||"はじめから")}</span>`:""}<span class="small dim">${TYPE_K[d.t]} ${d.costGear?d.costGear[0]+"↓":d.c}</span>
      <button class="mini" ${k?"":"disabled"} onclick="event.stopPropagation();deckAdd('${id}',-1)">−</button><span class="num">${k}/${lim}</span><button class="mini${k>=lim||n>=RULES.deckSize?" off":""}" onclick="event.stopPropagation();deckAdd('${id}',1)">＋</button></div>`}).join("")+`</div>
   ${backBtn("もどる","S.deck=null;S.dkSel=S.dkCmp=null;hubBack()")}
   ${deckDetail(dk)}

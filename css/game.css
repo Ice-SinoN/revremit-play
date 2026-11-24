@@ -577,3 +577,5 @@ button.csimg.rdgo{width:160px;height:44px;font-size:18px}
 button.rdmc.img{background:var(--mi) no-repeat 0 0/100% 100%;border:none;image-rendering:pixelated}
 .csfb.lock .csface{background:#15122a;image-rendering:pixelated}
 button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;vertical-align:middle}
+/* ★v0.22.118 初期デッキの札「はじめから」（design 22章） */
+.dr .sttag{flex:none;font-size:9px;line-height:12px;padding:0 3px;color:#111;background:#9FD8FF;box-shadow:inset -1px -1px 0 rgba(0,0,0,.3);white-space:nowrap}
