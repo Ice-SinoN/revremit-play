@@ -48,7 +48,7 @@ function flash(col,life){const now=A.now||performance.now();if(A.lastFlash&&now-
 
 /* 立ち位置（足元）から、体のまんなか・手の先 */
 /* ★v0.22.2 走るキャラの絵（仲間の絵がなければ YUKI の絵） */
-const PSPR=()=>{const c=typeof G!=="undefined"&&G&&G.char;return c&&SPR[c]&&!SPR[c].proc?SPR[c]:SPR.YUKI};
+const PSPR=()=>{if(A.pOver&&SPR[A.pOver]&&!SPR[A.pOver].proc)return SPR[A.pOver];/* ★v0.22.102 奥義の12コマ */const c=typeof G!=="undefined"&&G&&G.char;return c&&SPR[c]&&!SPR[c].proc?SPR[c]:SPR.YUKI};
 const BODY=()=>PSPR()&&!PSPR().proc?80:34;// C2 の YUKI は背 約160 → 体のまんなか 80
 const PC=()=>({x:A.P.x+A.P.dx,y:A.P.y+A.P.dy-BODY()});
 const EC=()=>({x:A.E.x+A.E.dx,y:A.E.y+A.E.dy-(SPR[A.E.set]&&!SPR[A.E.set].proc?(A.E.set.startsWith("boss")?110:80):34)*A.E.scale});
@@ -106,6 +106,21 @@ function mShift(g,sub){const f=FIST(),at=G&&G.mode==="AT";sub=sub||[];return{d:1
     fxText(A.P.x,y0+2,(T.perfect_gain||"倍率 +0.3 ／ 1枚引く{g}").replace("+0.3","+"+(se.bonus||0.3)).replace("{g}",gs?(T.perfect_gain_gas||" ／ ガソリン +{n}").replace("{n}",gs.v):""),"",1400)}
   else if(g==="good")fxText(A.P.x,y0,"GOOD +0.1","good",900);
   else fxWord(A.P.x+10,A.P.y-80,g==="early"?"EARLY":"LATE","#F7F9F5",800)},end(){A.P.tint=null}}}
+/* ★v0.22.102 奥義の演出（design 10-15-3・10-15-4）。フルオートは出さない（音もなし）。同じランで2回目から・設定 OPTS.ogFx==="short" は「短く」（カットインだけ 0.6秒）。タップで飛ばす。戦闘の速さはアニメの速さのとおり */
+function ogQuiet(){return !!((typeof FARM!=="undefined"&&FARM&&FARM.on)||(G&&G.fullAuto))}
+function mOugi(e,D){if(ogQuiet()||!D.og)return[];const A0=(typeof OUGI_ART!=="undefined"&&OUGI_ART[D.og])||{},T=(typeof TEXT!=="undefined"&&TEXT.og&&TEXT.og[D.og])||{};
+  G.ogSeen=G.ogSeen||{};const short=(typeof OPTS!=="undefined"&&OPTS.ogFx==="short")||!!G.ogSeen[e.id];G.ogSeen[e.id]=1;
+  const gold=(()=>{try{return !!(PRF().ogGold||{})[e.id]}catch(x){return false}})(),who=String(D.own||"yuki").toLowerCase(),sprK=A0.spr&&SPR[A0.spr]&&!SPR[A0.spr].proc?A0.spr:null;
+  const skip=function(){if(A.ogSkip)this.t=this.d};A.ogSkip=false;
+  const st=[{d:short?600:800,on(){ogCutShow(A0,D,T,gold);SND.se("og_cutin",{who});try{AUDIO.bgmDuck&&AUDIO.bgmDuck(short?.6:2,.3)}catch(x){}},up:skip,end(){ogCutHide()}}];
+  if(!short){if(sprK){const tag=Object.keys(SPR[sprK].tags||{}).find(t=>t.startsWith("og_"))||"stand";
+      st.push({d:1200,on(){A.pOver=sprK;A.P.tag=tag;A.P.fi=0},up(k){A.P.fi=Math.min(11,Math.floor(k*12));if(A.ogSkip)this.t=this.d},end(){A.pOver=null;A.P.tag="stand";A.P.fi=0}})}
+    else st.push({d:300,on(){A.lastFlash=0;flash("#FFFFFF",300)},up:skip})}
+  st.push({d:1,on(){A.ogSkip=false;SND.se(D.og)}});return st}
+function ogCutShow(A0,D,T,gold){ogCutHide();const st=document.getElementById("stage");if(!st)return;const src=A0.cutin1||A0.cutin;const el=document.createElement("div");el.id="ogcut";if(gold)el.className="gold";
+  el.innerHTML=`<div class="dim"></div>${src?`<img class="band" src="${artSrc(src)}" alt="">`:""}<div class="frame"></div><div class="nm">${D.n}</div><div class="ln">${(T.line||"")}</div>`;
+  el.addEventListener("pointerdown",ev=>{ev.stopPropagation();A.ogSkip=true});st.appendChild(el);requestAnimationFrame(()=>el.classList.add("in"))}
+function ogCutHide(){const el=document.getElementById("ogcut");if(el)el.remove()}
 /* DOM の字（漢字・数字が要る演出）：#fxd に置いて、時間で消す */
 function fxText(x,y,txt,cls,life){const L=document.getElementById("fxd");if(!L)return;const e=document.createElement("div");e.className="fxt"+(cls?" "+cls:"");e.style.left=Math.round(x)+"px";e.style.top=Math.round(y)+"px";e.style.setProperty("--life",(life||1200)+"ms");e.textContent=txt;L.appendChild(e);setTimeout(()=>e.remove(),(life||1200)+50)}
 function mPlayerHit(e){const t=ytag("hit");return{d:220,on(){SND.se(e.v>0?"hit_player":"guard_block");if(e.v>0){A.P.tag=t;A.P.fi=0;A.P.tint="#FF4040";A.P.dx=-6;A.shake=2;fxNum(PC().x,PC().y-24,e.v,"#FF4040")}else{A.P.tag=ytag("guard");A.P.fi=0;fxRing(A.P.x+22,A.P.y-36,12,"#F7F9F5",200)}
@@ -131,6 +146,7 @@ function playEvents(evs){
     if(e.k==="card"){
       // このカードで起きたこと（次の card・eact・turn まで）
       const sub=[];i++;while(i<evs.length&&!["card","eact","turn","win","dead","down"].includes(evs[i].k))sub.push(evs[i++]);
+      {const D=CARDS[e.id];if(D&&D.r==="OG")push(...mOugi(e,D))}/* ★v0.22.102 奥義：カットイン → 12コマ（なければ白い閃光）→ ダメージ */
       if(e.shift)push(mShift(e.shift,sub));
       const hits=sub.filter(x=>x.k==="ehit"),mo=MOTIONS[e.mo]?e.mo:"rev";
       const dmg=hits.reduce((a,x)=>a+x.v,0),cardSE={guard:"card_guard",skill:"card_skill",/* ★v0.22.6 audio-list 6-0 */debuff:"card_attack_s",draw:"card_draw"}[mo];

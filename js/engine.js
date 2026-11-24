@@ -131,7 +131,13 @@ function deckLimitOf(id){return RULES.deckLimit[rarityOf(id)]||1}
 /* 組んだデッキの確認。問題がなければ []（文で返す） */
 function deckErrors(dk,charId){const e=[],pool=deckPool(charId);
   Object.entries(dk).forEach(([id,n])=>{if(!n)return;if(!pool.includes(id))e.push(`${id} は使えない`);else if(n>deckLimitOf(id))e.push(`${CARDS[id].n} は${deckLimitOf(id)}枚まで`)});
+  if(deckOgCount(dk)>(RULES.ogDeckMax||1))e.push(`奥義は${RULES.ogDeckMax||1}枚まで`);/* ★v0.22.102 */
   const t=deckCount(dk);if(t!==RULES.deckSize)e.push(`デッキは${RULES.deckSize}枚（今 ${t}枚）`);return e}
+/* ★v0.22.102 デバッグ（QA）：?dbg=ogall か DBG.ogAll=true。DBG.og＝入れる奥義の id（なければその子の1枚目） */
+var DBG=(typeof window!=="undefined"&&window.DBG)||{};try{if(typeof location!=="undefined"&&/[?&]dbg=ogall/.test(location.search))DBG.ogAll=true}catch(e){}
+function dbgOgApply(ch){const ids=Object.keys(CARDS).filter(id=>CARDS[id].r==="OG"&&CARDS[id].own===ch);if(!ids.length)return;if(G.ul)ids.forEach(id=>{if(!G.ul.cards.includes(id))G.ul.cards.push(id)});
+  const want=DBG.og&&ids.includes(DBG.og)?DBG.og:ids[0];G.deck=G.deck.filter(c=>rarityOf(c)!=="OG");const i=G.deck.findIndex(c=>rarityOf(c)==="C"&&CD(c).own==="N");if(i>=0)G.deck.splice(i,1);G.deck.push(inst(want))}
+function deckOgCount(dk){return Object.entries(dk).reduce((a,[id,n])=>a+(CARDS[id]&&CARDS[id].r==="OG"?n:0),0)}
 
 /* ---- ラン（3エリア。マップは design 付録の作り方）---- */
 function genMap(){
@@ -166,7 +172,7 @@ function newRunState(mode,charId,bring,dk,opt){
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
     if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
-  G.tree={lv:((opt.tree&&opt.tree.lv)||treeOfProfile(charId)).slice(0,3)};treeApplyDeck();/* ★v0.22.48 */
+  G.tree={lv:((opt.tree&&opt.tree.lv)||treeOfProfile(charId)).slice(0,3)};treeApplyDeck();/* ★v0.22.48 */if(typeof DBG!=="undefined"&&DBG.ogAll)dbgOgApply(charId);/* ★v0.22.102 design 10-15-4 デバッグ「奥義を全部解放・デッキに1枚」 */
   applyModCap();
   return G;
 }
@@ -199,7 +205,7 @@ function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.pu
   return true}
 /* 戦闘のあとの3択。先にレア度を C60・R30・E10 で引く。エリートは R 以上を1枚、ボスは E を1枚約束 */
 function rewardOptions(rank,nn){nn=nn||3;
-  const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK"&&cardOK(id));
+  const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK"&&rarityOf(id)!=="OG"&&cardOK(id));
   const out=[];
   const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RULES.rarityW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
     for(const q of rs){x-=RULES.rarityW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
@@ -209,6 +215,8 @@ function rewardOptions(rank,nn){nn=nn||3;
   /* ★v0.22.37 design 10-14：持ちこんだミニカー（ほかのキャラのもの）のカード2種だけが、3枚のうち1枚まで出る。1台 15%（2台で 30%）。強化前の形・2種（2台なら4種）から等しく1つ */
   const other=(G.bring||[]).filter(m=>m.char!==G.char),carry=[...new Set(other.flatMap(m=>m.cards.map(c=>c.id)))].filter(id=>CARDS[id]&&!CARDS[id].gen&&!CARDS[id].fused&&!out.includes(id));/* ★v0.22.51 BUG-51：合成カードは持ちこみの候補に出さない */
   if(carry.length&&out.length&&Math.random()<RULES.carryCardP*other.length){const k=(rank==="elite"||rank==="boss")&&out.length>1?out.length-1:Math.floor(Math.random()*out.length);out[k]=pick(carry)}
+  /* ★v0.22.102 奥義（design 10-15-1）：ボス 3%・エリート 1%。3枚のうち1枚。解放ずみの自分の奥義から（デッキにある奥義は出さない） */
+  {const P=RULES.ogRewardP||{},pr=P[rank];if(pr&&out.length&&Math.random()<pr){const have=new Set(G.deck.map(c=>c.id)),og=Object.keys(CARDS).filter(id=>CARDS[id].r==="OG"&&CARDS[id].own===G.char&&cardOK(id)&&G.ul&&G.ul.cards.includes(id)&&!have.has(id));if(og.length)out[Math.floor(Math.random()*out.length)]=pick(og)}}
   return shuffle(out);
 }
 /* ★v0.22.45 合成（design 10-21）：今のデッキにある組み合わせ。強化ずみの材料を先に使う（両方強化ずみ→合成カードも強化ずみ） */
@@ -275,7 +283,7 @@ function gasMode(){return (typeof G!=="undefined"&&G&&G.mode)||(typeof PRF==="fu
 function gasRaw(d,up,mode){if(up&&d.gasu!=null)return d.gasu;if((mode||gasMode())==="MT"&&d.gasMT!=null)return d.gasMT;return d.gas||0}
 function gasLabel(d,up){const g=gasRaw(d,up,"AT"),m=gasRaw(d,up,"MT");return m===g?String(g):`${gasRaw(d,up)}（MT ${m}・AT ${g}）`}
 function gasBase(c){return gasRaw(CD(c),c.up)}
-function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);
+function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.charge);if(B.gasDiscT&&B.gasDiscT!==(c.uid||null)&&a>0)a--;/* ★v0.22.102 花霞 */
   {const t=treeTop(),id=c.id||c;if(a>0&&((t==="y_red"&&id==="shironeko"&&inRed())||(t==="m_rev"&&id==="m_hougou"&&G.hp<=G.maxhp/2)))a--;if(t==="h_rush"&&id==="h_sunrise"&&B.pTurns===0)a=0}if(has("aero")&&B.gear===car().gears-1&&a>=2)a--;
   if(has("drysump")&&d.band==="R"&&a>0&&B.dryT<2&&inBand(c))a--;return a}
 function addGas(n){B.gas=Math.min(maxGas(),B.gas+n)}
@@ -293,7 +301,7 @@ function shiftLeft(){return B.shiftsT<shiftCapNow()}
 /* 今のギアの倍率（表示用。AT の ×0.9 も入れる：BUG-06） */
 function gearMult(){return Math.round(car().mult[B.gear]*atMultNow()*100)/100}
 function startPlayerTurn(first){
-  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.perfChain=0;/* ★v0.22.96 design 14-3② */B.driveT=false;if(driveOn()){if(!B.drive)B.drive="eco";if(typeof DRIVE_PICK==="function"){const k=DRIVE_PICK();if(RULES.drive[k])B.drive=k}}/* ★v0.22.98 ドライブモード：ボット・測りは DRIVE_PICK で選ぶ */B.gas=Math.max(0,maxGas()-B.apPen);
+  B.block=B.blkCarry||0;if(B.blkCarry)addLog(`余熱：防御 ${B.blkCarry} が残った`);B.blkCarry=0;B.cards=0;B.atks=0;B.shifts=0;B.shiftsT=0;B.perfChain=0;B.gasDiscT=null;/* ★v0.22.96 design 14-3② */B.driveT=false;if(driveOn()){if(!B.drive)B.drive="eco";if(typeof DRIVE_PICK==="function"){const k=DRIVE_PICK();if(RULES.drive[k])B.drive=k}}/* ★v0.22.98 ドライブモード：ボット・測りは DRIVE_PICK で選ぶ */B.gas=Math.max(0,maxGas()-B.apPen);
   if(B.apPen)addLog(`ガソリン −${B.apPen}（イエローフラッグ）`);B.apPen=0;B.nShiftT=false;B.rescueT=0;B.rotT=false;B.chain5=false;B.chain=B.chainCarry||0;B.chainCarry=0;B.turnDmg=0;B.redT=0;B.limitGuard=false;B.dryT=0;B.turnAtkAdd=0;B.ftStep=0;B.ftAcc=0;B.openAir=0;B.jinbaT=false;B.paddleT=false;B.qrN=0;B.qrT=0;B.htTurn=false;B.htBonus=0;B.clutchT=false;
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
@@ -353,7 +361,7 @@ function preview(c){
   return{ok:true,txt,canShift,auto,paddle,nr,after,danger,gas:g,band:inBand(c),grade:canShift?grade(nr):null};
 }
 /* 効果の手助け */
-function mkCtx(m){return{
+function mkCtx(m){return{m,
   attack(v,raw){const tt=treeTop(),ta=(tt==="h_combo"&&B.atks>=3?2:0)+(tt==="n_crown"&&isTopGear()?3:0);let d=raw?v:(v+(B.atkAll||0)+ta)*m*/* ★v0.22.24 誇り：倍率の前に足す（多段は1発ずつ） */(1+0.1*G.tune.ecu+(G.atkBonus||0));
     if(!raw){if(B.curDouble){d*=2;B.curDouble=false}d+=B.curAdd;B.curAdd=0;d+=B.wideAdd;B.wideAdd=0;d+=B.atkAdd;B.atkAdd=0;d+=B.turnAtkAdd}
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
@@ -441,6 +449,18 @@ const OPS={
  vsBigBoth:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank,m=r==="elite"||r==="boss"||B.hidden?1.5:1;x.block(a*m);x.attack(a*m)},
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
  drawIfShift:(x,a)=>{if(B.shifts>0)x.draw(a)},
+ /* ★v0.22.102 奥義（design 10-15-2）。「最大 k」のものは倍率をかけない値で止める */
+ atkFrozeTotal:(x,v,k)=>{const d=Math.min(k,Math.round(B.frozeTotal*v));x.attack(d,true)},
+ delay1:()=>{const e=B.e;if(e&&e.hp>0){e.next+=100/(e.spd+(e.spdUp||0));addLog("敵の次の番が1回おくれた")}},
+ atkBlkMul:(x,v,k,b)=>{if(b)x.blockRaw(b);x.attack(Math.min(k,Math.round(B.block*v)),true)},
+ setRpmRed:()=>{const r=Math.max(redLo(),Math.min(limit(),car().red||redLo()));B.rpm=r;addLog(`回転 ${r}（レッドに残る）`)},
+ lateHalf:(x,v,t)=>x.attack(B.pTurns>=t?Math.round(v*0.5*10)/10:v),
+ atkHitsAtk:(x,v,add,max)=>{const k=Math.min(max,Math.max(0,B.atks-1)+add);for(let i=0;i<k;i++)x.attack(v)},
+ ogPit:(x,v,b)=>{const h=Math.min(G.maxhp-G.hp,v);G.hp+=h;addLog(`エンジン耐久 +${h}`);ev({k:"heal",v:h});x.blockRaw(b);B.ogHalfT=B.pTurns+1;addLog("次の番の終わりまで、受けるダメージ半分")},
+ blkChainV:(x,v,k)=>{const n=Math.min(k,Math.round(Math.min(B.chain,RULES.chainMax)*v));if(n>0)x.blockRaw(n)},
+ gasDiscRest:()=>{B.gasDiscT=B.playUid;addLog("このターン、このあと打つカードのガソリン −1")},
+ atkLostHp:(x,v,k)=>{let d=Math.min(k,Math.round((G.maxhp-G.hp)*v));if(G.hp<=G.maxhp/2)d=Math.round(d*1.5);if(d>0)x.attack(d,true)},
+ atkPerfCount:(x,v,k)=>{const n=Math.max(0,G.st.perfect-(B.perf0||0)),d=Math.min(k,Math.round(n*v));if(d<=0)return;const b=B.e.block;B.e.block=0;x.attack(d,true);B.e.block=b;addLog("防御を無視")},
 };
 function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
@@ -530,7 +550,7 @@ function playCard(i,shift){
     else if(overRev())return finish("dead");
   }
   m*=chainMul();// ★チェイン
-  m=Math.min(m,RULES.multCap);// ★最終倍率の上限
+  m=Math.min(m,d.r==="OG"&&RULES.ogMultCap?RULES.ogMultCap:RULES.multCap);// ★最終倍率の上限（★v0.22.102 奥義は ×3 まで）
   B.chain++;if(B.chainNext2&&!d.fx.some(f=>f[0]==="chainDouble")){const n=B.chainNext2===true?2:B.chainNext2;B.chainNext2=false;B.chain+=n-1;addLog(`結び目：チェイン +${n}`)}G.st.maxChain=Math.max(G.st.maxChain,B.chain);
   if(B.chain>=5&&!B.chain5){B.chain5=true;addCharge("チェイン5")}
   if(has("m_jinba")&&B.chain>=10&&!B.jinbaT){B.jinbaT=true;B.nextGas+=2;addLog("人馬一体：次の番のガソリン +2")}
@@ -609,7 +629,7 @@ function intent(e){const p=curAct(e);
   switch(p[0]){case"atk":return`攻撃 ${eAtk(e,p[1])}`;case"multi":return`攻撃 ${eAtk(e,p[1])}×${p[2]}`;case"prc":return`貫通 ${eAtk(e,p[1])}`;
    case"blk":return`防御 ${p[1]}`;case"buf":return`攻撃アップ ${p[1]}`;case"rev":return`回転 +${p[1]}`;case"jam":return`ジャマ（${CARDS[p[1]].n}×${p[2]}）`;case"apd":return"ガソリン −1";}return""}
 function enemyHit(v,pierce){const e=B.e;let d=eAtk(e,v)+(e.mAdd||0);e.mAdd=0;const tire=Math.floor(B.gear*(0.5+0.25*G.tune.tire));d=Math.max(0,d-tire-(has("n_seat")&&B.gear>=5?2:0));
-  const blk=pierce?0:Math.min(B.block,d);B.block-=blk;let hp=d-blk;if(RULE().halfDmg&&B.pTurns<RULE().halfDmg&&hp>0){hp=Math.ceil(hp/2);addLog("最初の番：ダメージ半分")}/* ★v0.22.7 HINA（design 10-3） */G.hp-=hp;if(has("widebody")&&hp>0)B.wideAdd+=Math.floor(hp/2);ev({k:"phit",v:hp,blk});
+  const blk=pierce?0:Math.min(B.block,d);B.block-=blk;let hp=d-blk;if(((RULE().halfDmg&&B.pTurns<RULE().halfDmg)||(B.ogHalfT!=null&&B.pTurns<=B.ogHalfT))&&hp>0){hp=Math.ceil(hp/2);addLog(B.ogHalfT!=null&&B.pTurns<=B.ogHalfT?"日向の盾：ダメージ半分":"最初の番：ダメージ半分")}/* ★v0.22.7 HINA（design 10-3） */G.hp-=hp;if(has("widebody")&&hp>0)B.wideAdd+=Math.floor(hp/2);ev({k:"phit",v:hp,blk});
   addLog(`${e.n} の${pierce?"貫通":"攻撃"}：${hp}ダメージ${blk?`（防御 −${blk}）`:""}${tire?`（タイヤ −${tire}）`:""}`)}
 const ENEMY_OPS={
  atk:(e,v)=>enemyHit(v),
@@ -662,7 +682,7 @@ function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};
   const sum=Object.values(parts).reduce((a,b)=>a+b,0),mul=Math.min(L.nightBonusMax||99,1+L.nightBonus*Math.max(0,(G.night||1)-1));
   return{parts,total:Math.round(sum*mul),mul}}
 /* ★v0.22.37 design 10-14：ミニカーの10枚の抽選は重みつき（自分の専用・ニュートラル 1、ほかのキャラ 0.3） */
-function mcTen(){const L=G.deck.slice(),out=[];const w=c=>{const o=CD(c).own;return o==="N"||o===G.char?1:RULES.otherCardW};
+function mcTen(){const L=G.deck.filter(c=>rarityOf(c)!=="OG"),out=[];/* ★v0.22.102 奥義はミニカーに継承しない */const w=c=>{const o=CD(c).own;return o==="N"||o===G.char?1:RULES.otherCardW};
   while(out.length<MC_DRAW&&L.length){const t=L.reduce((a,c)=>a+w(c),0);let x=Math.random()*t,i=0;for(;i<L.length-1;i++){x-=w(L[i]);if(x<0)break}out.push(L.splice(i,1)[0])}return out}
 /* リザルト（ミニカーの評価） */
 function calcResult(clear){

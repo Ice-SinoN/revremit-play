@@ -121,7 +121,24 @@ const CARDS={
  mud:{r:"C",own:"N",n:"泥はね",t:"jam",c:0,gas:1,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},
  crosstalk:{r:"C",own:"N",n:"混線",t:"jam",c:1000,gas:0,gen:1,v:0,fx:[],d:"ジャマ：何も起きない（使うと消える）"},
 };
-const RARITY_JP={C:"コモン",R:"レア",E:"エピック",SK:"固有スキル"};
+const RARITY_JP={C:"コモン",R:"レア",E:"エピック",SK:"固有スキル",OG:"奥義"};
+/* ★v0.22.102 奥義カード（design 10-15・text 30-1）。r:"OG"・ガソリン 2・帯なし・1戦に1回（exile＝その戦闘は除外・次の戦闘でもどる）・1発の最終倍率は ×3 まで（RULES.ogMultCap）。
+   og：絵・音・一言の ID（OUGI_ART・audio の ougi_*・text 30-1）。「最大 n」のついた4枚（凍結・カウンター・逆転・完璧）と花の守りの防御は、倍率をかけない値（k が最大・強化で ku）＝プログラム班の読み（デザイン班に確認） */
+Object.assign(CARDS,{
+ y_og_frz:{r:"OG",mo:"atk_finisher",own:"YUKI",og:"ougi_yuki_fubuki",n:"白魔",t:"atk",c:3000,gas:2,v:2,vu:2.5,k:80,ku:100,exile:1,fx:[["atkFrozeTotal","v","k"],["delay1"]],d:"この戦闘で与えた凍結の合計 ×{v} ダメージ（最大 {k}・倍率なし）。敵の次の番を1回おくらせる。1戦に1回。"},
+ y_og_cnt:{r:"OG",mo:"atk_finisher",own:"YUKI",og:"ougi_yuki_shironeko",n:"白猫一閃",t:"atk",c:2500,gas:2,v:1.5,vu:2,k:90,ku:120,exile:1,fx:[["atkBlkMul","v","k",15]],d:"防御 15 を得てから、今の防御 ×{v} ダメージ（最大 {k}・倍率なし）。1戦に1回。"},
+ y_og_red:{r:"OG",mo:"atk_finisher",own:"YUKI",og:"ougi_yuki_kousetsu",n:"緋雪閃",t:"atk",c:1000,gas:2,v:30,vu:45,exile:1,fx:[["kousetsu","v",10],["setRpmRed"]],d:"{v}＋このターン R で打った数 ×10 ダメージ。レッドゾーンでなければ半分。打ったあと回転をレッドに入れる。1戦に1回。"},
+ h_og_rush:{r:"OG",mo:"atk_finisher",own:"HINA",og:"ougi_hina_zenkai",n:"暁天突破",t:"atk",c:2000,gas:2,v:40,vu:60,exile:1,fx:[["lateHalf","v",2]],d:"{v} ダメージ。戦闘の3ターン目からは半分。1戦に1回。"},
+ h_og_combo:{r:"OG",mo:"atk_finisher",own:"HINA",og:"ougi_hina_hibana",n:"陽炎百連",t:"atk",c:1500,gas:2,v:5,vu:7,exile:1,fx:[["atkHitsAtk","v",2,10]],d:"{v} ダメージを（このターンに打ったアタックの数＋2）回（最大 10回）。1戦に1回。"},
+ h_og_pit:{r:"OG",mo:"guard",own:"HINA",og:"ougi_hina_memo",n:"日向の盾",t:"grd",c:0,gas:2,v:15,vu:20,exile:1,fx:[["ogPit","v",15]],d:"エンジン耐久 +{v}・防御 15。次の番の終わりまで受けるダメージ半分。1戦に1回。"},
+ m_og_chain:{r:"OG",mo:"atk_finisher",own:"MOMO",og:"ougi_momo_mankai",n:"百花繚乱",t:"atk",c:2000,gas:2,v:6,vu:8,exile:1,fx:[["atkChainNow","v"]],d:"チェインの数 ×{v} ダメージ（チェインの倍率もかかる）。1戦に1回。"},
+ m_og_guard:{r:"OG",mo:"guard",own:"MOMO",og:"ougi_momo_hanaiyashi",n:"花霞",t:"grd",c:0,gas:2,v:3,vu:4,k:36,ku:48,exile:1,fx:[["blkChainV","v","k"],["gasDiscRest"]],d:"防御＝チェインの数 ×{v}（最大 {k}）。このターン、このあと打つカードのガソリン −1。1戦に1回。"},
+ m_og_rev:{r:"OG",mo:"atk_finisher",own:"MOMO",og:"ougi_momo_kaerizaki",n:"狂い咲き",t:"atk",c:2500,gas:2,v:1,vu:1.5,k:60,ku:90,exile:1,fx:[["atkLostHp","v","k"]],d:"失っているエンジン耐久 ×{v} ダメージ（最大 {k}・倍率なし）。耐久が半分以下なら ×1.5。1戦に1回。"},
+ n_og_shift:{r:"OG",mo:"atk_finisher",own:"NANA",og:"ougi_nana_houyoku",n:"千里鳳翔",t:"atk",c:1500,gas:2,v:12,vu:16,exile:1,fx:[["atkShiftsN","v"]],d:"このターンのシフトアップの数 ×{v} ダメージ。1戦に1回。"},
+ n_og_perf:{r:"OG",mo:"atk_finisher",own:"NANA",og:"ougi_nana_oukyuu",n:"紅玉の城",t:"atk",c:2000,gas:2,v:5,vu:7,k:50,ku:70,exile:1,fx:[["atkPerfCount","v","k"]],d:"この戦闘のパーフェクトの数 ×{v} ダメージ（最大 {k}・倍率なし）。相手の防御を無視。1戦に1回。"},
+ n_og_crown:{r:"OG",mo:"atk_finisher",own:"NANA",og:"ougi_nana_taikan",n:"鳳凰戴天",t:"atk",c:4000,gas:2,v:45,vu:65,exile:1,fx:[["taikan","v"]],d:"最大ギアなら先に相手の防御を0にして {v} ダメージ。最大ギアでなければ半分。1戦に1回。"},
+});
+const OG_OF_BRANCH={y_frz:"y_og_frz",y_cnt:"y_og_cnt",y_red:"y_og_red",h_rush:"h_og_rush",h_combo:"h_og_combo",h_pit:"h_og_pit",m_chain:"m_og_chain",m_guard:"m_og_guard",m_rev:"m_og_rev",n_shift:"n_og_shift",n_perf:"n_og_perf",n_crown:"n_og_crown"};
 /* モーションのキー（revremit-yuki-motion-list.md 1章）。mo がなければ種類から */
 
 /* ★v0.22.45 合成（design 10-21・★虎雪 16:45 案1）。決まった2枚 → 新しい1枚（fused:1）。報酬・ショップ・裏道・ラッキー・ラン前のデッキの候補には出ない（ミニカーで持ちこめる）。
@@ -165,4 +182,4 @@ const TYPE_MOTION={atk:"atk_light",grd:"guard",dbf:"debuff",drw:"draw",rev:"rev"
 const TYPE_JP={atk:"アタック",grd:"ガード",dbf:"デバフ",drw:"ドロー",rev:"回転操作",sk:"固有スキル",jam:"ジャマ"};
 const BAND_JP={L:"低回転",M:"中回転",R:"レッド"};
 /* 報酬の候補（キャラごと）：生成・固有スキル以外の共通と専用 */
-Object.values(CHARS).forEach((ch,_,a)=>{const id0=Object.keys(CHARS).find(k=>CHARS[k]===ch);ch.pool=Object.keys(CARDS).filter(id=>!CARDS[id].gen&&!CARDS[id].fused&&CARDS[id].r!=="SK"&&(CARDS[id].own==="N"||CARDS[id].own===id0))});
+Object.values(CHARS).forEach((ch,_,a)=>{const id0=Object.keys(CHARS).find(k=>CHARS[k]===ch);ch.pool=Object.keys(CARDS).filter(id=>!CARDS[id].gen&&!CARDS[id].fused&&CARDS[id].r!=="SK"&&CARDS[id].r!=="OG"&&(CARDS[id].own==="N"||CARDS[id].own===id0))});

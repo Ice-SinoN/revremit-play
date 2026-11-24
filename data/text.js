@@ -269,3 +269,18 @@ TEXT.ui=Object.assign(TEXT.ui||{},{mode_head:"走りかたをえらぶ",mode_mt_
   mode_ban_mt1:"MT：パーフェクトで伸びる",mode_ban_mt2:"回しすぎるとブロー",mode_ban_mt2a:"ブローなし（オーバーレブだけ）",mode_ban_at1:"AT：シフトは自動",mode_ban_at2:"ブローしない・火力 ×0.9",
   perfect_gain:"倍率 +0.3 ／ 1枚引く{g}",perfect_gain_gas:" ／ ガソリン +{n}",perfect_chain:"PERFECT ×{n}",perfect_chain_help:"パーフェクトが続いた数。続くほど、パーフェクトの得が大きくなる。",
   drive_eco:"エコ",drive_eco_d:"火力をおさえて、手数をふやす。",drive_sport:"スポーツ",drive_sport_d:"手数をおさえて、火力を上げる。",drive_pick:"ドライブモード",drive_pick_d:"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"});
+
+/* ★v0.22.102 text 30-1 奥義（名前・読み・カットインの一言・フレーバー） */
+TEXT.og={
+ ougi_yuki_fubuki:{y:"はくま",line:"……全部、白くなれ。",flav:"吹雪の中で、敵の時間だけが止まる。雪国では、吹雪をそう呼ぶ。"},
+ ougi_yuki_shironeko:{y:"しろねこいっせん",line:"……返すよ。",flav:"守りぬいたぶんだけ、刃はするどくなる。白い猫は、一度だけ爪を見せる。"},
+ ougi_yuki_kousetsu:{y:"ひせつせん",line:"……レッドまで、回す。",flav:"針がレッドをさしたとき、雪は赤く光る。"},
+ ougi_hina_zenkai:{y:"ぎょうてんとっぱ",line:"夜明けまで、全開っス！",flav:"最初の一歩で、夜をぬけろ。日の出より、早く。"},
+ ougi_hina_hibana:{y:"かげろうひゃくれん",line:"まだまだ、いきます！",flav:"数えきれないほど叩けば、かげろうも、形になる。"},
+ ougi_hina_memo:{y:"ひなたのたて",line:"ひなが、直します！",flav:"初めて教わったメモの、最初の一行。止まっても、また走れる。"},
+ ougi_momo_mankai:{y:"ひゃっかりょうらん",line:"みんな、咲いて〜！",flav:"つないだ数だけ、花が開く。ひとつも、取りこぼさない。"},
+ ougi_momo_hanaiyashi:{y:"はながすみ",line:"ふふ、守ってあげる。",flav:"桃色のかすみが、傷ついたエンジンをつつむ。"},
+ ougi_momo_kaerizaki:{y:"くるいざき",line:"ここから、逆転よ！",flav:"散りかけた花ほど、よく咲く。季節はずれでも、かまわない。"},
+ ougi_nana_houyoku:{y:"せんりほうしょう",line:"まだ、上がりますわよ！",flav:"重ねたシフトの数だけ、翼は高く。どこまでも、千里の先まで。"},
+ ougi_nana_oukyuu:{y:"こうぎょくのしろ",line:"完璧、ですわ。",flav:"一度も乱れない走りは、どんな城壁よりもかたい。"},
+ ougi_nana_taikan:{y:"ほうおうたいてん",line:"鳳凰よ、舞いなさい！",flav:"最大ギアの、その先へ。天をいただくのは、わたくしひとり。"}};

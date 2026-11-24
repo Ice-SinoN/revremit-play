@@ -16,7 +16,7 @@ const RULES={
   carryCardP:0.15,otherCardW:0.3,sellRate:0.4,sellOwnAdd:10,/* ★v0.22.37 design 10-14（持ちこんだミニカー）・10-19（パーツの売却） */
   restRate:0.3,upMult:1.5,
   mtLockDraw:1,atLowDraw:2,frzDelayCap:2,// ★v0.22.1 design v0.9 0-8・5-1b（MT の詰み・AT の詰まり・凍結の上限）
-  deckSize:20,deckLimit:{C:4,R:2,E:1,SK:1},rarityW:{C:60,R:30,E:10},// 上限は★RA-01（ラン前のデッキだけ）
+  deckSize:20,deckLimit:{C:4,R:2,E:1,SK:1,OG:1},ogMultCap:3,ogDeckMax:1,ogRewardP:{boss:0.03,elite:0.01},ogNight:4,rarityW:{C:60,R:30,E:10},// 上限は★RA-01（ラン前のデッキだけ）
 };
 const TUNE={tire:["タイヤ","防御：ギアが上がるほど、受けるダメージが減る（段ごとに強く）"],
  shift:["シフト","グッド・パーフェクトの帯が広がる"],engine:["エンジン","エンジン耐久（体力）の最大 +10"],

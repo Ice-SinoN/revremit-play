@@ -193,6 +193,7 @@ function drawStreet(){
 
 /* ---- 絵ファイルを読む（Aseprite の json-array）。読めなければ仮のドットのまま ---- */
 const PRE={img:{},json:{}};// ★v0.18.1：先にまとめて読んだもの（読みこみの％を出すため）
+function artSrc(src){return(window.ART_EMBED&&ART_EMBED[src])||src}/* ★v0.22.102 */
 function loadImg0(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=(window.ART_EMBED&&ART_EMBED[src])||src})}
 async function loadJSON0(src){if(window.ART_EMBED&&ART_EMBED[src])return JSON.parse(ART_EMBED[src]);try{const r=await fetch(src);return r.ok?await r.json():null}catch(e){return null}}
 function loadImg(src){return src in PRE.img?Promise.resolve(PRE.img[src]):loadImg0(src)}
