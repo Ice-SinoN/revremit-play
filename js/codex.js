@@ -156,9 +156,9 @@ function cdxDetailHTML(t,L){const x=L.find(y=>y.id===CDX.sel);
   if(t==="card"&&CARDS[x.id].r==="OG")return cdxOgDetail(x.id);
   if(t==="card"){const d=CARDS[x.id],up=CDX.up;let desc=d.d||"";try{desc=descOf({id:x.id,up},up,0)}catch(e){}let du="";try{if(!up&&canUpgradeId(x.id))du=descOf({id:x.id,up:true},true,0)}catch(e){}
     const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:(up&&d.cu!=null?d.cu:d.c),gas=up&&d.gasu!=null?d.gasu:d.gas;
-    return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",x.id,true,50)}</span><div><div class="cdxh">${rr2Esc(d.n)}${up?"+":""}</div>
+    return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",x.id,true,50)}</span><div><div class="cdxh">${cdxRuby(d.n,cdxYomi(x.id))}${up?"+":""}${cdxStarter(x.id)?'<i class="cdxst">はじめから</i>':""}</div>
       <div class="small">${TYPE_JP[d.t]||""}・${RARITY_JP[d.r]||""}・${d.own==="N"?"共通":rr2Esc(rr2Name(d.own))}</div><div class="small">回転 ${cost}　ガソリン ${gas}${d.band?`　帯 ${d.band}`:""}</div></div></div>
-      <div class="cdxd" data-gloss>${rr2Esc(desc)}</div>${du?`<div class="cdxd up" data-gloss><span class="gold">強化すると</span> ${rr2Esc(du)}</div>`:""}
+      <div class="cdxd" data-gloss>${rr2Esc(desc)}</div>${du?`<div class="cdxd up" data-gloss><span class="gold">強化すると</span> ${rr2Esc(du)}</div>`:""}${cdxFlav(x.id)?`<div class="cdxflav">${rr2Esc(cdxFlav(x.id))}</div>`:""}
       <div class="small dim cdxfoot">解放：${rr2Esc(cdxCardHint(x.id))}　使った回数 ${RR2.num("use",x.id)}</div>`}
   if(t==="part"){const d=PARTS[x.id];return`<div class="cdxtop"><span class="cdxa big">${cdxArt("part",x.id,true,48)}</span><div><div class="cdxh">${rr2Esc(d.n)}</div><div class="small">${d.own==="N"?"共通":rr2Esc(rr2Name(d.own))+"の専用"}</div></div></div>
       <div class="cdxd" data-gloss>${rr2Esc(d.d)}</div><div class="small dim cdxfoot">解放：${rr2Esc(cdxPartHint(x.id))}</div>`}
@@ -205,11 +205,20 @@ const CDX_OGT={og_hint:"{ひらがな}で、型「{枝}」の4段目をとって
 function cdxOgT(k){return(typeof TEXT!=="undefined"&&TEXT.ui&&TEXT.ui[k])||CDX_OGT[k]}
 function cdxOgHint(id){const d=CARDS[id];return cdxOgT("og_hint").replace("{ひらがな}",rr2Name(d.own)).replace("{枝}",cdxOgBranch(id)).replace("NIGHT 4",`NIGHT ${(typeof RULES!=="undefined"&&RULES.ogNight)||4}`)}
 function cdxOgDetail(id){const d=CARDS[id],T=(TEXT.og&&TEXT.og[d.og])||{},gold=cdxOgGold(id);let desc=d.d||"";try{desc=descOf({id,up:CDX.up},CDX.up,0)}catch(e){}
-  return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",id,true,50)}</span><div><div class="cdxh">${rr2Esc(d.n)}${CDX.up?"+":""}${gold?'<i class="cdxgold">金</i>':""}</div>${T.y?`<div class="small dim">${rr2Esc(T.y)}</div>`:""}
+  return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",id,true,50)}</span><div><div class="cdxh">${cdxRuby(d.n,cdxYomi(id))}${CDX.up?"+":""}${gold?'<i class="cdxgold">金</i>':""}</div>
     <div class="small">${rr2Esc(cdxOgT("og_tag"))}・${rr2Esc(rr2Name(d.own))}・ガソリン ${d.gas}</div></div></div>
     ${T.line?`<div class="cdxogline">「${rr2Esc(T.line)}」</div>`:""}<div class="cdxd" data-gloss>${rr2Esc(desc)}</div>
-    ${T.flav?`<div class="cdxflav">${rr2Esc(T.flav)}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}<br>${gold?"金の縁：あり":rr2Esc(cdxOgT("og_hint_mt"))}　使った回数 ${RR2.num("use",id)}</div>`}
+    ${cdxFlav(id)?`<div class="cdxflav">${rr2Esc(cdxFlav(id))}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}<br>${gold?"金の縁：あり":rr2Esc(cdxOgT("og_hint_mt"))}　使った回数 ${RR2.num("use",id)}</div>`}
 function cdxOgImgs(){if(typeof OUGI_ART==="undefined")return[];const L=[];
   cdxOgIds().forEach((id,ord)=>{const d=CARDS[id],A0=OUGI_ART[d.og];if(!A0||!A0.cutin)return;const T=(TEXT.og&&TEXT.og[d.og])||{};
     const b={p:A0.cutin,og:1,ord,card:id,n:d.n,ln:T.line||""};L.push(Object.assign({},b,{id:"og:"+d.og,g:"奥義"}),Object.assign({},b,{id:"ogg:"+d.og,g:"奥義（金の縁）",gold:1}))});return L}
 function cdxOgSeen(x){return x.gold?cdxOgGold(x.card):cdxOgHas(x.card)}
+
+/* ---- v0.5.9 design 22章（v0.11.103）：初期デッキの札「はじめから」・読みのルビ・フレーバー。図鑑だけ（戦闘・報酬・ショップ・用語のヘルプには出さない）。
+   正本はデータ：CARDS[id].starter（true）・CARDS[id].yomi（読み）。フレーバーは CARDS[id].flav（または flavor・fl）か TEXT.flav[id]、奥義は TEXT.og の flav／y。
+   starter がまだデータにないあいだは、CHARS のはじめのデッキ（deck）に入っているかで見る。 */
+function cdxYomi(id){const d=CARDS[id]||{};if(d.yomi)return d.yomi;if(d.r==="OG"){const T=(TEXT.og&&TEXT.og[d.og])||{};return T.y||""}return""}
+function cdxStarter(id){const d=CARDS[id]||{};if(Array.isArray(d.starter)){const ch=d.own&&d.own!=="N"?d.own:(typeof curChar==="function"?curChar():"YUKI");return d.starter.includes(ch)}/* ①の starter＝キャラ ID の配列：専用はその子・共通は今のキャラ（①が直した） */if(d.starter!=null)return!!d.starter;if(d.r==="OG")return false;
+  try{const own=d.own,cs=own&&own!=="N"?[own]:Object.keys(CHARS);return cs.some(ch=>CHARS[ch]&&(CHARS[ch].deck||[]).some(e=>(Array.isArray(e)?e[0]:e)===id))}catch(e){return false}}
+function cdxFlav(id){const d=CARDS[id]||{};const f=d.flav||d.flavor||d.fl||(TEXT.flav&&TEXT.flav[id])||"";if(f)return f;if(d.r==="OG"){const T=(TEXT.og&&TEXT.og[d.og])||{};return T.flav||""}return""}
+function cdxRuby(n,y){return y&&y!==n?`<span class="cdxrb">${rr2Esc(n)}<span class="cdxrt">${rr2Esc(y)}</span></span>`:rr2Esc(n)}/* ルビは自前（<ruby> は読みが長いと名前の字の間が空くため）。読みは名前の左にそろえて上に */
