@@ -117,7 +117,7 @@ function mOugi(e,D){if(ogQuiet()||!D.og)return[];const A0=(typeof OUGI_ART!=="un
       st.push({d:1200,on(){A.pOver=sprK;A.P.tag=tag;A.P.fi=0},up(k){A.P.fi=Math.min(11,Math.floor(k*12));if(A.ogSkip)this.t=this.d},end(){A.pOver=null;A.P.tag="stand";A.P.fi=0}})}
     else st.push({d:300,on(){A.lastFlash=0;flash("#FFFFFF",300)},up:skip})}
   st.push({d:1,on(){A.ogSkip=false;SND.se(D.og)}});return st}
-function ogCutShow(A0,D,T,gold){ogCutHide();const st=document.getElementById("stage");if(!st)return;const src=A0.cutin1||A0.cutin;const el=document.createElement("div");el.id="ogcut";if(gold)el.className="gold";
+function ogCutShow(A0,D,T,gold){ogCutHide();const st=document.getElementById("stage");if(!st)return;const src=(A0.cutin1&&(!window.ART_HAVE||ART_HAVE.has(A0.cutin1)))?A0.cutin1:A0.cutin;const el=document.createElement("div");el.id="ogcut";if(gold)el.className="gold";
   el.innerHTML=`<div class="dim"></div>${src?`<img class="band" src="${artSrc(src)}" alt="">`:""}<div class="frame"></div><div class="nm">${D.n}</div><div class="ln">${(T.line||"")}</div>`;
   el.addEventListener("pointerdown",ev=>{ev.stopPropagation();A.ogSkip=true});st.appendChild(el);requestAnimationFrame(()=>el.classList.add("in"))}
 function ogCutHide(){const el=document.getElementById("ogcut");if(el)el.remove()}
