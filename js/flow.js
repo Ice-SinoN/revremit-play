@@ -28,6 +28,7 @@ function charStars(ch,mode){return["MT","AT"].map(m=>`<span class="${m===mode?""
 function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage","tree"].includes(window.SCREEN)){S.chavOn=false;return}
   document.querySelectorAll("canvas.chav").forEach(cv=>{const set=SPR[cv.dataset.ch];const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
     if(!set||set.proc){g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
+    if(cv.dataset.face){csSilFace(cv,g,set);return}
     const t=set.tags.idle||set.tags.stand||[0,0],n=t[1]-t[0]+1,ms=(set.dur&&set.dur[t[0]])||120,fr=set.frames[t[0]+Math.floor(performance.now()/ms)%n];if(!fr)return;
     const sc=Math.min(cv.width/fr.width,cv.height/fr.height)*(+cv.dataset.z||1),w=fr.width*sc,h=fr.height*sc,fx=(set.foot?set.foot[0]:fr.width/2)*sc,fy=(set.foot?set.foot[1]:fr.height)*sc;
     const x=Math.round(cv.width/2-fx),y=Math.round(cv.height-2-fy);

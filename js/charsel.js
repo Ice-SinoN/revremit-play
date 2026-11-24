@@ -30,7 +30,18 @@ function csNewSeen(c){const p=PRF();p.csSeen=p.csSeen||{};return !!p.csSeen[c]}
 /* 顔（52×52）：部品の顔があればそれ、なければ立ち絵 normal の顔あたり、なければ戦闘の待機の頭 */
 function csFace(c,lock){const f=csPart("face_"+c.toLowerCase());/* ロック中は顔の部品（四角い背景つき）を使わず、待機の絵のシルエット＝だれか分からない形 */if(f&&!lock)return`<img class="px csface${lock?" sil":""}" src="${f}" alt="">`;
   const b=`assets/c2/story/c2/revremit_story_bust_${c.toLowerCase()}_normal.png`;if(!lock&&typeof artHave==="function"&&artHave(b))return`<span class="csface bust${lock?" sil":""}" style="background-image:url('${artURL(b)}')"></span>`;
-  return`<canvas class="chav csface" data-ch="${c}" data-z="2.4" data-top="1" ${lock?'data-sil="1"':""} width="52" height="52"></canvas>`}
+  return lock?`<canvas class="chav csface" data-ch="${c}" data-face="1" width="52" height="52"></canvas>`:`<canvas class="chav csface" data-ch="${c}" data-z="2.4" width="52" height="52"></canvas>`}
+/* ★v0.22.111 AD v0.84：ロック中の顔＝頭から胸までを 52×52 いっぱいに・1色（枠の地より少し明るい暗い灰色）・10人とも同じ高さ（元の絵の 84px＝頭のてっぺんの 4px 上から）で切り出す */
+const CS_SIL={src:84,pad:4,col:"#2e2b40"};
+function csSilFace(cv,g,set){const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]];if(!fr)return;
+  let b=fr._csHead;if(!b){const w=fr.width,h=fr.height,q=document.createElement("canvas");q.width=w;q.height=h;const x=q.getContext("2d");x.drawImage(fr,0,0);const d=x.getImageData(0,0,w,h).data;
+    let y0=h;for(let y=0;y<h&&y0===h;y++)for(let i=0;i<w;i++)if(d[(y*w+i)*4+3]>40){y0=y;break}
+    let sx=0,n=0;for(let y=y0;y<Math.min(h,y0+CS_SIL.src*0.45);y++)for(let i=0;i<w;i++)if(d[(y*w+i)*4+3]>40){sx+=i;n++}
+    b=fr._csHead={cx:n?sx/n:w/2,y:Math.max(0,y0-CS_SIL.pad)}}
+  const S=CS_SIL.src,o=S_silCv(),k=cv.width/S;o.width=cv.width;o.height=cv.height;const q=o.getContext("2d");q.imageSmoothingEnabled=false;q.clearRect(0,0,o.width,o.height);
+  q.drawImage(fr,Math.round(b.cx-S/2),b.y,S,S,0,0,cv.width,cv.height);q.globalCompositeOperation="source-in";q.fillStyle=CS_SIL.col;q.fillRect(0,0,o.width,o.height);q.globalCompositeOperation="source-over";
+  g.imageSmoothingEnabled=false;g.drawImage(o,0,0)}
+function S_silCv(){return S.csSilCv||(S.csSilCv=document.createElement("canvas"))}
 /* ---- ① えらぶ ---- */
 function showCharSel(){try{termPrep()}catch(e){}S.flow=S.flow||{mode:null};S.flowReady=false;setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");
   if(!S.csSel||!CS_ALL.includes(S.csSel))S.csSel=curChar();{const p=PRF();p.csSeen=p.csSeen||{};p.csSeen[S.csSel]=1}ensureSpr(CS_ALL.filter(c=>ART_SRC[c])).then(()=>{if(window.SCREEN==="chars")renderCharSel()}).catch(()=>{});renderCharSel()}

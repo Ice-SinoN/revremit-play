@@ -268,7 +268,7 @@ TEXT.ui=Object.assign(TEXT.ui||{},{mode_head:"走りかたをえらぶ",mode_mt_
   mode_at_1:"シフトは自動。ブローしない。",mode_at_2:"ターンごとに、エコ（手数）とスポーツ（火力）を選べる。",/* ★v0.22.98 text 36-1 の「全部入ったあと」 */
   mode_ban_mt1:"MT：パーフェクトで伸びる",mode_ban_mt2:"回しすぎるとブロー",mode_ban_mt2a:"ブローなし（オーバーレブだけ）",mode_ban_at1:"AT：シフトは自動",mode_ban_at2:"ブローしない・火力 ×0.9",
   perfect_gain:"倍率 +0.3 ／ 1枚引く{g}",perfect_gain_gas:" ／ ガソリン +{n}",perfect_chain:"PERFECT ×{n}",perfect_chain_help:"パーフェクトが続いた数。続くほど、パーフェクトの得が大きくなる。",
-  drive_eco:"エコ",drive_eco_d:"火力をおさえて、手数をふやす。",drive_sport:"スポーツ",drive_sport_d:"手数をおさえて、火力を上げる。",drive_pick:"ドライブモード",drive_pick_d:"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"});
+  drive_eco:"エコ",drive_eco_d:"火力をおさえて、手数をふやす。",drive_eco_d_MOMO:"火力をおさえて、早めにシフトアップする。",drive_ban_eco_MOMO:"エコ：火力 ×0.85・早めにシフト",/* ★v0.22.111 text v0.22.30 36-4（MOMO はエコのガソリン +1 なし） */drive_sport:"スポーツ",drive_sport_d:"手数をおさえて、火力を上げる。",drive_pick:"ドライブモード",drive_pick_d:"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"});
 
 /* ★v0.22.102 text 30-1 奥義（名前・読み・カットインの一言・フレーバー） */
 TEXT.og={

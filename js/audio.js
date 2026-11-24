@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.27（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.28（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -892,6 +892,109 @@ SE.push({id:'perfect_break',name:'パーフェクト連続が切れた（「PERF
  nz(c,o,t+.08,{f:2400,f2:700,dur:.32,g:.05,a:.04,q:.7});}});
 Object.assign(LV,{perfect_break:2.6});
 
+// ---------- v0.28（2026-11-24）：★虎雪 15:13 SORA・RIN・LUNA・KURO の戦い方の作り直し（design 16・17・19・20章・21-4）。正本：revremit-audio-list.md 19章 ----------
+// SORA＝音色のスタック（色ごとの高さ：赤 C5 → 青 E5 → 緑 G5 と上がる＝「上り」がそのまま上がる音・白＝休符の小さな「チッ」）
+const SORA_C={r:72,b:76,g:79,w:84};
+const soraNote=(c,o,t,col,g)=>{const m=SORA_C[col]||72;g=(g||1)*({r:1,b:2,g:1.4,w:1.5}[col]||1);
+ if(col==='r'){tone(c,o,t,{wave:.25,f:mf(m),dur:.12,g:.16*g});tone(c,o,t,{f:150,f2:70,dur:.06,g:.3*g});nz(c,o,t,{ft:'highpass',f:4000,dur:.02,g:.15*g});}
+ else if(col==='b'){tone(c,o,t,{f:mf(m),dur:.35,g:.12*g});tone(c,o,t,{f:mf(m)*2.76,dur:.12,g:.03*g});tone(c,o,t,{wave:.125,f:mf(m+12),dur:.05,g:.05*g});}
+ else if(col==='g'){tone(c,o,t,{type:'triangle',f:mf(m),dur:.3,g:.16*g,a:.01});tone(c,o,t,{f:mf(m-12),dur:.2,g:.06*g});}
+ else{click(c,o,t,.15*g);tone(c,o,t+.01,{f:mf(m),dur:.08,g:.05*g});}};
+SE.push(
+{id:'sora_note',name:'SORA：音符を置いた（{color:r|b|g|w}＝赤・青・緑・白）',dur:.4,fn:(c,o,t,p)=>soraNote(c,o,t,(p&&p.color)||'r')},
+// 並びの札が出た：強音（同じ色が3つ）＝その色を3つ速く重ねてアクセント／上り（赤→青→緑）＝3音で上がって光る
+{id:'sora_strong',name:'SORA：「強音」の札（{color}）',dur:.6,fn:(c,o,t,p)=>{const col=(p&&p.color)||'r',m=SORA_C[col];[0,.06,.12].forEach((d,i)=>soraNote(c,o,t+d,col,.8+i*.15));
+ tone(c,o,t+.2,{f:120,f2:50,dur:.18,g:.6});[0,12].forEach(d=>tone(c,o,t+.2,{wave:.25,f:mf(m+d),dur:.25,g:.1,hold:.06}));nz(c,o,t+.2,{ft:'highpass',f:5000,dur:.15,g:.12});}},
+{id:'sora_rise',name:'SORA：「上り」の札（赤→青→緑）',dur:.8,fn:(c,o,t)=>{['r','b','g'].forEach((col,i)=>soraNote(c,o,t+i*.08,col));
+ nz(c,o,t+.1,{f:1200,f2:7000,dur:.3,g:.12,a:.25,q:.8});[84,88,91].forEach((m,i)=>tone(c,o,t+.3+i*.04,{f:mf(m),dur:.45,g:.06}));tone(c,o,t+.3,{wave:.25,f:mf(96),dur:.3,g:.08});}},
+// 締め：ドロップ・ザ・ビート（赤）＝溜めて低い「ドン」と落ちるベース／サビ（青）＝明るい和音の連打（n 回）／和音（緑）＝澄んだ和音と貫く高い「キーン」／ブルー・シンフォニー（白）＝3つを重ねる。{n}＝使った音符の数
+{id:'sora_drop',name:'SORA：締め「ドロップ・ザ・ビート」（{n}＝赤の数）',dur:1.6,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(8,(p&&p.n)||3));
+ nz(c,o,t,{f:500,f2:6000,dur:.3,g:.2,a:.28,q:.9});for(let k=0;k<6;k++)tone(c,o,t+k*.045,{wave:.25,f:mf(72+k*2),dur:.04,g:.06});const e=t+.32;
+ tone(c,o,e,{f:110,f2:32,dur:.7,g:1});tone(c,o,e,{type:'sawtooth',f:mf(33),f2:mf(28),dur:.9,g:.16,lp:400});nz(c,o,e,{ft:'lowpass',f:3000,f2:200,dur:.5,g:.6});
+ [57,60,64].forEach(m=>[-10,10].forEach(dt=>tone(c,o,e,{type:'sawtooth',f:mf(m),det:dt,dur:.9,g:.04+n*.004,a:.01,hold:.3,lp:2000})));
+ if(n>=3)tone(c,o,e,{wave:.25,f:mf(81),dur:.5,g:.1,hold:.1});if(n>=6)nz(c,o,e,{ft:'highpass',f:6000,dur:.8,g:.12});}},
+{id:'sora_sabi',name:'SORA：締め「サビ」（{n}＝青の数＝連打の数）',dur:1.8,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(8,(p&&p.n)||3)),ch=[[64,69,72,76],[65,69,72,77],[67,72,76,79],[69,72,76,81]];
+ for(let k=0;k<n;k++){const d=t+k*.09,cd=ch[Math.min(3,k>>1)];cd.forEach(m=>tone(c,o,d,{wave:.25,f:mf(m+12),dur:.08,g:.035}));tone(c,o,d,{f:mf(cd[3]+12),dur:.2,g:.05});nz(c,o,d,{ft:'highpass',f:6000,dur:.03,g:.12});}
+ const e=t+n*.09;[69,72,76,81].forEach(m=>tone(c,o,e,{type:'sawtooth',f:mf(m),dur:.8,g:.04,a:.01,hold:.25,lp:3000}));tone(c,o,e,{f:mf(93),dur:.7,g:.06});tone(c,o,e,{f:130,f2:45,dur:.25,g:.6});}},
+{id:'sora_waon',name:'SORA：締め「和音」（{n}＝緑の数・防御をこえる）',dur:1.6,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(8,(p&&p.n)||3)),N=[67,71,74,79,83,86,91,95].slice(0,Math.max(3,n));
+ N.forEach((m,i)=>{tone(c,o,t+i*.025,{type:'triangle',f:mf(m),dur:1.1,g:.07,a:.01,hold:.3});tone(c,o,t+i*.025,{f:mf(m)*2.76,dur:.3,g:.015});});
+ tone(c,o,t,{f:100,f2:45,dur:.3,g:.6});tone(c,o,t+.05,{f:mf(103),dur:.6,g:.035});nz(c,o,t+.05,{ft:'highpass',f:7000,f2:3500,dur:.25,g:.15,a:.01});tone(c,o,t+.05,{type:'square',f:mf(91),f2:mf(98),dur:.15,g:.03});}},
+{id:'sora_blue',name:'SORA：ブルー・シンフォニー（3つの締めを重ねる）',dur:2.2,fn:(c,o,t)=>{SEFN('sora_drop')(c,o,t,{n:3});SEFN('sora_sabi')(c,o,t+.35,{n:3});SEFN('sora_waon')(c,o,t+.7,{n:3});
+ [81,85,88,93].forEach((m,i)=>tone(c,o,t+.9+i*.06,{f:mf(m),dur:1,g:.05}));}},
+);
+// RIN＝弓と駒（G マイナー）。弓は間合いで音の長さが変わる（遠いほど長く高い風切り）。駒の昇格は段ごとに上がる
+SE.push(
+{id:'rin_bow',name:'RIN：弓を射た（{range:0〜3}＝間合い。遠いほど長い風切り）',dur:.8,fn:(c,o,t,p)=>{const r=Math.max(0,Math.min(3,(p&&p.range)!=null?p.range:2)),L=.12+r*.12;
+ tone(c,o,t,{type:'triangle',f:196,dur:.25,g:.26});tone(c,o,t,{f:392,dur:.12,g:.06});nz(c,o,t,{ft:'highpass',f:3500,dur:.025,g:.25});
+ nz(c,o,t+.02,{f:2000+r*600,f2:5000+r*800,dur:L,g:.16,a:.02,q:2.2});tone(c,o,t+.02,{f:mf(86+r),f2:mf(84+r),dur:L,g:.012+r*.006});
+ nz(c,o,t+.02+L,{ft:'lowpass',f:1500,dur:.05,g:.3});tone(c,o,t+.02+L,{f:160,f2:90,dur:.06,g:.25});}},
+{id:'rin_first',name:'RIN：先制の矢（間合い 3・戦闘の最初）',dur:1,fn:(c,o,t)=>{[74,79].forEach((m,i)=>tone(c,o,t+i*.09,{type:'sawtooth',f:mf(m),dur:.12,g:.06,lp:2400}));
+ SEFN('rin_bow')(c,o,t+.2,{range:3});tone(c,o,t+.7,{f:mf(91),dur:.3,g:.04});}},
+{id:'rin_leap',name:'RIN：ナイトの跳び矢（番のはじめ・先に刺さる）',dur:.9,fn:(c,o,t)=>{tone(c,o,t,{wave:.25,f:mf(67),f2:mf(79),dur:.12,g:.1,lin:true});tone(c,o,t+.12,{wave:.25,f:mf(83),dur:.06,g:.08});
+ nz(c,o,t+.05,{ft:'lowpass',f:900,dur:.04,g:.25});SEFN('rin_bow')(c,o,t+.18,{range:2});}},
+// 昇格：盤に駒を置く木の「コトッ」→ 段ごとに上がる音（ルーク2音・ビショップ3音・ナイト3音で跳ぶ・クイーンは和音ときらめき）
+{id:'rin_promote',name:'RIN：駒が昇格した（{lv:1〜4}＝ルーク・ビショップ・ナイト・クイーン）',dur:1.3,fn:(c,o,t,p)=>{const lv=Math.max(1,Math.min(4,(p&&p.lv)||1));
+ tone(c,o,t,{type:'triangle',f:900,dur:.04,g:.14});tone(c,o,t,{f:240,f2:160,dur:.07,g:.3});nz(c,o,t,{ft:'bandpass',f:1500,q:3,dur:.03,g:.2});
+ const S=[[67,74],[67,71,74],[67,74,79],[67,71,74,79]][lv-1],k=[0,2,5,7][lv-1];
+ S.forEach((m,i)=>tone(c,o,t+.08+i*.07,{type:'sawtooth',f:mf(m+k),dur:.14,g:.07,lp:2600}));const e=t+.08+S.length*.07;
+ tone(c,o,e,{type:'sawtooth',f:mf(S[S.length-1]+k+12),dur:.35+lv*.08,g:.05,hold:.1,lp:3000});tone(c,o,e,{f:mf(S[S.length-1]+k+12),dur:.4,g:.05});
+ if(lv===4){[67,71,74].forEach(m=>[-8,8].forEach(dt=>tone(c,o,e,{type:'sawtooth',f:mf(m+k),det:dt,dur:.8,g:.03,a:.01,hold:.3,lp:2600})));for(let i=0;i<5;i++)tone(c,o,e+.05+i*.05,{f:mf(91+k+[0,4,7,12,16][i]),dur:.4,g:.03});}}},
+{id:'rin_demote',name:'RIN：駒の段が下がった・消えた',dur:.4,fn:(c,o,t)=>{tone(c,o,t,{type:'triangle',f:700,dur:.03,g:.1});tone(c,o,t+.05,{wave:.5,f:mf(74),dur:.08,g:.06});tone(c,o,t+.13,{wave:.5,f:mf(67),dur:.14,g:.06});}},
+// クイーンズ・オーダー：号令のブラス → 駒の段だけ重なる（{lv:0〜4}）
+{id:'rin_order',name:'RIN：クイーンズ・オーダー（{lv:0〜4}＝場の駒）',dur:1.8,fn:(c,o,t,p)=>{const lv=Math.max(0,Math.min(4,(p&&p.lv)||0));
+ [[0,67],[.12,67],[.24,74],[.48,79]].forEach(([d,m],i)=>{tone(c,o,t+d,{type:'sawtooth',f:mf(m),dur:i===3?.5:.1,g:.09,a:.01,hold:i===3?.2:0,lp:2400});tone(c,o,t+d,{wave:.25,f:mf(m),det:6,dur:i===3?.5:.1,g:.06});});
+ const e=t+.5;tone(c,o,e,{f:110,f2:40,dur:.4,g:.8});nz(c,o,e,{f:1500,dur:.3,g:.35,q:.6});
+ [55,59,62,67,71].slice(0,1+lv).forEach(m=>[-8,8].forEach(dt=>tone(c,o,e,{type:'sawtooth',f:mf(m+12),det:dt,dur:1.1,g:.035,a:.02,hold:.4,lp:2600})));
+ if(lv>=4)for(let i=0;i<8;i++)tone(c,o,e+.1+i*.05,{f:mf(91+[0,4,7,12][i%4]),dur:.35,g:.03});}},
+);
+// LUNA＝月の満ち欠け＋星座（Eb メジャー）。星はマスごとに高さ（上の段ほど高い）
+const LUNA_SC=[75,77,79,82,84,87,89,91,94];
+const lunaCell=n=>{n=Math.max(1,Math.min(9,n|0||5));const row=Math.floor((n-1)/3),col=(n-1)%3;return LUNA_SC[(2-row)*3+col];};
+SE.push(
+{id:'luna_moon',name:'LUNA：月が変わった（{phase:0〜3}＝新月・三日月・半月・満月）',dur:1.6,fn:(c,o,t,p)=>{const ph=Math.max(0,Math.min(3,(p&&p.phase)||0));
+ if(ph===0){tone(c,o,t,{f:mf(51),dur:1.1,g:.12,a:.3,hold:.3});tone(c,o,t+.1,{type:'triangle',f:mf(70),f2:mf(63),dur:.6,g:.05,a:.05});nz(c,o,t,{ft:'lowpass',f:500,dur:.9,g:.06,a:.3});return;}
+ const S=[[75,79],[75,79,82],[75,79,82,87]][ph-1];S.forEach((m,i)=>{tone(c,o,t+i*.09,{f:mf(m+12),dur:.7,g:.06});tone(c,o,t+i*.09,{f:mf(m+12)*2.76,dur:.2,g:.012});});
+ if(ph===3){[63,67,70,75].forEach(m=>[-6,6].forEach(dt=>tone(c,o,t+.3,{type:'sawtooth',f:mf(m),det:dt,dur:1.2,g:.03,a:.35,hold:.4,lp:2200})));nz(c,o,t+.2,{ft:'highpass',f:5000,f2:9000,dur:1,g:.07,a:.4});tone(c,o,t+.4,{f:mf(99),dur:.9,g:.05});}}},
+{id:'luna_star',name:'LUNA：星が灯った（{cell:1〜9}＝マス。上の段ほど高い）',dur:.6,fn:(c,o,t,p)=>{const m=lunaCell(p&&p.cell);tone(c,o,t,{f:mf(m+12),dur:.5,g:.1});tone(c,o,t,{f:mf(m+12)*2.76,dur:.18,g:.025});tone(c,o,t+.03,{f:mf(m+24),dur:.25,g:.025});nz(c,o,t,{ft:'highpass',f:8000,dur:.05,g:.06});}},
+{id:'luna_line',name:'LUNA：直線がそろった＝流れ星（{full:true}＝満月）',dur:1.2,fn:(c,o,t,p)=>{const fm=p&&p.full;for(let k=0;k<9;k++){tone(c,o,t+k*.04,{f:mf(98-k*1.5),dur:.3,g:.05-k*.003});}
+ nz(c,o,t,{ft:'highpass',f:7000,f2:2500,dur:.45,g:.1,a:.05});const e=t+.38;tone(c,o,e,{f:140,f2:50,dur:.2,g:.6});nz(c,o,e,{ft:'highpass',f:3000,dur:.04,g:.3});tone(c,o,e,{f:mf(87),dur:.6,g:.06});
+ if(fm){tone(c,o,e,{f:mf(99),dur:.7,g:.05});[75,79,82].forEach(m=>tone(c,o,e,{type:'sawtooth',f:mf(m),dur:.6,g:.03,a:.01,hold:.15,lp:2400}));}}},
+{id:'luna_tri',name:'LUNA：三角がそろった＝守り（{full:true}＝満月）',dur:1,fn:(c,o,t,p)=>{const fm=p&&p.full;[75,82,87].forEach((m,i)=>tone(c,o,t+i*.07,{type:'triangle',f:mf(m+12),dur:.5,g:.09}));
+ tone(c,o,t+.22,{f:110,f2:60,dur:.25,g:.5});tone(c,o,t+.22,{type:'triangle',f:620,dur:.35,g:.1});tone(c,o,t+.22,{type:'triangle',f:930,dur:.3,g:.07});if(fm)tone(c,o,t+.25,{f:mf(99),dur:.6,g:.05});}},
+{id:'luna_full',name:'LUNA：星座の完成（9つ。{full:true}＝満月）',dur:2.6,fn:(c,o,t,p)=>{const fm=p&&p.full;[1,2,3,6,9,8,7,4,5].forEach((n,i)=>{const m=lunaCell(n);tone(c,o,t+i*.06,{f:mf(m+12),dur:.6,g:.06});tone(c,o,t+i*.06,{f:mf(m+12)*2.76,dur:.15,g:.015});});
+ const e=t+.6;tone(c,o,e,{f:120,f2:35,dur:.6,g:.95});nz(c,o,e,{ft:'lowpass',f:3500,f2:300,dur:.6,g:.6});nz(c,o,e,{ft:'highpass',f:5000,f2:9000,dur:1.6,g:.1,a:.05});
+ [63,67,70,75,79].forEach(m=>[-8,8].forEach(dt=>tone(c,o,e,{type:'sawtooth',f:mf(m),det:dt,dur:1.8,g:.035,a:.02,hold:.7,lp:2600})));tone(c,o,e,{wave:.25,f:mf(87),dur:1.4,g:.12,hold:.5});
+ for(let k=0;k<12;k++)tone(c,o,e+.15+k*.06,{f:mf(LUNA_SC[k%9]+24),dur:.4,g:.025});if(fm){tone(c,o,e,{f:mf(99),dur:1.4,g:.06});tone(c,o,e,{f:mf(51),dur:1.4,g:.15,a:.05,hold:.5});}}},
+);
+// KURO＝心拍とグリッチ（G マイナー）。心拍はエンジン音のかわり（AUDIO.kuroHeart(bpm) で回す・エンジンのつまみ）
+SE.push(
+{id:'kuro_beat',name:'KURO：心拍1つ（{bpm:60〜200}。速いほど強く、180 から危ない高い音）',dur:.5,fn:(c,o,t,p)=>{const b=Math.max(40,Math.min(220,(p&&p.bpm)||80)),k=Math.max(0,Math.min(1,(b-60)/140)),g=.45+k*.4;
+ tone(c,o,t,{f:68+k*12,f2:42,dur:.15,g});tone(c,o,t+.12-k*.04,{f:60+k*10,f2:40,dur:.16,g:g*.7});if(k>.45)nz(c,o,t,{ft:'lowpass',f:300+k*500,dur:.08,g:.1*k});
+ if(b>=180)tone(c,o,t,{f:1760,dur:.18,g:.02+(b-180)*.0015,hold:.08});}},
+{id:'kuro_glitch_add',name:'KURO：グリッチが貯まった（{n:1〜10}＝今の数。上がるほど高く・10 で満タン）',dur:.5,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(15,(p&&p.n)||1)),r=rng(n*13+5),m=67+Math.min(n,10)*2;
+ for(let k=0;k<3+Math.min(n,10)/2;k++){tone(c,o,t+k*.025,{type:'square',f:mf(m+[0,12,7,3][k%4])*(1+(r()-.5)*.04),dur:.02,g:.05});}
+ nz(c,o,t,{f:2000+n*300,dur:.04,g:.15,q:2});tone(c,o,t+.08,{wave:.125,f:mf(m+12),dur:.08,g:.07});
+ if(n>=10){[0,3,7,12].forEach((d,i)=>tone(c,o,t+.12+i*.04,{wave:.25,f:mf(79+d),dur:.25,g:.035}));nz(c,o,t+.12,{ft:'highpass',f:6000,dur:.25,g:.045});}}},
+{id:'kuro_glitch_use',name:'KURO：グリッチを使った（{n}＝使った数）',dur:.8,fn:(c,o,t,p)=>{const n=Math.max(1,Math.min(15,(p&&p.n)||3)),r=rng(n*7+1);
+ tone(c,o,t,{type:'square',f:mf(79+n),f2:mf(55),dur:.18+n*.02,g:.06,lin:true});for(let k=0;k<n;k++)nz(c,o,t+k*.025,{f:4000-k*250,dur:.02,g:.14,q:3});
+ tone(c,o,t+.05,{f:130,f2:45,dur:.2,g:.4+n*.03});if(r()<1)tone(c,o,t+.02,{type:'sawtooth',f:mf(43),dur:.25,g:.06,lp:900});}},
+// 転倒（ほかの子のブローにあたる・ランはつづく）：タイヤがすべる → 自転車が倒れる金属の音 → チェーンがからから → グリッチがくずれて消える
+{id:'kuro_fall',name:'KURO：転倒（心拍が上限をこえた。グリッチが全部 0）',dur:1.8,fn:(c,o,t)=>{nz(c,o,t,{f:2600,f2:1600,dur:.3,g:.25,a:.02,q:5});tone(c,o,t,{type:'sawtooth',f:1100,f2:800,dur:.28,g:.03,lp:3000});
+ const e=t+.3;tone(c,o,e,{f:120,f2:45,dur:.3,g:.8});nz(c,o,e,{ft:'lowpass',f:2500,dur:.15,g:.5});const r=rng(9);
+ for(let k=0;k<7;k++)tone(c,o,e+.02+r()*.35,{type:'triangle',f:1200+r()*2600,dur:.1,g:.07});for(let k=0;k<10;k++)nz(c,o,e+.25+k*.05,{f:3000,q:6,dur:.02,g:.12-k*.01});
+ [79,75,70,67,62,58].forEach((m,i)=>tone(c,o,e+.35+i*.06,{type:'square',f:mf(m),dur:.05,g:.05}));tone(c,o,e+.75,{type:'sawtooth',f:mf(43),f2:mf(31),dur:.6,g:.07,lp:600});}},
+// グリッチ・トリック（固有）：グリッチが渦を巻いて止まる → 一撃 → ルールを書きかえる「カチカチ」と上がる和音（{rule:1〜4}＝書きかえで最後の音が変わる）
+{id:'kuro_trick',name:'KURO：グリッチ・トリック（{rule:1〜4}＝書きかえ）',dur:2.4,fn:(c,o,t,p)=>{const ru=Math.max(1,Math.min(4,(p&&p.rule)||1)),r=rng(44);
+ for(let k=0;k<18;k++){const d=k*.035;tone(c,o,t+d,{type:'square',f:mf(55+k*2)*(1+(r()-.5)*.06),dur:.025,g:.05});if(k%3===0)nz(c,o,t+d,{f:1000+k*300,dur:.02,g:.12,q:2});}
+ tone(c,o,t,{type:'sawtooth',f:mf(43),f2:mf(67),dur:.62,g:.07,a:.5,lp:1500});const e=t+.66;
+ tone(c,o,e,{f:150,f2:30,dur:.6,g:1});nz(c,o,e,{ft:'lowpass',f:4000,f2:300,dur:.5,g:.7});click(c,o,e,.5);
+ for(let k=0;k<6;k++){click(c,o,e+.35+k*.06,.2);tone(c,o,e+.35+k*.06,{type:'square',f:mf(79+k*2),dur:.03,g:.05});}
+ const top=[79,82,84,86][ru-1];[67,70,74].forEach(m=>[-8,8].forEach(dt=>tone(c,o,e+.75,{type:'sawtooth',f:mf(m+12),det:dt,dur:1,g:.035,a:.02,hold:.35,lp:2600})));
+ tone(c,o,e+.75,{wave:.25,f:mf(top+12),dur:.8,g:.12,hold:.25});tone(c,o,e+.8,{f:mf(top+24),dur:.6,g:.04});}},
+);
+Object.assign(LV,{sora_note:2.4,sora_strong:.75,sora_rise:2.2,sora_drop:.75,sora_sabi:1.3,sora_waon:1.4,sora_blue:.8,rin_bow:1,rin_first:1,rin_leap:1,rin_promote:2.2,rin_demote:3.5,rin_order:.9,
+ luna_moon:2.4,luna_star:5,luna_line:.9,luna_tri:1.2,luna_full:.8,kuro_beat:1,kuro_glitch_add:4.5,kuro_glitch_use:1,kuro_fall:.8,kuro_trick:.7});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -939,7 +1042,7 @@ function engineBurst(from,to,opt){
 }
 
 // BGM（ループは小節ごとに先読みで並べる）
-let P=null,hbT=null,hbHP=1,AMB=null,LAYERS='DBHMX',RL=null,REDLV=1;
+let KH={t:null,b:null};let P=null,hbT=null,hbHP=1,AMB=null,LAYERS='DBHMX',RL=null,REDLV=1;
 // v0.21：何速でどのパートか（デザイン班が決める。setGearLayers で上書き）。仮：1〜2速＝ドラム＋ベース、3〜4速＋和音と飾り、5〜6速＋メロディ、7〜8速＋リード（L は全部入り 'DBHMX' のときは鳴らない）
 let GEARMAP={1:'DB',2:'DB',3:'DBHX',4:'DBHX',5:'DBHXM',6:'DBHXM',7:'DBHXML',8:'DBHXML'};
 function setLayers(ls,fade,beat){const PM={p1:'DBX',p2:'M',p3:'H',p4:'L'};LAYERS=Array.isArray(ls)?ls.map(x=>PM[x]||x).join(''):String(ls||'DBHMX').replace(/p[1-4]/g,m=>PM[m]);if(!P||!P.parts||!C)return;let t=C.currentTime;
@@ -986,7 +1089,7 @@ function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGL
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.27',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.28',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
@@ -1003,6 +1106,9 @@ window.AUDIO={
  bgmPhase(n){PHASE=n||1;}, // v0.11：曲の後半へ（次の小節から）。bgm() で別の曲にすると 1 にもどる
  // v0.12（β のあと）：影線の2台目のエンジン（勝ったら false で1台にもどす）／KURO の心拍（耐久の割合 0〜1。null で止める）／場面の環境音（今は 'wave'＝潮騒の波）
  engineGhost(on){ghost=!!on;if(!on&&cur2&&C){cur2.fade?cur2.fade(C.currentTime,.4):0;}},
+ // v0.28：KURO の心拍（エンジン音のかわり。エンジンのつまみで大きさが変わる）。bpm を渡すとその速さで鳴りつづけ、呼ぶたびに速さが変わる。null で止める
+ kuroHeart(bpm){clearTimeout(KH.t);KH.t=null;if(bpm==null){KH.b=null;return;}KH.b=Math.max(40,Math.min(220,bpm));if(FARMON)return;const c=ok();if(!c)return;
+  const go=()=>{if(KH.b==null||!C)return;const s=BYID.kuro_beat,g=C.createGain();g.gain.value=(LV.kuro_beat||1);g.connect(BUS.engine);s.fn(C,g,C.currentTime+.01,{bpm:KH.b});setTimeout(()=>g.disconnect(),800);KH.t=setTimeout(go,60000/KH.b);};go();},
  heart(hp){clearTimeout(hbT);hbT=null;if(hp==null)return;hbHP=Math.max(0,Math.min(1,hp));const go=()=>{playSE('heartbeat',{hp:hbHP});hbT=setTimeout(go,60000/(70+(1-hbHP)*90));};go();},
  ambient(id,v,fade){ambStop(.3);const c=ok();if(!c||!AMBGEN[id])return;const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(v==null?.6:v,c.currentTime+(fade==null?2:fade));g.connect(BUS.amb);
   const r=rng(17),A={g,t:c.currentTime+.05,id,beds:ambBed(c,g,id,c.currentTime+.05)};const gen=AMBGEN[id];A.timer=setInterval(()=>{while(A.t<C.currentTime+1.5)A.t+=gen(C,g,A.t,r);},250);AMB=A;},

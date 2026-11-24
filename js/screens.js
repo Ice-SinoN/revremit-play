@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.110（β2）";
+const VERSION="試作 v0.22.111（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -341,7 +341,12 @@ function cardActions(i){const c=B.hand[i],p=preview(c);if(!p.ok)return[];
   if(p.danger==="blow")return[["打つ（エンジンブロー＝即死）",false,"warn"]];
   return[["打つ",false,"main"]];
 }
-function clickCard(i){
+/* ★v0.22.111 長押しの説明（カードの欄 lp・強化後 lpu。③の RIN のクイーンズ・オーダーなど）：手札を 0.45秒 押す／説明の窓の「くわしく」 */
+function lpOf(c){const d=CARDS[c&&c.id||c];if(!d)return"";return(c&&c.up&&d.lpu)||d.lp||""}
+function lpShow(c){const t=lpOf(c);if(!t)return;SND.se("ui_ok");toast2(t,250,4000)}
+function cardLP(i){cardLPx();const c=B&&B.hand&&B.hand[i];if(!c||!lpOf(c))return;S.cardLPt=setTimeout(()=>{S.cardLPf=1;lpShow(c)},450)}
+function cardLPx(){if(S.cardLPt){clearTimeout(S.cardLPt);S.cardLPt=0}}
+function clickCard(i){if(S.cardLPf){S.cardLPf=0;return}
   if(B.over)return;if(busy())uiSkip();if(!tutAllow("card",i))return;
   const c=B.hand[i];if(!c)return;const p=preview(c);
   if(S.sel===i&&!p.ok)SND.se("card_cant");/* ★audio-check 1：打てない（ローテーションの「このターンは使った」「入れかえるカードがない」も）をもう一度タップ */
@@ -388,13 +393,13 @@ function renderBattle(){
   // 手札
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
-      attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" ${locked?"disabled":""}`})}).join("");
+      attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" onpointerdown="cardLP(${i})" onpointerup="cardLPx()" onpointerleave="cardLPx()" onpointercancel="cardLPx()" ${locked?"disabled":""}`})}).join("");
   h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
     h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${typeRar(d.t,rarityOf(c))}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
-      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx${G.mode==="AT"&&modeMark(c)?" atv":""}">${esc(descOf(c,c.up,B.gear))}</div>${detailNumbers(S.sel)}
+      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx${G.mode==="AT"&&modeMark(c)?" atv":""}">${esc(descOf(c,c.up,B.gear))}${lpOf(c)?` <button class="mini lpbtn" onclick="event.stopPropagation();lpShow(B.hand[S.sel])">くわしく</button>`:""}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
   // 右下：ボタン
