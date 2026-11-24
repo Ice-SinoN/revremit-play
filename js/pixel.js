@@ -38,6 +38,13 @@ const ART_SRC={
 ["muon","kagesen","ketsuban","itoboshi","uramen","shiosai"].forEach(k=>[k,k+"_p2"].forEach(n=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${n}_c2_sheet`;ART_SRC[n]={sheet:f+".png",json:f+".json",foot:[144,284],lazy:1}}));
 /* ★v0.22.40 SORA〜MIO 編のキャラの戦闘（LUNA・KURO・MIO が届いた。SORA・KAEDE・RIN は置けば同じ形で） */
 ["SORA","KAEDE","RIN","LUNA","KURO","MIO"].forEach(c=>{const f=`assets/c2/characters/${c}/c2/revremit_chr_${c}_c2_sheet`;ART_SRC[c]={sheet:f+".png",json:f+".json",foot:[112,220],lazy:1}});
+/* ★v0.22.101 奥義の絵（AD v0.77・graphics-hq 23-18・窓口 11-24 14:03）。仕組み（design 10-15）はまだ＝登録だけ・あとで読む絵。
+   OUGI_ART[id]={cutin(1280×360),cutin1(640×180),spr（12コマのモーション＝ART_SRC のキー。なければ null）}。YUKI は今の片腕の版（cutin/c2・characters/YUKI の og シート） */
+const OUGI_ART={};
+[["yuki","fubuki"],["yuki","shironeko"],["yuki","kousetsu"]].forEach(([c,b])=>{const k=`og_${c}_${b}`,f=`assets/c2/characters/YUKI/c2/revremit_chr_YUKI_c2_og_${b}_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220],lazy:1};
+  OUGI_ART[`ougi_${c}_${b}`]={cutin:`assets/c2/cutin/c2/revremit_og_cutin_ougi_${c}_${b}.png`,cutin1:null,spr:k}});
+[["hina","zenkai",1],["hina","hibana",1],["hina","memo",1],["momo","mankai"],["momo","hanaiyashi"],["momo","kaerizaki"],["nana","houyoku"],["nana","oukyuu"],["nana","taikan"]].forEach(([c,b,m])=>{const f=`assets/c2/ougi/c2/revremit_og_${c}_${b}_`,k=`og_${c}_${b}`;
+  if(m)ART_SRC[k]={sheet:f+"sheet.png",json:f+"sheet.json",foot:[112,220],lazy:1};OUGI_ART[`ougi_${c}_${b}`]={cutin:f+"cutin.png",cutin1:f+"cutin_x1.png",spr:m?k:null}});
 ["kuuten","sanka","miketsu","kuuten_p2","sanka_p2","miketsu_p2"].forEach(k=>{const f=`assets/c2/characters/enemy/c2/revremit_chr_enemy_${k}_c2_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[144,284]}});
 const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1",kuuten:"boss1",sanka:"boss2",miketsu:"boss2"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
@@ -217,7 +224,7 @@ function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE
 /* ★v0.22.78 虎雪 13:19「キャラが仮絵」：起動で読めなかった（メモリ・通信）ときは、戦闘に入るときにもう一度読む */
 function charArtRetry(){const ks=["YUKI"].concat(typeof G!=="undefined"&&G&&G.char&&G.char!=="YUKI"?[G.char]:[]).filter(k=>ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc));if(ks.length)ensureSpr(ks).then(()=>{window.ART_STATE&&ks.forEach(k=>ART_STATE[k]=SPR[k]&&!SPR[k].proc?"絵":"仮")})}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
-const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
+const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|\/ougi\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
 /* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
 const FUSED_SHEET="assets/c2/cards/c2/revremit_card_art_c2_fused_sheet";
 async function loadFusedArt(have){window.FUSED_ART={};const P=FUSED_SHEET+".png",J=FUSED_SHEET+".json";if(!have.has(P)||typeof FUSE==="undefined")return;
