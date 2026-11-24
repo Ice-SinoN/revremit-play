@@ -30,7 +30,7 @@ function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["char
     if(!set||set.proc){g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
     if(cv.dataset.face){csSilFace(cv,g,set);return}
     const t=set.tags.idle||set.tags.stand||[0,0],n=t[1]-t[0]+1,ms=(set.dur&&set.dur[t[0]])||120,fr=set.frames[t[0]+Math.floor(performance.now()/ms)%n];if(!fr)return;
-    const sc=Math.min(cv.width/fr.width,cv.height/fr.height)*(+cv.dataset.z||1),w=fr.width*sc,h=fr.height*sc,fx=(set.foot?set.foot[0]:fr.width/2)*sc,fy=(set.foot?set.foot[1]:fr.height)*sc;
+    const sc=cv.dataset.int?+cv.dataset.int:Math.min(cv.width/fr.width,cv.height/fr.height)*(+cv.dataset.z||1),/* ★v0.22.113 AD v0.85：data-int＝整数倍（ふちがギザギザにならない） */w=fr.width*sc,h=fr.height*sc,fx=(set.foot?set.foot[0]:fr.width/2)*sc,fy=(set.foot?set.foot[1]:fr.height)*sc;
     const x=Math.round(cv.width/2-fx),y=Math.round(cv.height-2-fy);
     if(cv.dataset.sil){const o=S.silCv||(S.silCv=document.createElement("canvas"));o.width=cv.width;o.height=cv.height;const q=o.getContext("2d");q.imageSmoothingEnabled=false;q.clearRect(0,0,o.width,o.height);
       q.drawImage(fr,x,y,w,h);q.globalCompositeOperation="source-in";q.fillStyle="#3a3456";q.fillRect(0,0,o.width,o.height);q.globalCompositeOperation="source-over";g.drawImage(o,0,0)}

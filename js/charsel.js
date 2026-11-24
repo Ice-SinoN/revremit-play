@@ -32,7 +32,7 @@ function csFace(c,lock){const f=csPart("face_"+c.toLowerCase());/* ロック中�
   const b=`assets/c2/story/c2/revremit_story_bust_${c.toLowerCase()}_normal.png`;if(!lock&&typeof artHave==="function"&&artHave(b))return`<span class="csface bust${lock?" sil":""}" style="background-image:url('${artURL(b)}')"></span>`;
   return lock?`<canvas class="chav csface" data-ch="${c}" data-face="1" width="52" height="52"></canvas>`:`<canvas class="chav csface" data-ch="${c}" data-z="2.4" width="52" height="52"></canvas>`}
 /* ★v0.22.111 AD v0.84：ロック中の顔＝頭から胸までを 52×52 いっぱいに・1色（枠の地より少し明るい暗い灰色）・10人とも同じ高さ（元の絵の 84px＝頭のてっぺんの 4px 上から）で切り出す */
-const CS_SIL={src:84,pad:4,col:"#2e2b40"};
+const CS_SIL={src:84,pad:7,col:"#2e2b40"};
 function csSilFace(cv,g,set){const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]];if(!fr)return;
   let b=fr._csHead;if(!b){const w=fr.width,h=fr.height,q=document.createElement("canvas");q.width=w;q.height=h;const x=q.getContext("2d");x.drawImage(fr,0,0);const d=x.getImageData(0,0,w,h).data;
     let y0=h;for(let y=0;y<h&&y0===h;y++)for(let i=0;i<w;i++)if(d[(y*w+i)*4+3]>40){y0=y;break}
@@ -48,7 +48,7 @@ function showCharSel(){try{termPrep()}catch(e){}S.flow=S.flow||{mode:null};S.flo
 function renderCharSel(){const c=S.csSel,open=csOpen(c),I=CS_INFO[c]||{},C=CHARS[c],p=PRF();
   let h=`<div class="cshead" ${at(0,0,640,24)}></div><button class="csback" ${at(4,1,72,22)} onclick="csBack()">◀ ${esc(CST("cs_back","もどる"))}</button>
    <div class="hdr" ${at(78,4,300,18)}>${esc(CST("cs_head","キャラをえらぶ"))}</div><div class="small dim" ${at(470,6,164,14)} style="text-align:right">ミニカー ${loadMinicars().length}/60</div>
-   <div class="csstage" ${at(20,30,200,260)}><canvas class="chav csbig" data-ch="${c}" ${open?"":'data-sil="1"'} width="200" height="236"></canvas>
+   <div class="csstage" ${at(20,30,200,260)}><canvas class="chav csbig" data-ch="${c}" data-int="2" ${open?"":'data-sil="1"'} width="400" height="472"></canvas>
     <div class="small cscar">${open&&C?`${esc(C.carName)} → ${esc(C.weapon||"")}`:""}</div></div>
    <div class="${csPart("board")?"csboard":"sign"} csdesc" style="left:236px;top:30px;width:384px;height:260px;${csPart("board")?`--bd:url('${csPart("board")}')`:""}">`;
   if(open){const dc=csDeckCount(c),modes=csModes(c);
