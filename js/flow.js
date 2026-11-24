@@ -45,7 +45,7 @@ function showStartPick(){try{termPrep()}catch(e){}setScreen("startpick");setScen
    ["self","auto"].map((k,i)=>{const t=START_TXT[k],off=k==="auto"&&!fa;return `<button class="u9 mdcard${k==="self"?" main":""}${off?" off":""}" ${at(40+i*290,60,270,220)} onclick="${k==="self"?"startFlow()":"startFullAuto()"}"><div class="mdh" style="font-size:20px">${esc(TU("start_"+k,t[0]))}</div>
      <div class="mdt">${esc(TU("start_"+k+"_1",t[1]))}</div><div class="mdt">${esc(TU("start_"+k+"_2",t[2]))}</div>${off?`<div class="small dim">${esc(TU("start_auto_wip","準備中"))}</div>`:""}</button>`}).join("")}
 function startFullAuto(){if(window.FULLAUTO&&FULLAUTO.open){SND.se("ui_ok");try{FULLAUTO.open()}catch(e){console.error(e);toast2("フルオートを開けませんでした")}}else{SND.se("card_cant");toast2(TU("start_auto_wip_t","フルオート周回は準備中です"))}}
-function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flowTicket=null;S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();showChars()}
+function startFlow(mode){try{termPrep()}catch(e){}SND.se("ui_ok");S.flowTicket=null;S.flow={mode:mode||null};if(mode){try{if(PRF().lastMode!==mode){PRF().lastMode=mode;SAVE.auto()}}catch(e){}}S.chSel=curChar();S.csSel=curChar();S.flowBring=[];showCharSel()}/* ★v0.22.108 案1：①えらぶ → ②準備 */
 const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
 const flowModeTag=()=>S.flow&&!S.flow.mode?"":`（${flowMode()}）`;
 /* ---- 2. キャラ ---- */
@@ -84,7 +84,7 @@ function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];s
 /* ---- 3b. 走りかた（MT／AT）★v0.22.61。文は text（mode_mt_1 など）があればそれ ---- */
 FULL_SCREENS.push("modes");SCREEN_BG.modes="garage";
 const MODE_TXT={MT:["自分でシフトアップする。帯の中でシフトするとパーフェクト。","パーフェクトでガソリンがもどり、カードをつなげやすい。"],AT:["シフトは自動。回転が帯に入ると、ひとりでに上がる。","シフトを気にせず、カードを打つことに集中できる。"]};
-function flowToMode(bring){S.flowBring=(bring||[]).slice();if(S.flow&&S.flow.mode){runConfirm(S.flowBring);return}showModes()}
+function flowToMode(bring){S.flowBring=(bring||[]).slice();if(S.flowReady){showReady();return}if(S.flow&&S.flow.mode){runConfirm(S.flowBring);return}showModes()}
 function showModes(){setScreen("modes");setScene("dim");setBg("garage");closeModal();const ch=curChar(),n=curNight(),last=PRF().lastMode||"MT";
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>${esc(TU("mode_head","走りかたをえらぶ"))}（${esc(TEXT.names[ch]||ch)}・NIGHT ${n}）</div>${backBtn("もどる","modeBack()")}`+
    ["MT","AT"].map((m,i)=>`<button class="u9 mdcard${m===last?" main":""}" ${at(40+i*290,60,270,220)} onclick="modePick('${m}')"><div class="mdh">${m}</div><div class="mdn">${esc(TU("mode_"+m.toLowerCase()+"_name",m==="MT"?"マニュアル":"オートマ"))}</div>
@@ -196,7 +196,7 @@ function treeRename(){const t=treeData(treeChar()),pr=t.presets[t.cur||0];S.tree
   modal(`<div class="h">名前をつける</div><input id="tname" class="tname" maxlength="10" value="${esc(pr.name||"")}" placeholder="${esc(treeName(treeChar()))}"><div class="row"><button class="main" onclick="S.treeGo()">きめる</button><button onclick="closeModal()">やめる</button></div>`)}
 function treePick(){const ch=treeChar();SND.se("ui_ok");toast2(S.treeHub?`「${treeName(ch)}」にしました`:`「${treeName(ch)}」で走ります`);treeSave();treeBack()}
 function treeChar(){return S.treeHub&&S.treeCh||curChar()}
-function treeBack(){SND.se("ui_cancel");if(S.treeHub){S.treeHub=false;showHub();return}runConfirm(S.flowBring||[])}
+function treeBack(){SND.se("ui_cancel");if(S.treeFromReady){S.treeFromReady=false;showReady();return}if(S.treeHub){S.treeHub=false;showHub();return}runConfirm(S.flowBring||[])}
 /* ===== ★v0.22.69 ガレージ（★虎雪 11-20 10:47）：ランの外のメニューをまとめる。ミニカー（一覧・中身・処分）・型（スキルツリー）・デッキ・みおのラボ・図鑑 ===== */
 FULL_SCREENS.push("hub","mcbox");Object.assign(SCREEN_BG,{hub:"garage",mcbox:"garage"});
 function hubBack(){if(S.hubOpen)showHub();else showTitle()}
