@@ -152,7 +152,7 @@ function cdxDetailHTML(t,L){const x=L.find(y=>y.id===CDX.sel);
   if(!x)return`<div class="small dim">${t==="snd"?"曲をタップで再生、もう一度で止める。":t==="img"?"絵をタップで大きく。左右で次・前。":t==="gloss"?"用語をタップすると、意味が出ます。<br>カードの説明の点線の下線をタップしても出ます。":"タップすると、ここに中身が出ます。<br>見ていないものは、手に入れ方のヒント。"}</div>`+(t==="snd"?cdxSndCtl():"");
   if(t==="gloss")return`<div class="cdxh">${rr2Esc(x.d.w)}${x.d.prov?'<i class="prov">仮</i>':""}</div><div class="small dim">${rr2Esc(x.d.cat)}</div><div class="cdxd">${rr2Esc(x.d.t)}</div>`;
   if(!x.seen){const hint=t==="card"?cdxCardHint(x.id):t==="part"?cdxPartHint(x.id):t==="enemy"||t==="boss"?cdxEnemyHint(x):t==="mini"?`${rr2Name(x.ch)}で ${x.r} ランクのミニカーを作る`:t==="snd"?`流れる場面：${x.g}`:`場面：${x.g}`;
-    return`<div class="cdxh">？？？</div><div class="cdxhint"><span class="gold">ヒント</span> ${rr2Esc(hint)}</div>`+(t==="snd"?cdxSndCtl():"")}
+    return`<div class="cdxh">？？？</div><div class="cdxhint"><span class="gold">ヒント</span> ${rr2Esc(hint)}</div>${t==="card"&&CARDS[x.id].r==="OG"?`<div class="small dim cdxhint2">${rr2Esc(cdxOgT("og_hint_mt"))}</div>`:""}`+(t==="snd"?cdxSndCtl():"")}
   if(t==="card"&&CARDS[x.id].r==="OG")return cdxOgDetail(x.id);
   if(t==="card"){const d=CARDS[x.id],up=CDX.up;let desc=d.d||"";try{desc=descOf({id:x.id,up},up,0)}catch(e){}let du="";try{if(!up&&canUpgradeId(x.id))du=descOf({id:x.id,up:true},true,0)}catch(e){}
     const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:(up&&d.cu!=null?d.cu:d.c),gas=up&&d.gasu!=null?d.gasu:d.gas;
@@ -200,12 +200,15 @@ function cdxOgHas(id){try{return unlockedCards(PRF()).includes(id)}catch(e){retu
 function cdxOgGold(id){try{return!!(PRF().ogGold||{})[id]}catch(e){return false}}
 function cdxOgSync(){const c=RR2.cx();if(!c)return;cdxOgIds().forEach(id=>{if(cdxOgHas(id)&&!c.c[id])RR2.mark("c",id)})}
 function cdxOgBranch(id){try{const k=Object.keys(OG_OF_BRANCH).find(b=>OG_OF_BRANCH[b]===id),own=CARDS[id].own,br=(TREE[own]||[]).find(b=>b.id===k);return br?br.n:""}catch(e){return""}}
-function cdxOgHint(id){const d=CARDS[id],br=cdxOgBranch(id);return`${rr2Name(d.own)}で、型${br?"「"+br+"」":""}を4段目まで上げて NIGHT ${(typeof RULES!=="undefined"&&RULES.ogNight)||4} 以上を全クリア（MT なら金の縁）`}
+/* v0.5.8 ヒントの文は text v0.22.28 30-4（og_hint・og_hint_mt・og_tag）。TEXT.ui にあればそちらを使う */
+const CDX_OGT={og_hint:"{ひらがな}で、型「{枝}」の4段目をとって、NIGHT 4 以上を全クリア",og_hint_mt:"MT で手に入れると、カードの縁が金になる",og_tag:"奥義（1戦に1回）"};
+function cdxOgT(k){return(typeof TEXT!=="undefined"&&TEXT.ui&&TEXT.ui[k])||CDX_OGT[k]}
+function cdxOgHint(id){const d=CARDS[id];return cdxOgT("og_hint").replace("{ひらがな}",rr2Name(d.own)).replace("{枝}",cdxOgBranch(id)).replace("NIGHT 4",`NIGHT ${(typeof RULES!=="undefined"&&RULES.ogNight)||4}`)}
 function cdxOgDetail(id){const d=CARDS[id],T=(TEXT.og&&TEXT.og[d.og])||{},gold=cdxOgGold(id);let desc=d.d||"";try{desc=descOf({id,up:CDX.up},CDX.up,0)}catch(e){}
   return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",id,true,50)}</span><div><div class="cdxh">${rr2Esc(d.n)}${CDX.up?"+":""}${gold?'<i class="cdxgold">金</i>':""}</div>${T.y?`<div class="small dim">${rr2Esc(T.y)}</div>`:""}
-    <div class="small">奥義・${rr2Esc(rr2Name(d.own))}・ガソリン ${d.gas}・1戦に1回</div></div></div>
+    <div class="small">${rr2Esc(cdxOgT("og_tag"))}・${rr2Esc(rr2Name(d.own))}・ガソリン ${d.gas}</div></div></div>
     ${T.line?`<div class="cdxogline">「${rr2Esc(T.line)}」</div>`:""}<div class="cdxd" data-gloss>${rr2Esc(desc)}</div>
-    ${T.flav?`<div class="cdxflav">${rr2Esc(T.flav)}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}${gold?"　金の縁：あり":""}　使った回数 ${RR2.num("use",id)}</div>`}
+    ${T.flav?`<div class="cdxflav">${rr2Esc(T.flav)}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}<br>${gold?"金の縁：あり":rr2Esc(cdxOgT("og_hint_mt"))}　使った回数 ${RR2.num("use",id)}</div>`}
 function cdxOgImgs(){if(typeof OUGI_ART==="undefined")return[];const L=[];
   cdxOgIds().forEach((id,ord)=>{const d=CARDS[id],A0=OUGI_ART[d.og];if(!A0||!A0.cutin)return;const T=(TEXT.og&&TEXT.og[d.og])||{};
     const b={p:A0.cutin,og:1,ord,card:id,n:d.n,ln:T.line||""};L.push(Object.assign({},b,{id:"og:"+d.og,g:"奥義"}),Object.assign({},b,{id:"ogg:"+d.og,g:"奥義（金の縁）",gold:1}))});return L}
