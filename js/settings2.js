@@ -3,7 +3,7 @@
 /* ===== 文字の大きさ（progression 1-26 の 5）・戦闘の速さと敵の番のスキップ（1-25 の 3）=====
    どちらも端末に覚える（OPTS＝localStorage revremit_opts。セーブ・引き継ぎコードには入らない）。
    設定の画面（auto.js の renderOpts）に行を足す。タイトルにも「設定」（①の本番ではタイトルの HTML に）。 */
-OPTS.fsz=OPTS.fsz||"m";OPTS.bspd=OPTS.bspd===2?2:1;
+OPTS.fsz=OPTS.fsz||"m";if(OPTS.ogFx!=="short")OPTS.ogFx="full";OPTS.bspd=OPTS.bspd===2?2:1;
 const FSZ={s:0.9,m:1,l:1.15},FSZ_JP={s:"小",m:"中",l:"大"};
 
 /* ---------- 戦闘の速さ ----------
@@ -83,7 +83,8 @@ if(typeof optsApply==="function"){const f=optsApply;window.optsApply=function(){
 RRHOOK.on("screen",o=>{if(o.n!=="opts")return;const b=$("#modal .opts");if(!b||b.querySelector(".rr2opt"))return;const row=b.querySelector(".row");
   const h=`<div class="oprow rr2opt"><span>文字の大きさ</span><span class="opbtns">${["s","m","l"].map(v=>`<button class="${OPTS.fsz===v?"main":""}" onclick="fszSet('${v}')">${FSZ_JP[v]}</button>`).join("")}</span></div>
    <div class="oprow rr2opt"><span>戦闘の速さ</span><span class="opbtns">${[1,2].map(v=>`<button class="${OPTS.bspd===v?"main":""}" onclick="OPTS.bspd=${v};optsSave();renderOpts()">×${v}</button>`).join("")}</span></div>
-   <div class="small dim rr2opt">敵の番は、画面をタップで飛ばせます。</div>`;
+   <div class="oprow rr2opt"><span>奥義の演出</span><span class="opbtns">${[["full","ふつう"],["short","短く"]].map(([v,n])=>`<button class="${(OPTS.ogFx==="short"?"short":"full")===v?"main":""}" onclick="OPTS.ogFx='${v}';optsSave();renderOpts()">${n}</button>`).join("")}</span></div>
+   <div class="small dim rr2opt">敵の番は、画面をタップで飛ばせます。奥義の「短く」はカットインだけ（2回目からはいつも短く）。</div>`;/* v0.5.7 OPTS.ogFx（①v0.22.102 の anim.js が見る） */
   if(row)row.insertAdjacentHTML("beforebegin",h);else b.insertAdjacentHTML("beforeend",h);
   /* 音量：効果音のつまみのすぐ下に「エンジン音」「天候の音」（auto.js の sl() と同じ形） */
   const sl=(k,n)=>`<div class="oprow rr2opt rr2vol"><span>${n}</span><input type="range" min="0" max="100" step="5" value="${Math.round(sndVol(k)*100)}" oninput="OPTS.${k}=this.value/100;optsApply();optsSave();this.nextElementSibling.textContent=this.value"><b>${Math.round(sndVol(k)*100)}</b></div>`;

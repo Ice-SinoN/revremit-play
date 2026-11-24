@@ -27,7 +27,7 @@ const cdxEKey=(k,h)=>(h?"hidden:":"")+k;
 const cdxImgKey=p=>{const m=String(p||"").match(/revremit_story_(.+)\.png$/);return m&&!/^bust_/.test(m[1])?m[1]:null};
 
 /* ---- 並べる物 ---- */
-const CDX_RORD={C:0,R:1,E:2,SK:3};
+const CDX_RORD={C:0,R:1,E:2,SK:3,OG:9};
 function cdxCards(){const o=["N"].concat(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]);
   return Object.keys(CARDS).filter(id=>{const d=CARDS[id];return!d.gen&&d.t!=="jam"}).sort((a,b)=>{const A=CARDS[a],B_=CARDS[b];
     return(o.indexOf(A.own)-o.indexOf(B_.own))||((CDX_RORD[A.r]||0)-(CDX_RORD[B_.r]||0))})}
@@ -52,12 +52,12 @@ function cdxSnds(){const AU=window.AUDIO||(typeof AUDIO!=="undefined"?AUDIO:null
   L.forEach(x=>{x.g=cdxSndGroup(x.id,x.j);x.n=CDX_SND_JP[x.id]||x.id});return L.sort((a,b)=>CDX_SG.indexOf(a.g)-CDX_SG.indexOf(b.g))}
 /* 一枚絵（story/c2 の絵。立ち絵は入れない） */
 function cdxImgGroup(k){if(/^opening_road/.test(k))return"ROAD に入る";if(/^join_/.test(k))return"仲間が加わる";if(/^ending/.test(k))return"エンディング";if(/_after$/.test(k))return"撃破";return"話"}
-const CDX_IG=["ROAD に入る","仲間が加わる","話","撃破","エンディング"];
-function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p,id:cdxImgKey(p)})).filter(x=>x.id&&/\/story\/c2\//.test(x.p));
-  L.forEach(x=>x.g=cdxImgGroup(x.id));return L.sort((a,b)=>CDX_IG.indexOf(a.g)-CDX_IG.indexOf(b.g)||a.id.localeCompare(b.id))}
+const CDX_IG=["ROAD に入る","仲間が加わる","話","撃破","エンディング","奥義","奥義（金の縁）"];
+function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p,id:cdxImgKey(p)})).filter(x=>x.id&&/\/story\/c2\//.test(x.p)).concat(cdxOgImgs());
+  L.forEach(x=>{if(!x.g)x.g=cdxImgGroup(x.id)});return L.sort((a,b)=>CDX_IG.indexOf(a.g)-CDX_IG.indexOf(b.g)||(a.og?a.ord-b.ord:a.id.localeCompare(b.id)))}
 
 /* ---- ヒント（手に入れ方の1行。仮の文：シナリオ班の文が来たら TEXT.ui.cdx_* で差しかえ）---- */
-function cdxCardHint(id){const U=UNLOCK,nm=rr2Name;
+function cdxCardHint(id){const U=UNLOCK,nm=rr2Name;if(CARDS[id]&&CARDS[id].r==="OG")return cdxOgHint(id);
   if(U.startCards.includes(id))return"はじめから使える";
   const ar={a1:"エリア1 を初めて突破",a2:"エリア2 を初めて突破",clear:"初めての全クリア"};
   for(const k in U.area)if(U.area[k].includes(id))return ar[k];
@@ -81,7 +81,8 @@ function cdxEnemyImg(key){if(CDX_THUMB[key]!==undefined)return CDX_THUMB[key];le
     if(set&&set.frames){let cv=frameOf(set,"idle",0);if(pal&&typeof palCanvas==="function")cv=palCanvas(cv,pal);u=cv.toDataURL()}}catch(e){u=""}
   return CDX_THUMB[key]=u}
 function cdxArt(kind,x,seen,size){const S_=size||40,sil=seen?"":" sil";let im="";
-  if(kind==="card"){const t=cardArtTag(x);im=t?t.replace("<img",`<img class="px${sil}" style="width:${S_}px"`):""}
+  if(kind==="card"){const t=cardArtTag(x);im=t?t.replace("<img",`<img class="px${sil}" style="width:${S_}px"`):"";
+    if(!im&&CARDS[x]&&CARDS[x].r==="OG"&&typeof OUGI_ART!=="undefined"){const A0=OUGI_ART[CARDS[x].og];if(A0&&(A0.cutin1||A0.cutin))im=`<img class="px ogth${sil}" src="${artURL(A0.cutin1||A0.cutin)}" style="width:${S_}px;height:${S_}px" alt="">`}}/* v0.5.7 奥義のカードの絵がまだないあいだはカットインの右（顔）を切りぬく */
   else if(kind==="part"){const t=partIcon(x,S_);im=t?t.replace('class="px',`class="px${sil}`):""}
   else if(kind==="enemy"){const u=cdxEnemyImg(x);im=u?`<img class="px en${sil}" src="${u}" alt="">`:""}
   else if(kind==="mini"){const k="minicar_"+String(x).toLowerCase(),t=artHave(ITEM_ART(k))?itemIcon(k,S_):itemIcon("minicar",S_);im=t?t.replace('class="px',`class="px${sil}`):""}
@@ -99,18 +100,18 @@ function codexBack(){const w=CDX.tab==="snd";cdxSndStop();rr2CloseLayer();if(w)c
 function cdxTabTo(t){if(CDX.tab==="snd"&&t!=="snd"){cdxSndStop();cdxResume()}if(t==="snd"&&CDX.tab!=="snd")try{SND.bgmStop()}catch(e){}CDX.tab=t;CDX.sel=null;try{SND.se("ui_ok")}catch(e){}renderCodex()}
 /* タブごとの {一覧, 見たか} */
 function cdxItems(t){const c=RR2.cx()||{c:{},cu:{},p:{},e:{},m:{},snd:{},img:{}};
-  if(t==="card"){let L=cdxCards();if(CDX.who!=="all")L=L.filter(id=>CARDS[id].own===CDX.who);return L.map(id=>({id,seen:CDX.up?!!c.cu[id]:!!c.c[id]}))}
+  if(t==="card"){cdxOgSync();let L=cdxCards();if(CDX.who==="OG")L=L.filter(id=>CARDS[id].r==="OG");else if(CDX.who!=="all")L=L.filter(id=>CARDS[id].own===CDX.who);return L.map(id=>({id,seen:CDX.up?!!c.cu[id]:!!c.c[id]}))}
   if(t==="part"){let L=cdxParts();if(CDX.who!=="all")L=L.filter(id=>PARTS[id].own===CDX.who);return L.map(id=>({id,seen:!!c.p[id]}))}
   if(t==="enemy"||t==="boss")return cdxEnemies(t==="boss").map(x=>Object.assign(x,{seen:!!c.e[x.id]}));
   if(t==="mini")return cdxMinis().map(x=>Object.assign(x,{seen:!!c.m[x.id]}));
   if(t==="snd")return cdxSnds().map(x=>Object.assign(x,{seen:!!c.snd[x.id]}));
-  if(t==="img")return cdxImgs().map(x=>Object.assign(x,{seen:!!c.img[x.id]}));
+  if(t==="img")return cdxImgs().map(x=>Object.assign(x,{seen:x.og?cdxOgSeen(x):!!c.img[x.id]}));
   return GLOSS.list(CDX.gsort).map(x=>({id:x.w,d:x,seen:true}))}
 /* 達成率（絞りこみなし・カードはふつう＋強化を数える） */
 function cdxRate(t){const c=RR2.cx();if(!c)return[0,0];const k=(L,f)=>[L.filter(f).length,L.length];
   if(t==="card"){const L=cdxCards().filter(id=>canUpgradeId(id));const a=cdxCards();return[a.filter(id=>c.c[id]).length+L.filter(id=>c.cu[id]).length,a.length+L.length]}
   if(t==="part")return k(cdxParts(),id=>c.p[id]);if(t==="enemy"||t==="boss")return k(cdxEnemies(t==="boss"),x=>c.e[x.id]);
-  if(t==="mini")return k(cdxMinis(),x=>c.m[x.id]);if(t==="snd")return k(cdxSnds(),x=>c.snd[x.id]);if(t==="img")return k(cdxImgs(),x=>c.img[x.id]);return[0,0]}
+  if(t==="mini")return k(cdxMinis(),x=>c.m[x.id]);if(t==="snd")return k(cdxSnds(),x=>c.snd[x.id]);if(t==="img")return k(cdxImgs(),x=>x.og?cdxOgSeen(x):c.img[x.id]);return[0,0]}
 function canUpgradeId(id){try{return canUpgrade({id,up:false})}catch(e){return true}}
 function cdxPct(r){return r[1]?Math.floor(r[0]*100/r[1]):0}
 function cdxAll(){let a=0,b=0;CDX_TABS.forEach(([t])=>{if(t==="gloss")return;const r=cdxRate(t);a+=r[0];b+=r[1]});return[a,b]}
@@ -120,7 +121,7 @@ function renderCodex(){const v=rr2Layer(),t=CDX.tab,L=cdxItems(t);
     return`<button class="u9 cdxt${k===t?" main":""}" ${at(8+i*64,18,62,28)} onclick="cdxTabTo('${k}')">${n}${full?'<i class="cdxfull">★</i>':""}</button>`}).join("");
   let flt="";const W=(k,n)=>`<button class="u9 cdxf${CDX.who===k?" main":""}" onclick="CDX.who='${k}';CDX.sel=null;renderCodex()">${rr2Esc(n)}</button>`;
   if(t==="card"||t==="part")flt=W("all","全部")+W("N","共通")+(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]).map(ch=>W(ch,rr2Name(ch))).join("")+
-    (t==="card"?`<button class="u9 cdxf cdxup${CDX.up?" main":""}" onclick="CDX.up=!CDX.up;renderCodex()">${CDX.up?"強化":"ふつう"}</button>`:"");
+    (t==="card"?W("OG","奥義")+`<button class="u9 cdxf cdxup${CDX.up?" main":""}" onclick="CDX.up=!CDX.up;renderCodex()">${CDX.up?"強化":"ふつう"}</button>`:"");
   if(t==="gloss")flt=`<button class="u9 cdxf${CDX.gsort==="yomi"?" main":""}" onclick="CDX.gsort='yomi';renderCodex()">五十音</button><button class="u9 cdxf${CDX.gsort==="cat"?" main":""}" onclick="CDX.gsort='cat';renderCodex()">型ごと</button>`;
   const r=t==="gloss"?null:cdxRate(t),all=cdxAll();
   const rate=r?`<span class="cdxr">${r[0]}／${r[1]}（${cdxPct(r)}%）</span>`:`<span class="cdxr">${L.length} 語</span>`;
@@ -135,11 +136,14 @@ function cdxListHTML(t,L){if(!L.length)return`<div class="small dim">まだ何�
   if(t==="snd"||t==="img"||t==="gloss"){let g="",h="";const key=t==="gloss"?(CDX.gsort==="cat"?x=>x.d.cat:x=>x.d.yomi[0]):x=>x.g;
     L.forEach(x=>{const k=key(x);if(k!==g){g=k;h+=`<div class="cdxg">${rr2Esc(k)}</div>`}
       const nm=t==="snd"?(x.seen?x.n:"？？？"):t==="img"?(x.seen?"":"？？？"):x.id;
-      h+=t==="img"?`<button class="cdxi${sel(x)}" ${tap(x)}>${x.seen?`<img class="px" src="${artURL(x.p)}" alt="">`:`<span class="cdxq">？</span>`}</button>`
+      h+=t==="img"?`<button class="cdxi${x.og?" og":""}${x.gold?" gold":""}${sel(x)}" ${tap(x)}>${x.seen?`<img class="px" src="${artURL(x.p)}" alt="">`:`<span class="cdxq">？</span>`}</button>`
         :`<button class="cdxrow${x.seen?"":" no"}${sel(x)}" ${tap(x)}>${t==="snd"&&CDX.playing===x.id?"♪ ":""}${rr2Esc(nm)}</button>`});return h}
-  return L.map(x=>{const nm=!x.seen?"？？？":t==="card"?CARDS[x.id].n+(CDX.up?"+":""):t==="part"?PARTS[x.id].n:(x.hidden?"裏道の":"")+ENEMIES[x.key].n;
+  let ogH=false;
+  return L.map(x=>{const hd=t==="card"&&CARDS[x.id].r==="OG"&&!ogH&&CDX.who!=="OG"?(ogH=true,`<div class="cdxg cdxogh">奥義</div>`):"";if(t==="card"&&CARDS[x.id].r!=="OG")ogH=false;
+    return hd+cdxTile(t,x,sel,tap)}).join("")}
+function cdxTile(t,x,sel,tap){{const nm=!x.seen?"？？？":t==="card"?CARDS[x.id].n+(CDX.up?"+":""):t==="part"?PARTS[x.id].n:(x.hidden?"裏道の":"")+ENEMIES[x.key].n;
     const kind=t==="card"?"card":t==="part"?"part":"enemy",arg=kind==="enemy"?x.key:x.id;
-    return`<button class="cdxtile${x.seen?"":" no"}${sel(x)}${t==="card"?" r-"+(CARDS[x.id].r||"C"):""}" ${tap(x)}><span class="cdxa">${cdxArt(kind,arg,x.seen,kind==="enemy"?52:40)}</span><span class="cdxn">${rr2Esc(nm)}</span></button>`}).join("")}
+    return`<button class="cdxtile${x.seen?"":" no"}${sel(x)}${t==="card"?" r-"+(CARDS[x.id].r||"C"):""}" ${tap(x)}><span class="cdxa">${cdxArt(kind,arg,x.seen,kind==="enemy"?52:40)}</span><span class="cdxn">${rr2Esc(nm)}</span></button>`}}
 function cdxPick(id){CDX.sel=id;try{SND.se("ui_ok")}catch(e){}const t=CDX.tab;
   if(t==="snd"){const x=cdxItems("snd").find(y=>y.id===id);if(x&&x.seen)cdxSndPlay(x);else try{SND.se("card_cant")}catch(e){}}
   if(t==="img"){const L=cdxItems("img").filter(y=>y.seen),i=L.findIndex(y=>y.id===id);if(i>=0){cdxImgView(L,i);return}}
@@ -149,6 +153,7 @@ function cdxDetailHTML(t,L){const x=L.find(y=>y.id===CDX.sel);
   if(t==="gloss")return`<div class="cdxh">${rr2Esc(x.d.w)}${x.d.prov?'<i class="prov">仮</i>':""}</div><div class="small dim">${rr2Esc(x.d.cat)}</div><div class="cdxd">${rr2Esc(x.d.t)}</div>`;
   if(!x.seen){const hint=t==="card"?cdxCardHint(x.id):t==="part"?cdxPartHint(x.id):t==="enemy"||t==="boss"?cdxEnemyHint(x):t==="mini"?`${rr2Name(x.ch)}で ${x.r} ランクのミニカーを作る`:t==="snd"?`流れる場面：${x.g}`:`場面：${x.g}`;
     return`<div class="cdxh">？？？</div><div class="cdxhint"><span class="gold">ヒント</span> ${rr2Esc(hint)}</div>`+(t==="snd"?cdxSndCtl():"")}
+  if(t==="card"&&CARDS[x.id].r==="OG")return cdxOgDetail(x.id);
   if(t==="card"){const d=CARDS[x.id],up=CDX.up;let desc=d.d||"";try{desc=descOf({id:x.id,up},up,0)}catch(e){}let du="";try{if(!up&&canUpgradeId(x.id))du=descOf({id:x.id,up:true},true,0)}catch(e){}
     const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:(up&&d.cu!=null?d.cu:d.c),gas=up&&d.gasu!=null?d.gasu:d.gas;
     return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",x.id,true,50)}</span><div><div class="cdxh">${rr2Esc(d.n)}${up?"+":""}</div>
@@ -177,7 +182,7 @@ function cdxSndStop(){clearTimeout(CDX.lt);if(CDX.playing){CDX.playing=null;try{
 
 /* ---- イラストライブラリ：全画面・左右で次・前 ---- */
 function cdxImgView(L,i){const v=rr2Layer();CDX.iv={L,i};const x=L[i];RR2.mark("img",x.id);
-  const o=document.createElement("div");o.className="cdxiv";o.innerHTML=`<img class="px" src="${artURL(x.p)}" alt=""><button class="u9 cdxiv-p" ${at(8,150,40,60)} onclick="event.stopPropagation();cdxImgStep(-1)">◀</button><button class="u9 cdxiv-n" ${at(592,150,40,60)} onclick="event.stopPropagation();cdxImgStep(1)">▶</button><button class="u9 main" ${at(532,22,104,32)} onclick="event.stopPropagation();cdxImgClose()">◀ もどる</button><div class="cdxiv-c small">${i+1}／${L.length}　${rr2Esc(x.g)}</div>`;
+  const o=document.createElement("div");o.className="cdxiv"+(x.og?" og":"")+(x.gold?" gold":"");o.innerHTML=`${x.og?`<div class="cdxogband"><img class="px" src="${artURL(x.p)}" alt=""><div class="fr"></div><div class="nm">${rr2Esc(x.n||"")}</div><div class="ln">${rr2Esc(x.ln||"")}</div></div>`:`<img class="px" src="${artURL(x.p)}" alt="">`}<button class="u9 cdxiv-p" ${at(8,150,40,60)} onclick="event.stopPropagation();cdxImgStep(-1)">◀</button><button class="u9 cdxiv-n" ${at(592,150,40,60)} onclick="event.stopPropagation();cdxImgStep(1)">▶</button><button class="u9 main" ${at(532,22,104,32)} onclick="event.stopPropagation();cdxImgClose()">◀ もどる</button><div class="cdxiv-c small">${i+1}／${L.length}　${rr2Esc(x.g)}${x.og?"　"+rr2Esc(x.n):""}</div>`;
   const old=v.querySelector(".cdxiv");if(old)old.remove();v.appendChild(o)}
 function cdxImgStep(d){const V=CDX.iv;if(!V)return;const n=V.L.length;cdxImgView(V.L,(V.i+d+n)%n);try{SND.se("ui_ok")}catch(e){}}
 function cdxImgClose(){const o=$("#rr2v .cdxiv");if(o)o.remove();CDX.iv=null;renderCodex()}
@@ -185,3 +190,23 @@ function cdxImgClose(){const o=$("#rr2v .cdxiv");if(o)o.remove();CDX.iv=null;ren
 /* ---- 入口：タイトルの左上（データ・ラボの下）に「図鑑」 ---- */
 RRHOOK.on("screen",o=>{if(o.n!=="title")return;const u=ui();if(!u||u.querySelector(".cdxBtn"))return;const y=(typeof labOpen==="function"&&labOpen())?72:40;
   u.insertAdjacentHTML("beforeend",`<button class="mini cdxBtn" ${at(8,y,132,28)} onclick="showCodex('card','title')">図鑑 ${cdxPct(cdxAll())}%</button>`)});
+
+/* ---- v0.5.7 奥義（①v0.22.102・design 10-15・text 30-1）----
+   図鑑のカード：r:"OG" の12枚を各キャラの最後に「奥義」の段で。絞りこみ「奥義」で12枚だけ。中身＝名前・読み・カットインの一言・フレーバー・効果・解放のしかた・金の縁。
+   見たか：解放（unlockedCards に入った）か、戦闘で使った・見た（seen_cards）。
+   イラストライブラリ：カットイン（OUGI_ART の cutin。1280×360）を「奥義」と「奥義（金の縁）」に。ふつう＝解放ずみ、金の縁＝MT で解放（PRF().ogGold）。 */
+function cdxOgIds(){return cdxCards().filter(id=>CARDS[id].r==="OG")}
+function cdxOgHas(id){try{return unlockedCards(PRF()).includes(id)}catch(e){return false}}
+function cdxOgGold(id){try{return!!(PRF().ogGold||{})[id]}catch(e){return false}}
+function cdxOgSync(){const c=RR2.cx();if(!c)return;cdxOgIds().forEach(id=>{if(cdxOgHas(id)&&!c.c[id])RR2.mark("c",id)})}
+function cdxOgBranch(id){try{const k=Object.keys(OG_OF_BRANCH).find(b=>OG_OF_BRANCH[b]===id),own=CARDS[id].own,br=(TREE[own]||[]).find(b=>b.id===k);return br?br.n:""}catch(e){return""}}
+function cdxOgHint(id){const d=CARDS[id],br=cdxOgBranch(id);return`${rr2Name(d.own)}で、型${br?"「"+br+"」":""}を4段目まで上げて NIGHT ${(typeof RULES!=="undefined"&&RULES.ogNight)||4} 以上を全クリア（MT なら金の縁）`}
+function cdxOgDetail(id){const d=CARDS[id],T=(TEXT.og&&TEXT.og[d.og])||{},gold=cdxOgGold(id);let desc=d.d||"";try{desc=descOf({id,up:CDX.up},CDX.up,0)}catch(e){}
+  return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",id,true,50)}</span><div><div class="cdxh">${rr2Esc(d.n)}${CDX.up?"+":""}${gold?'<i class="cdxgold">金</i>':""}</div>${T.y?`<div class="small dim">${rr2Esc(T.y)}</div>`:""}
+    <div class="small">奥義・${rr2Esc(rr2Name(d.own))}・ガソリン ${d.gas}・1戦に1回</div></div></div>
+    ${T.line?`<div class="cdxogline">「${rr2Esc(T.line)}」</div>`:""}<div class="cdxd" data-gloss>${rr2Esc(desc)}</div>
+    ${T.flav?`<div class="cdxflav">${rr2Esc(T.flav)}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}${gold?"　金の縁：あり":""}　使った回数 ${RR2.num("use",id)}</div>`}
+function cdxOgImgs(){if(typeof OUGI_ART==="undefined")return[];const L=[];
+  cdxOgIds().forEach((id,ord)=>{const d=CARDS[id],A0=OUGI_ART[d.og];if(!A0||!A0.cutin)return;const T=(TEXT.og&&TEXT.og[d.og])||{};
+    const b={p:A0.cutin,og:1,ord,card:id,n:d.n,ln:T.line||""};L.push(Object.assign({},b,{id:"og:"+d.og,g:"奥義"}),Object.assign({},b,{id:"ogg:"+d.og,g:"奥義（金の縁）",gold:1}))});return L}
+function cdxOgSeen(x){return x.gold?cdxOgGold(x.card):cdxOgHas(x.card)}

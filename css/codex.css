@@ -147,3 +147,22 @@ button.bspd.on{color:#FFD34D}
 .modal .cdrow{display:flex;gap:8px;margin:6px 0}.modal .cdcol{flex:1 1 0;border:1px solid #3A4566;padding:4px 6px;background:#121626}
 .modal .cdcol .cdslot{white-space:normal}.modal .cdcol.cl{box-shadow:inset 0 0 0 1px #5FA8FF}
 #farmui.land .fuirot{right:auto;left:6px;top:50%;transform:translateY(-50%);max-width:calc(50vw - 120px);border-radius:4px;line-height:16px;z-index:5}/* ★①v0.22.87 BUG-52：横向きの帯は左の空きに（見出し・ボタンをふさがない） */
+/* v0.5.7 奥義：図鑑のカードの段・イラストライブラリのカットイン（金の縁） */
+#rr2v .cdxogh{margin-top:4px;color:#FFD34D}
+#rr2v .cdxtile.r-OG{box-shadow:inset 0 0 0 1px #B8861F}
+#rr2v .cdxgold{font-style:normal;margin-left:4px;padding:0 3px;background:#FFD34D;color:#0A0812;font:10px/12px 'PM10';vertical-align:2px}
+#rr2v .cdxogline{margin:4px 0 2px;color:#FFE7B0}
+#rr2v .cdxflav{margin-top:4px;padding:3px 5px;color:#C9CED6;background:rgba(255,255,255,.05);border-left:2px solid #B8861F;font-size:11px;line-height:15px}
+#rr2v .cdxi.og{width:146px;height:46px}
+#rr2v .cdxi.og img{width:144px;height:40px;object-fit:cover}
+#rr2v .cdxi.og{box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 #fff,inset 0 0 0 1px #3A4566}
+#rr2v .cdxi.og.gold{box-shadow:inset 0 2px 0 #FFD34D,inset 0 -2px 0 #FFD34D,inset 0 0 0 1px #B8861F}
+#rr2v .cdxiv.og{background:#0A0812}
+#rr2v .cdxogband{position:absolute;left:0;top:90px;width:640px;height:180px}
+#rr2v .cdxogband img{width:640px;height:180px;image-rendering:pixelated;object-fit:cover;display:block}
+#rr2v .cdxogband .fr{position:absolute;inset:0;box-shadow:inset 0 2px 0 #fff,inset 0 -2px 0 #fff}
+#rr2v .cdxiv.gold .cdxogband .fr{box-shadow:inset 0 3px 0 #FFD34D,inset 0 -3px 0 #FFD34D,inset 0 0 0 1px #B8861F}
+#rr2v .cdxogband .nm{position:absolute;left:18px;top:52px;font:20px/22px 'PM12B','PM12';color:#fff;text-shadow:2px 0 #000,-2px 0 #000,0 2px #000,0 -2px #000;white-space:nowrap}
+#rr2v .cdxogband .ln{position:absolute;left:20px;top:80px;font:12px/14px 'PM12B','PM12';color:#FFE7B0;text-shadow:1px 0 #000,-1px 0 #000,0 1px #000,0 -1px #000;white-space:nowrap}
+#rr2v img.ogth{object-fit:cover;object-position:72% 40%}
+#rr2v .cdxiv.og .cdxogband .nm{left:58px}#rr2v .cdxiv.og .cdxogband .ln{left:60px}
