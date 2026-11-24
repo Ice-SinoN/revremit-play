@@ -39,7 +39,7 @@ const ART_SRC={
 /* ★v0.22.40 SORA〜MIO 編のキャラの戦闘（LUNA・KURO・MIO が届いた。SORA・KAEDE・RIN は置けば同じ形で） */
 ["SORA","KAEDE","RIN","LUNA","KURO","MIO"].forEach(c=>{const f=`assets/c2/characters/${c}/c2/revremit_chr_${c}_c2_sheet`;ART_SRC[c]={sheet:f+".png",json:f+".json",foot:[112,220],lazy:1}});
 /* ★v0.22.101 奥義の絵（AD v0.77・graphics-hq 23-18・窓口 11-24 14:03）。仕組み（design 10-15）はまだ＝登録だけ・あとで読む絵。
-   OUGI_ART[id]={cutin(1280×360),cutin1(640×180),spr（12コマのモーション＝ART_SRC のキー。なければ null）}。YUKI のカットインは両腕の版（v0.22.114・cutin/c2）、12コマは片腕の版（characters/YUKI の og シート・描き直し待ち） */
+   OUGI_ART[id]={cutin(1280×360),cutin1(640×180),spr（12コマのモーション＝ART_SRC のキー。なければ null）}。YUKI のカットインは両腕の版（v0.22.114・cutin/c2）、12コマも両腕の版（v0.22.116 でそろった） */
 const OUGI_ART={};
 [["yuki","fubuki"],["yuki","shironeko"],["yuki","kousetsu"]].forEach(([c,b])=>{const k=`og_${c}_${b}`,f=`assets/c2/characters/YUKI/c2/revremit_chr_YUKI_c2_og_${b}_sheet`;ART_SRC[k]={sheet:f+".png",json:f+".json",foot:[112,220],lazy:1};
   OUGI_ART[`ougi_${c}_${b}`]={cutin:`assets/c2/cutin/c2/revremit_og_cutin_ougi_${c}_${b}.png`,cutin1:`assets/c2/cutin/c2/revremit_og_cutin_ougi_${c}_${b}_x1.png`/* ★v0.22.114 両腕の版を ①で 1/2（面積の平均） */,spr:k}});
