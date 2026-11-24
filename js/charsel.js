@@ -74,7 +74,7 @@ function renderReady(){const ch=curChar(),mode=S.flow.mode,ms=csModes(ch),n=curN
 function csArrow(d,dis,on){const n=csPart("arrow_"+d+"_normal");if(!n)return`<button class="u9 rda" ${dis?"disabled":`onclick="${on}"`}>${d==="l"?"◀":"▶"}</button>`;
   return`<button class="csimg rda" style="--bn:url('${n}');--bp:url('${csPart("arrow_"+d+"_pressed")}');--bg:url('${csPart("arrow_"+d+"_grey")}')" ${dis?"disabled":`onclick="${on}"`}></button>`}
 function readyMode(m){if(S.flow.mode===m)return;SND.se("ui_ok");S.flow.mode=m;try{PRF().lastMode=m;SAVE.auto()}catch(e){}renderReady()}
-function readyNight(d){const n=Math.max(1,Math.min(nightMaxAvail(),curNight()+d));if(n===curNight())return;SND.se("night_select",{lv:n});PRF().night=n;SAVE.auto();renderReady()}
+function readyNight(d){const n=Math.max(1,Math.min(nightMaxAvail(),curNight()+d));if(n===curNight())return;SND.jingle("night_select",{lv:n})/* ★v0.22.110 サウンド班 頼み⑬ */;PRF().night=n;SAVE.auto();renderReady()}
 function readyTree(i){const t=treeData(curChar());if((t.cur||0)===i){SND.se("ui_ok");S.treeHub=false;S.treeFromReady=true;showTree();return}t.cur=i;SND.se("ui_ok");SAVE.auto();renderReady()}
 function readyMc(){SND.se("ui_ok");S.mcSel=(S.flowBring||[]).map(m=>m.id);showMinicarGarage(S.flow.mode)}
 function readyTicket(){if(typeof farmData!=="function")return"";const t=farmData().tickets||[];if(!t.length)return"";const nm=k=>(typeof FARM_TICKET_JP!=="undefined"&&FARM_TICKET_JP[k])||k,u=[...new Set(t)],cur=S.flowTicket;

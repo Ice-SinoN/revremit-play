@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.109（β2）";
+const VERSION="試作 v0.22.110（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -416,7 +416,7 @@ function renderBattle(){
 }
 /* ★v0.22.95 design 14-3①：MT と AT の差の見せ方 */
 function modeMark(c){const r=CARDS[c.id||c];return r&&(r.at||r.atShift)?G.mode:""}
-function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",D.mult%1?D.mult:D.mult.toFixed(1)).replace("{g}",D.gas)]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
+function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",(m=>m%1?m:m.toFixed(1))(driveMult(k))).replace("{g}",D.gas)]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
   return[T.mode_ban_mt1||"MT：パーフェクトで伸びる",noBlow()?(T.mode_ban_mt2a||"ブローなし（オーバーレブだけ）"):(T.mode_ban_mt2||"回しすぎるとブロー")]}
 /* MT：シフトできるカードの上に札（色＝出来）。選んだカードは下に「シフトで打つ」（2回目のタップでシフトを選べる） */
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";

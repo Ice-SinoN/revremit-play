@@ -25,7 +25,7 @@ const CHARS={
       upDrop:0.6,earlyDrop:0.45,downDiv:0.6,
       bands:{L:[1500,3500],M:[3500,6000],R:[7500,8500]}},
     deck:[["h_youda",4],["h_gouda",2],["h_kagerou",2],["h_saitenka",2],["braking",1],["h_kneegrip",2],["h_hidamari",1],["h_sunrise",1],["h_kickstart",2],["qshift",2],["slip",1]],/* ★v0.22.83 design 10-12-3・LD 案 A（★虎雪 16:10）：アタック 7→10 */
-    pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2,areaBossHp:0.75/* ★v0.22.90 LD balance 11-47 A：NIGHT 2 からエリアのボスの体力 ×0.75 */},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
+    pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2,sportMult:0.9/* ★v0.22.110 LD balance 11-65：スポーツ ×1.0→×0.9（HINA だけ） */,areaBossHp:0.75/* ★v0.22.90 LD balance 11-47 A：NIGHT 2 からエリアのボスの体力 ×0.75 */},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
   },
   MOMO:{
     name:"MOMO",carName:"ロードスター ND",weapon:"ロードスピナー",type:"チェイン",join:2,

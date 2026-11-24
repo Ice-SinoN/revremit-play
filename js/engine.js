@@ -275,7 +275,8 @@ function maxGas(){const g=RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:
 /* ★v0.22.98 design 14-3③ ドライブモード（AT だけ）：B.drive＝"eco"|"sport"（番のはじめに1回だけ切りかえ・初めはエコ・次の番もそのまま） */
 function driveOn(){return !!(G&&G.mode==="AT"&&RULES.drive&&G.char!=="MIO"&&!RULE().noDrive)}/* ★design 14章の追記：MIO（CVT）にはドライブモードを出さない（③のキャラは rule.noDrive でも外せる） */
 function driveDef(){return driveOn()&&B?RULES.drive[B.drive||"eco"]:null}
-function atMultNow(){if(G.mode!=="AT")return 1;const D=driveDef();return D?D.mult:RULES.atMult}
+function driveMult(k){const D=RULES.drive[k];if(!D)return RULES.atMult;const r=RULE()[k+"Mult"];return r!=null?r:D.mult}/* ★v0.22.110 LD balance 11-65：キャラごとの倍率（HINA sportMult 0.9） */
+function atMultNow(){if(G.mode!=="AT")return 1;const D=driveDef();return D?driveMult(B.drive||"eco"):RULES.atMult}
 function canDrive(){return driveOn()&&B&&!B.over&&B.cards===0&&!B.driveT}
 function setDrive(k){if(!canDrive()||!RULES.drive[k]||(B.drive||"eco")===k)return false;const g0=maxGas();B.drive=k;B.driveT=true;const d=maxGas()-g0;B.gas=Math.max(0,B.gas+d);addLog(`ドライブモード：${k==="eco"?"エコ":"スポーツ"}`);return true}
 /* ★v0.22.41 走りかたで変わるガソリン（gasMT＝MT のときの値。強化の gasu があればそちら） */
