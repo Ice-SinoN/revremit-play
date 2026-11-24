@@ -416,7 +416,7 @@ function renderBattle(){
 }
 /* ★v0.22.95 design 14-3①：MT と AT の差の見せ方 */
 function modeMark(c){const r=CARDS[c.id||c];return r&&(r.at||r.atShift)?G.mode:""}
-function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",(m=>m%1?m:m.toFixed(1))(driveMult(k))).replace("{g}",D.gas)]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
+function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k+"_"+G.char]||(k==="eco"&&!driveGas("eco")?"エコ：火力 ×{m}":"")||T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",(m=>m%1?m:m.toFixed(1))(driveMult(k))).replace("{g}",driveGas(k))]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
   return[T.mode_ban_mt1||"MT：パーフェクトで伸びる",noBlow()?(T.mode_ban_mt2a||"ブローなし（オーバーレブだけ）"):(T.mode_ban_mt2||"回しすぎるとブロー")]}
 /* MT：シフトできるカードの上に札（色＝出来）。選んだカードは下に「シフトで打つ」（2回目のタップでシフトを選べる） */
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
@@ -429,7 +429,7 @@ function driveCtl(locked){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&ca
   return `<div class="drvc${can?"":" off"}" ${at(4,198,172,24)}><span class="dl">${esc(T.drive_pick||"ドライブモード")}</span>`+["eco","sport"].map(k=>`<button class="dv${k===cur?" on":""}" onclick="drivePick('${k}')">${esc(T["drive_"+k]||(k==="eco"?"エコ":"スポーツ"))}</button>`).join("")+`</div>`}
 function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
   if((B.drive||"eco")===k||!canDrive()){SND.se(canDrive()?"ui_cancel":"card_cant");toast2(`${T.drive_pick_d||"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"}　${T["drive_"+(B.drive||"eco")+"_d"]||""}`,56,3000);return}
-  if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");toast2(`${T["drive_"+k]||k}：${T["drive_"+k+"_d"]||""}`,56,2000);A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle()}}
+  if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");toast2(`${T["drive_"+k]||k}：${T["drive_"+k+"_d_"+G.char]||(k==="eco"&&!driveGas("eco")?"火力をおさえる（ガソリンはふえない）。":"")||T["drive_"+k+"_d"]||""}`,56,2000);A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle()}}
 function tabShift(i){if(B.over)return;if(busy())uiSkip();const c=B.hand[i];if(!c)return;const p=preview(c);
   if(S.sel===i&&p.ok&&p.canShift&&tutAllow("play",{i,shift:true})){doPlay(i,true);return}clickCard(i)}
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */

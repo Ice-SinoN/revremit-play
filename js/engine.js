@@ -271,10 +271,11 @@ function perfChainAdd(n){n=n==null?B.perfChain||0:n;const R=RULES.perfChain||{st
 function grade(rpm){const b=bandRange();if(B.forcePerfect||has("dogmt"))return"perfect";if(has("launch")&&!B.launchUsed)return"perfect";if(rpm>=b.clo&&rpm<=b.chi)return"perfect";if(rpm>=b.lo&&rpm<=b.hi)return"good";return rpm<b.lo?"early":"late"}
 const GRADE_JP={perfect:"パーフェクト",good:"グッド",early:"早すぎ",late:"遅い"};
 /* ★ガソリン（design 0-1） */
-function maxGas(){const g=RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0),D=driveDef();return D&&D.gas?Math.max(g,Math.min(RULES.driveGasCap||7,g+D.gas)):g}
+function maxGas(){const g=RULES.gasMax+(G.tune.light>=3?1:0)+(G.tune.light>=5?1:0),D=driveDef(),dg=D?driveGas(B.drive||"eco"):0;return dg?Math.max(g,Math.min(RULES.driveGasCap||7,g+dg)):g}
 /* ★v0.22.98 design 14-3③ ドライブモード（AT だけ）：B.drive＝"eco"|"sport"（番のはじめに1回だけ切りかえ・初めはエコ・次の番もそのまま） */
 function driveOn(){return !!(G&&G.mode==="AT"&&RULES.drive&&G.char!=="MIO"&&!RULE().noDrive)}/* ★design 14章の追記：MIO（CVT）にはドライブモードを出さない（③のキャラは rule.noDrive でも外せる） */
 function driveDef(){return driveOn()&&B?RULES.drive[B.drive||"eco"]:null}
+function driveGas(k){const D=RULES.drive[k];if(!D)return 0;const r=RULE()[k+"Gas"];return r!=null?r:(D.gas||0)}/* ★v0.22.110 ★虎雪 11-24 17:15・LD 11-65①：MOMO はエコのガソリン +1 なし（ecoGas:0） */
 function driveMult(k){const D=RULES.drive[k];if(!D)return RULES.atMult;const r=RULE()[k+"Mult"];return r!=null?r:D.mult}/* ★v0.22.110 LD balance 11-65：キャラごとの倍率（HINA sportMult 0.9） */
 function atMultNow(){if(G.mode!=="AT")return 1;const D=driveDef();return D?driveMult(B.drive||"eco"):RULES.atMult}
 function canDrive(){return driveOn()&&B&&!B.over&&B.cards===0&&!B.driveT}
