@@ -1,0 +1,184 @@
+{
+"frames": {
+"assets/c2/map/c2/revremit_map_icon_battle_done.png": {
+"x": 0,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_battle_off.png": {
+"x": 41,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_battle_on.png": {
+"x": 82,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_boss_done.png": {
+"x": 123,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_boss_off.png": {
+"x": 164,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_boss_on.png": {
+"x": 205,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_elite_done.png": {
+"x": 246,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_elite_off.png": {
+"x": 287,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_elite_on.png": {
+"x": 328,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_feature_done.png": {
+"x": 369,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_feature_off.png": {
+"x": 410,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_feature_on.png": {
+"x": 451,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_garage_done.png": {
+"x": 492,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_garage_off.png": {
+"x": 533,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_garage_on.png": {
+"x": 574,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_hidden_done.png": {
+"x": 615,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_hidden_off.png": {
+"x": 656,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_hidden_on.png": {
+"x": 697,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_lucky_done.png": {
+"x": 738,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_lucky_off.png": {
+"x": 779,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_lucky_on.png": {
+"x": 820,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_shop_done.png": {
+"x": 861,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_shop_off.png": {
+"x": 902,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_shop_on.png": {
+"x": 943,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_sim_done.png": {
+"x": 984,
+"y": 0,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_sim_off.png": {
+"x": 0,
+"y": 41,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_sim_on.png": {
+"x": 41,
+"y": 41,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_unknown_done.png": {
+"x": 82,
+"y": 41,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_unknown_off.png": {
+"x": 123,
+"y": 41,
+"w": 40,
+"h": 40
+},
+"assets/c2/map/c2/revremit_map_icon_unknown_on.png": {
+"x": 164,
+"y": 41,
+"w": 40,
+"h": 40
+}
+}
+}

@@ -1,0 +1,232 @@
+{
+"frames": {
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_board.png": {
+"x": 0,
+"y": 0,
+"w": 384,
+"h": 260
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_minicar_empty.png": {
+"x": 385,
+"y": 0,
+"w": 90,
+"h": 56
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_minicar_filled.png": {
+"x": 476,
+"y": 0,
+"w": 90,
+"h": 56
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_faceframe_locked.png": {
+"x": 567,
+"y": 0,
+"w": 56,
+"h": 56
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_faceframe_normal.png": {
+"x": 624,
+"y": 0,
+"w": 56,
+"h": 56
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_faceframe_select.png": {
+"x": 681,
+"y": 0,
+"w": 56,
+"h": 56
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn160_grey.png": {
+"x": 738,
+"y": 0,
+"w": 160,
+"h": 44
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn160_normal.png": {
+"x": 0,
+"y": 261,
+"w": 160,
+"h": 44
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn160_pressed.png": {
+"x": 161,
+"y": 261,
+"w": 160,
+"h": 44
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn140_grey.png": {
+"x": 322,
+"y": 261,
+"w": 140,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn140_normal.png": {
+"x": 463,
+"y": 261,
+"w": 140,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn140_pressed.png": {
+"x": 604,
+"y": 261,
+"w": 140,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120_grey.png": {
+"x": 745,
+"y": 261,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120_normal.png": {
+"x": 866,
+"y": 261,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120_pressed.png": {
+"x": 0,
+"y": 306,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120sub_grey.png": {
+"x": 121,
+"y": 306,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120sub_normal.png": {
+"x": 242,
+"y": 306,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_btn120sub_pressed.png": {
+"x": 363,
+"y": 306,
+"w": 120,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_l_grey.png": {
+"x": 484,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_l_normal.png": {
+"x": 525,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_l_pressed.png": {
+"x": 566,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_r_grey.png": {
+"x": 607,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_r_normal.png": {
+"x": 648,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_arrow_r_pressed.png": {
+"x": 689,
+"y": 306,
+"w": 40,
+"h": 40
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_board_9.png": {
+"x": 730,
+"y": 306,
+"w": 32,
+"h": 32
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_hina.png": {
+"x": 763,
+"y": 306,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_kaede.png": {
+"x": 828,
+"y": 306,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_kuro.png": {
+"x": 893,
+"y": 306,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_luna.png": {
+"x": 958,
+"y": 306,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_mio.png": {
+"x": 0,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_momo.png": {
+"x": 65,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_nana.png": {
+"x": 130,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_rin.png": {
+"x": 195,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_sora.png": {
+"x": 260,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_tag_yuki.png": {
+"x": 325,
+"y": 347,
+"w": 64,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_deck_atk.png": {
+"x": 390,
+"y": 347,
+"w": 16,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_deck_drw.png": {
+"x": 407,
+"y": 347,
+"w": 16,
+"h": 16
+},
+"assets/c2/ui/c2/charsel/revremit_ui_charsel_deck_grd.png": {
+"x": 424,
+"y": 347,
+"w": 16,
+"h": 16
+}
+}
+}

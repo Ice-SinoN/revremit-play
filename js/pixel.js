@@ -193,8 +193,8 @@ function drawStreet(){
 
 /* ---- 絵ファイルを読む（Aseprite の json-array）。読めなければ仮のドットのまま ---- */
 const PRE={img:{},json:{}};// ★v0.18.1：先にまとめて読んだもの（読みこみの％を出すため）
-function artSrc(src){return(window.ART_EMBED&&ART_EMBED[src])||src}/* ★v0.22.102 */
-function loadImg0(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=(window.ART_EMBED&&ART_EMBED[src])||src})}
+function artSrc(src){return(window.ART_VIRT&&ART_VIRT[src])||(window.ART_EMBED&&ART_EMBED[src])||src}/* ★v0.22.102 */
+function loadImg0(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=(window.ART_VIRT&&ART_VIRT[src])||(window.ART_EMBED&&ART_EMBED[src])||src})}
 async function loadJSON0(src){if(window.ART_EMBED&&ART_EMBED[src])return JSON.parse(ART_EMBED[src]);try{const r=await fetch(src);return r.ok?await r.json():null}catch(e){return null}}
 function loadImg(src){return src in PRE.img?Promise.resolve(PRE.img[src]):loadImg0(src)}
 async function loadJSON(src){if(src in PRE.json)return PRE.json[src];return loadJSON0(src)}
@@ -236,6 +236,10 @@ async function loadFusedArt(have){window.FUSED_ART={};const P=FUSED_SHEET+".png"
     cells.forEach(c=>{if(!c.id)return;const cv=mkCanvas(c.w,c.h);cv.getContext("2d").drawImage(im,c.x,c.y,c.w,c.h,0,0,c.w,c.h);FUSED_ART[c.id]=cv.toDataURL()})}catch(e){}}
 /* ★v0.22.75 カードの絵を1枚のシートに（アーティファクトのファイル数）。json の frames＝{id:{x,y,w,h}}。シートにないカードは今までどおり1枚ずつの絵を見る */
 const CARD_SHEET="assets/c2/cards/c2/revremit_card_art_c2_sheet";
+/* ★v0.22.112 まとめたシート（tools/packsheet.py）：assets/c2/sheets/revremit_pack_*.png＋.json を起動で切り出し、元の置き場の名前で使えるように（ART_VIRT・ART_HAVE に足す）。artHave・artURL・loadImg はそのまま */
+async function loadPackSheets(have){window.ART_VIRT=window.ART_VIRT||{};const ps=[...have].filter(f=>/^assets\/c2\/sheets\/revremit_pack_.*\.png$/.test(f));
+  for(const P of ps){const J=P.replace(/\.png$/,".json");if(!have.has(J))continue;try{const im=await loadImg(P),js=await loadJSON(J);if(!im||!js||!js.frames)continue;
+    Object.entries(js.frames).forEach(([f,r])=>{if(have.has(f))return;/* 1枚ずつの絵が置いてあればそちら（差しかえが先） */const cv=mkCanvas(r.w,r.h);cv.getContext("2d").drawImage(im,r.x,r.y,r.w,r.h,0,0,r.w,r.h);ART_VIRT[f]=cv.toDataURL();have.add(f)})}catch(e){}}}
 async function loadCardSheet(have){window.CARD_SHEET_ART={};const P=CARD_SHEET+".png",J=CARD_SHEET+".json";if(!have.has(P)||!have.has(J))return;
   try{const im=await loadImg(P),js=await loadJSON(J);if(!im||!js||!js.frames)return;
     Object.entries(js.frames).forEach(([id,r])=>{const cv=mkCanvas(r.w,r.h);cv.getContext("2d").drawImage(im,r.x,r.y,r.w,r.h,0,0,r.w,r.h);CARD_SHEET_ART[id]=cv.toDataURL()})}catch(e){}}
@@ -246,7 +250,7 @@ async function loadArt(){
   for(const[k,a]of Object.entries(ART_SRC)){if(a.lazy)continue;await loadSpr(k,have)}
   window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":a_lazy(k)]));
   await buildStages(have);await buildStagesC2(have);await buildMeter(have);await buildTutParts(have);applyUi640(have);
-  await loadFusedArt(have);/* ★v0.22.49 */await loadCardSheet(have);
+  await loadPackSheets(have);/* ★v0.22.112 */await loadFusedArt(have);/* ★v0.22.49 */await loadCardSheet(have);
   // 絵ファイル（背景・アイコン・カード）を名前で引けるように
   window.IMG={};await Promise.all([...have].filter(f=>f.endsWith(".png")&&f.includes("/c2/")&&!f.includes("/characters/")).map(async f=>{IMG[f]=await loadImg(f)}));
 }

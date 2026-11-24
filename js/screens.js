@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.111（β2）";
+const VERSION="試作 v0.22.112（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -653,7 +653,7 @@ const STORY_ART={bg:k=>k.startsWith("fx:")?`assets/c2/fx/c2/revremit_fx_bg_${k.s
    前は YUKI の「……」はじまりを serious にしていたので、こゆきの行がほとんど険しい顔になっていた */
 function faceOf(l){if(l[2]&&l[2]!=="tag")return l[2];if(/！/.test(l[1]))return"surprise";return"normal"}
 const artHave=p=>window.ART_HAVE&&ART_HAVE.has(p);
-const artURL=p=>(window.ART_EMBED&&ART_EMBED[p])||p;
+const artURL=p=>(window.ART_VIRT&&ART_VIRT[p])||(window.ART_EMBED&&ART_EMBED[p])||p;
 /* ★v0.19：戦闘の上の一言（零号の第2形態は2行を順に。1行 2.5秒） */
 function toastNow(){const q=S.toastQ;if(!q||!q.length)return"";const i=Math.floor((Date.now()-S.toastT)/2500);if(i>=q.length){S.toastQ=null;return""}
   const l=q[i];return `<div class="toast" ${at(160,90,320)}><span class="scname">${esc(TEXT.names[l[0]]||"")}</span> <span class="tt">${esc(l[1].replace(/<br>/g,"\n"))}</span></div>`}
