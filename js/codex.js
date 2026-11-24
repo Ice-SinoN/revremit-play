@@ -216,9 +216,11 @@ function cdxOgSeen(x){return x.gold?cdxOgGold(x.card):cdxOgHas(x.card)}
 
 /* ---- v0.5.9 design 22章（v0.11.103）：初期デッキの札「はじめから」・読みのルビ・フレーバー。図鑑だけ（戦闘・報酬・ショップ・用語のヘルプには出さない）。
    正本はデータ：CARDS[id].starter（true）・CARDS[id].yomi（読み）。フレーバーは CARDS[id].flav（または flavor・fl）か TEXT.flav[id]、奥義は TEXT.og の flav／y。
-   starter がまだデータにないあいだは、CHARS のはじめのデッキ（deck）に入っているかで見る。 */
+   starter がないカードは、CHARS のはじめのデッキ（deck）に入っているかで見る（共通は今のキャラ）。 */
 function cdxYomi(id){const d=CARDS[id]||{};if(d.yomi)return d.yomi;if(d.r==="OG"){const T=(TEXT.og&&TEXT.og[d.og])||{};return T.y||""}return""}
-function cdxStarter(id){const d=CARDS[id]||{};if(Array.isArray(d.starter)){const ch=d.own&&d.own!=="N"?d.own:(typeof curChar==="function"?curChar():"YUKI");return d.starter.includes(ch)}/* ①の starter＝キャラ ID の配列：専用はその子・共通は今のキャラ（①が直した） */if(d.starter!=null)return!!d.starter;if(d.r==="OG")return false;
-  try{const own=d.own,cs=own&&own!=="N"?[own]:Object.keys(CHARS);return cs.some(ch=>CHARS[ch]&&(CHARS[ch].deck||[]).some(e=>(Array.isArray(e)?e[0]:e)===id))}catch(e){return false}}
+function cdxStarter(id){const d=CARDS[id]||{};if(d.r==="OG")return false;const ch=d.own&&d.own!=="N"?d.own:(typeof curChar==="function"?curChar():"YUKI");
+  if(Array.isArray(d.starter))return d.starter.includes(ch);/* v0.5.10 starter＝キャラ ID の配列（①v0.22.119）：専用はその持ち主・共通は今のキャラの初期デッキにあれば */
+  if(d.starter!=null)return!!d.starter;/* true／false も読む */
+  try{return!!(CHARS[ch]&&(CHARS[ch].deck||[]).some(e=>(Array.isArray(e)?e[0]:e)===id))}catch(e){return false}}
 function cdxFlav(id){const d=CARDS[id]||{};const f=d.flav||d.flavor||d.fl||(TEXT.flav&&TEXT.flav[id])||"";if(f)return f;if(d.r==="OG"){const T=(TEXT.og&&TEXT.og[d.og])||{};return T.flav||""}return""}
 function cdxRuby(n,y){return y&&y!==n?`<span class="cdxrb">${rr2Esc(n)}<span class="cdxrt">${rr2Esc(y)}</span></span>`:rr2Esc(n)}/* ルビは自前（<ruby> は読みが長いと名前の字の間が空くため）。読みは名前の左にそろえて上に */
