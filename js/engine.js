@@ -710,7 +710,7 @@ function winRewards(){
     if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;
-  const h0=G.heat||0;{const H=RULES.heat;let d=E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
+  const h0=G.heat||0;{const H=RULES.heat;let d=E.ally?0/* design 10-4b：連戦のボスの −2 は零号のあとに1回だけ */:E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
   return{key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard,heat:[h0,G.heat||0]};
 }
 /* ★v0.21 ログ（ラン後のマネー・design 9-7）。負けても突破したエリアのぶんは入る */

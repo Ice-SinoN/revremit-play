@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.131（β2）";
+const VERSION="試作 v0.22.132（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -244,7 +244,7 @@ function hud(x){const full=FULL_SCREENS.includes(window.SCREEN);return `<div cla
 /* ---- マップ（左から右へ・今のエリアの段だけ。640 いっぱい）。背景はグラフィック班の map\c2 があれば ---- */
 const MAP_ART=k=>`assets/c2/map/c2/revremit_map_bg_${AREA_BG[k]||k}.png`;
 function showMap(){
-  setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");
+  setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");if(G.row===0&&!G.duoStart){G.duoStart=1;setTimeout(()=>{if(window.SCREEN==="map")duoShow("start")},700)}/* ★v0.22.132 ランのはじめ */
   const ai=areaIdx(),rows=G.map.map((r,i)=>[r,i]).filter(([r])=>r[0].a===ai),cols=rows.length,step=Math.floor(620/cols),AR=AREAS[ai];
   const bgp=MAP_ART(AR.key);
   let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span></div>`;
@@ -289,7 +289,7 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
 function enterBattle(){if(typeof sprTrim==='function'&&G)sprTrim(['YUKI',G.char]);/* ★v0.22.125 今のキャラ以外の仲間の戦闘シートを手放す（スマホのメモリ） */if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
-  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();
+  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();{const rk=(ENEMIES[B.key]||{}).rank;if(!B.sim&&(rk==="elite"||rk==="boss")&&!B.hidden&&S.duoB!==B){S.duoB=B;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow(rk==="boss"?"boss":"start")},rk==="boss"?400:1600)}}/* ★v0.22.132 掛け合い */
   const E=Object.assign({},ENEMIES[B.key]);if(B.e&&B.e.phased&&E.phase&&E.phase.art&&SPR[E.phase.art]&&!SPR[E.phase.art].proc){E.art=E.phase.art;E.pal=null}/* ★v0.22.9 */if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
   const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
   Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
@@ -390,7 +390,7 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${(()=>{const R=RULE(),rs=R.rescue?(()=>{const used=(B.rescueT||0)>=(R.rescueN||1),ic=`assets/c2/ui/c2/revremit_ui_rescue_${used?"used":"ready"}.png`;/* ★v0.22.36 花の便りの印（text 27-2 rescue_icon） */
       return `<span class="rsc${used?" used":""}" title="${used?"花の便り（このターンはもう届いた）":"花の便り（まだ届く）"}">${artHave(ic)?`<img class="px" src="${artURL(ic)}" alt="">`:""}花の便り</span>`})():"";
-    return st.length?`<div class="stt small" ${at(...L.stt)}>${st.map(esc).join("<br>")}</div>`:""})()}/* ★v0.22.131 花の便りの印は帯へ（bandHtml） */
+    return st.length?`<div class="stt small" ${at(...L.stt)}>${st.map(esc).join("<br>")}</div>`:""})()}
   ${B.onUp.length?`<div class="onup small" ${at(...L.onup)}>${onUpIcons()}</div>`:""}
   ${toastNow()}`;
   // 手札
@@ -457,6 +457,9 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();
   const w=winRewards();S.win=w;
   if(ENEMIES[w.key]&&ENEMIES[w.key].ally){G.allyBossDone=true;G.allyPartPend=w.key;saveRun({s:"link"});allyBossAfter();return}/* ★v0.22.64 design 10-4b：その子のボスのあとは報酬の画面を出さず、撃破演出 → post → つなぎ → 零号。パーツは零号のあとにまとめて */
   saveRun({s:"win",rank:w.rank,key:w.key});
+  if(w.rank==="boss"&&!B.hidden&&S.rfxW!==B){S.rfxW=B;remitFx(()=>{setScreen("win");setScene("dim");showWinBody(w)});return}/* ★v0.22.132 撃破演出をエリアのボスにも（progression 1-26 の 7） */
+  showWinBody(w)}
+function showWinBody(w){if(w.rank==="boss"&&S.duoW!==S.win){S.duoW=S.win;setTimeout(()=>{if(window.SCREEN==="win")duoShow("win")},300)}/* ★v0.22.132 */
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
   {const T=G.ticket,four=T&&T.k==="cardPick"&&!T.used&&w.rank!=="hidden";if(four)T.used=1;S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank,four?4:3)}/* ★v0.22.65 整備チケット：最初の戦闘の報酬を4枚から */
@@ -480,10 +483,10 @@ function allyBossAfter(resume){G.allyBossDone=true;if(G.allyPartPend==null)G.all
     toast2(`記録がエンジンを軽くした（耐久 +${h}）`,300,2200);enterNode(G.path[G.row]||0)});
   if(resume){link();return}remitFx(()=>showScene(ch+"_boss_post",link))}
 /* 撃破演出（progression 1-26 の 7）：白く飛ぶ → 絵 → 光が上へ・「REMIT」。約2秒（2回目から 1.2秒）・タップで飛ばす。設定 OPTS.remitFx===false で切 */
-function remitFx(done){if(typeof OPTS!=="undefined"&&OPTS.remitFx===false){done();return}const s=seenGet(),k="remitfx_"+(B&&B.key||"x"),dur=s[k]?1200:2000;
+function remitFx(done){if((typeof OPTS!=="undefined"&&OPTS.remitFx===false)||(G&&G.fullAuto)||(window.FARM&&FARM.on)){done();return}const s=seenGet(),k="remitfx_"+(B&&B.key||"x"),dur=s[k]?1200:2000;
   const bg=storyBg((B&&B.key||"")+"_after|fx:win");let end=false;const fin=()=>{if(end)return;end=true;try{seenSet(k)}catch(e){}done()};
   setScreen("remitfx");setScene("dim");ui().innerHTML=`<div class="remitfx" ${at(0,0,640,360)} onclick="S.rfx&&S.rfx()">${artHave(bg)?`<img class="px" src="${artURL(bg)}" ${at(0,0,640,360)}>`:""}<div class="rfw"></div><div class="rft">REMIT</div><div class="rfl"></div></div>`;
-  SND.se("enemy_down");S.rfx=fin;setTimeout(fin,dur)}
+  SND.se("enemy_down");S.rfx=fin;setTimeout(fin,dur);try{if(artHave(bg)&&window.RRHOOK)RRHOOK.emit("seen_img",{path:bg})}catch(e){}/* ★v0.22.132 イラストライブラリ（②）に入る */}
 function bossParts(done){if(G.allyPartPend){const k=G.allyPartPend,nm=ENEMIES[k]&&ENEMIES[k].n||"";partsChoice(`連戦の報酬（${nm}）：パーツを1つ選ぶ`,()=>{G.allyPartPend=null;partsChoice("ボス撃破！パーツを1つ選ぶ",done)})}else partsChoice("ボス撃破！パーツを1つ選ぶ",done)}
 function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")bossParts(nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
 
@@ -600,7 +603,7 @@ function uiUpgrade(i){if(G.deck[i]&&canUpgrade(G.deck[i])){G.deck[i].up=true;SND
 function simScroll(k){const r=$("#simrow");if(r){r.scrollLeft+=k*280;S.simX=r.scrollLeft}}
 /* ---- ガレージ（休憩） ---- */
 /* ★v0.16：背景 garage。ストーブ（左）とソファ（右）。ソファの上に休憩の窓 */
-function showRest(){SND.bgm("rest");setScreen("rest");setScene("dim");const x=restAmount(),to=Math.min(G.maxhp,G.hp+x);
+function showRest(){SND.bgm("rest");setScreen("rest");setScene("dim");setTimeout(()=>{if(window.SCREEN==="rest")duoShow("rest")},500);/* ★v0.22.132 */const x=restAmount(),to=Math.min(G.maxhp,G.hp+x);
   ui().innerHTML=hud()+`<div class="hdr" ${at(452,26,180,18)}>ガレージで休憩</div><div class="sign side" ${at(452,46,180,80)}><div class="small dim">ストーブで温まって<br>エンジンを直す</div>
    <div>耐久 ${G.hp} → <b class="ok">${to}</b><span class="small dim">/${G.maxhp}</span></div></div>
    <button class="main u9" ${at(452,134,180,28)} onclick="G.hp=Math.min(G.maxhp,G.hp+${x});nextRow()">エンジンを直す（+${x}）</button>`}
@@ -949,3 +952,17 @@ function modeHelp(auto){const md=bandMode();if(!md)return;const st=$("#stage");i
 /* その走りかたで初めて走るランの最初の戦闘だけ、小窓を自動で3秒 */
 function modeHelpAuto(){try{if(window.TUTORIAL_ON||!G||G.fullAuto||(window.FARM&&FARM.on))return;const md=bandMode();if(!md)return;const p=PRF();p.modeHelp=p.modeHelp||{};
   if(p.modeHelp[md]||G.modeHelpDone)return;G.modeHelpDone=1;p.modeHelp[md]=1;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)modeHelp(true)},900)}catch(e){}}
+/* ★v0.22.132 仲間の掛け合い（progression 1-26 の 6・text 29章）：ほかのキャラのミニカーを持ちこんだランだけ。
+   場面＝①ランのはじめ（エリア1 のマップに初めて入る＝start）②休憩（rest）③エリートの戦闘のはじめ（start）④ボスの前（boss・因縁の組は初めての1回だけ rival）⑤ボスを倒したあと（win）。
+   吹き出し＝走る子の1行 → 仲間（通信）の1行と顔。ゲームは止めない・タップで消える・約3.5秒（戦闘の速さ 2倍は 2秒）。設定「掛け合い 入／切」（OPTS.banter） */
+function duoAllies(){if(!G)return[];const T=TEXT.duo||{},me=(G.char||"YUKI").toLowerCase();const a=[...new Set((G.bring||[]).map(m=>m&&m.char).filter(c=>c&&c!==G.char))].filter(c=>T["duo_"+me+"_"+c.toLowerCase()+"_rest_1"]);
+  return a.sort((x,y)=>(T["duo_"+me+"_"+y.toLowerCase()+"_rival"]?1:0)-(T["duo_"+me+"_"+x.toLowerCase()+"_rival"]?1:0))}
+function duoShow(sc){try{if((typeof OPTS!=="undefined"&&OPTS.banter===false)||window.TUTORIAL_ON||!G||G.fullAuto||(window.FARM&&FARM.on))return;const A=duoAllies();if(!A.length)return;
+  const T=TEXT.duo,me=G.char.toLowerCase();G.duoI=(G.duoI||0)+1;let al=A.length>1&&!(sc==="boss"&&T["duo_"+me+"_"+A[0].toLowerCase()+"_rival"]&&!(G.duoRival||{})[A[0]])?A[G.duoI%A.length]:A[0];const ak=al.toLowerCase();
+  let key=null;if(sc==="boss"&&T[`duo_${me}_${ak}_rival`]&&!(G.duoRival||{})[al]){key=`duo_${me}_${ak}_rival`;G.duoRival=G.duoRival||{};G.duoRival[al]=1}
+  if(!key){const ks=[1,2,3].map(i=>`duo_${me}_${ak}_${sc}_${i}`).filter(k=>T[k]);if(!ks.length)return;const c=ks.filter(k=>k!==G.duoLast);key=pick(c.length?c:ks)}G.duoLast=key;
+  const [a,b]=T[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?238:282;
+  document.querySelectorAll("#ui .duo").forEach(e=>e.remove());const d=document.createElement("div");d.className="duo";Object.assign(d.style,{left:"184px",top:y+"px",width:"272px",position:"absolute"});
+  d.innerHTML=`<div class="dl me"><b>${esc(nm(G.char))}</b>${esc(a).replace(/\n/g,"<br>")}</div><div class="dl al">${artHave(face)?`<img class="px" src="${artURL(face)}" alt="">`:""}<div><span class="commk">通信</span><b>${esc(nm(al))}</b><br>${esc(b).replace(/\n/g,"<br>")}</div></div>`;
+  d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";
+  try{SND.se("comm_blip")}catch(e){}const ms=(typeof OPTS!=="undefined"&&OPTS.bspd===2)?2000:3500;setTimeout(()=>d.remove(),ms)}catch(e){}}

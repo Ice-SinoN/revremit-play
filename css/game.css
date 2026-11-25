@@ -612,3 +612,9 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .bres img,.bres i{width:12px;height:12px;flex:0 0 12px;display:block}.bres i{background:#ff7ab8}
 .bres.used{opacity:.55}
 .glpop.mhelp{max-width:220px}
+
+/* ★v0.22.132 仲間の掛け合いの吹き出し（ゲームは止めない・タップで消える） */
+.duo{background:rgba(8,10,22,.92);border:1px solid #6fa8ff;box-shadow:0 0 0 1px #000;padding:3px 5px;font-size:10px;line-height:12px;color:#fff;z-index:30;pointer-events:auto}
+.duo b{color:#b6ff3a;margin-right:4px}.duo .dl{display:flex;gap:4px;align-items:flex-start}.duo .dl.al{margin-top:2px;border-top:1px dashed #2b3d6a;padding-top:2px}
+.duo .dl.al img{width:24px;height:24px;flex:0 0 24px;image-rendering:pixelated}.duo .dl.al b{color:#8cc4ff}
+.duo .commk{font-size:8px;padding:0 2px;margin-right:3px}
