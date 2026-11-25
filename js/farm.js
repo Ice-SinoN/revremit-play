@@ -86,8 +86,19 @@ function farmRoles(){const c={atk:0,grd:0,util:0,dbf:0,sk:0},L=G.deck.filter(x=>
 function farmCardScore(id){const d=CARDS[id];if(!d||d.t==="jam")return -99;const{c,n}=farmRoles(),r=FARM_ROLE[d.t]||"util";
   const def=FARM_TARGET[r]!=null?FARM_TARGET[r]-c[r]/n:0;let s=({C:1,R:2,E:3,SK:3})[d.r]||1;s+=def*12;if(d.own===G.char)s+=1;if(r==="sk")s+=1.5;
   if(G.char==="YUKI"&&typeof BOT!=="undefined"&&BOT.CARD_PREF){const k=BOT.CARD_PREF.indexOf(id);if(k>=0)s+=Math.max(0,2-k*0.1)}
+  s+=farmRotFuseBonus(id);return s}
+/* v0.5.15 design 24-4 E14：遊ぶ人に近く。①ローテーション（rotate のカード）はデッキに1枚もなければ取る（2枚目からは取りにくく）
+   ②合成の材料（FUSE の相手がもうデッキにある）は少し取りやすく ③シムでは合成を強化より先に（いちばんよい合成） */
+const FARM_RF={rot0:2.5,rotMore:-2,fusePair:1.5};
+function farmHasRot(id){const d=CARDS[id];return!!(d&&(d.fx||[]).some(f=>f[0]==="rotate"))}
+function farmRotFuseBonus(id){let s=0;const L=G.deck.filter(x=>!CD(x).gen);
+  if(farmHasRot(id))s+=L.some(x=>farmHasRot(x.id))?FARM_RF.rotMore:FARM_RF.rot0;
+  if(typeof FUSE!=="undefined"){const has=k=>L.some(x=>x.id===k),made=f=>L.some(x=>x.id===f.id);if(FUSE.some(f=>CARDS[f.id]&&!made(f)&&((f.a===id&&has(f.b))||(f.b===id&&has(f.a)))))s+=FARM_RF.fusePair}
   return s}
-function farmReward(opts){if(!opts||!opts.length)return null;const deckN=G.deck.length;let b=null,bv=-1e9;opts.forEach(id=>{const v=farmCardScore(id);if(v>bv){bv=v;b=id}});
+function farmFuseBest(fo){let b=null,bv=-1e9;fo.forEach(o=>{const v=(({C:1,R:2,E:3,SK:3})[(CARDS[o.id]||{}).r]||2)+(o.up?1:0);if(v>bv){bv=v;b=o}});return b}
+function farmReward(opts){if(!opts||!opts.length)return null;const deckN=G.deck.length;
+  {const r=opts.find(farmHasRot);if(r&&deckN<28&&!G.deck.some(x=>!CD(x).gen&&farmHasRot(x.id)))return r}/* v0.5.15 E14：ローテーションがなければ必ず取る（遊ぶ人の形） */
+  let b=null,bv=-1e9;opts.forEach(id=>{const v=farmCardScore(id);if(v>bv){bv=v;b=id}});
   if(deckN>=22&&bv<3.5||deckN>=28&&bv<5)return null;/* デッキが大きくなりすぎたら、よいカードだけ（QA ボットはいつも取るので 35 枚まで太っていた） */return b}
 /* パーツ：その子の専用 > 共通。持っているパーツでいちばん低いものと比べて、上なら入れ替え（外す方は売る） */
 function farmPartScore(p){const d=PARTS[p];if(!d)return 0;let s=1;if(d.own===G.char)s+=2;else if(d.own!=="N")s-=1;if(p==="forged"&&(G.night||0)<3)s-=1;return s}
@@ -104,8 +115,8 @@ function farmShop(){const n=S.shop;if(!n)return;
       if(buyFeat(n,pr,false,-1))farmFeed(`目玉商品：${PARTS[n.featPart].n}（−${pr}）`,"gold")}}
   S.useTicket=false}
 function farmSim(){const fo=fuseOptions();const t=upgradeTargets();
+  if(fo.length){const o=farmFuseBest(fo);farmFeed("合成："+(CARDS[o.id]||{}).n,"gold");uiFuse(o.id);return}/* v0.5.15 合成を先に（E14） */
   if(t.length){let bi=t[0],bv=-1e9;t.forEach(i=>{const c=G.deck[i],d=CD(c);let v=farmCardScore(c.id)+(d.t==="atk"?1:0);if(G.char==="YUKI"&&typeof BOT!=="undefined"&&BOT.UP_PREF){const k=BOT.UP_PREF.indexOf(c.id);if(k>=0)v+=3-k*0.2}if(v>bv){bv=v;bi=i}});farmFeed("強化："+CD(G.deck[bi]).n+"+","gold");uiUpgrade(bi);return}
-  if(fo.length){farmFeed("合成："+(CARDS[fo[0].id]||{}).n,"gold");uiFuse(fo[0].id);return}
   S.simSel=null;S.simTab=null;nextRow()}
 
 /* ---------- 1歩（画面を見て、画面の関数を押す）---------- */

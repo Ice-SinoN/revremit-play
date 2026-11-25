@@ -16,9 +16,9 @@ const BETA={
     return BETA.PREF[name]||base},
   /* ★v0.22.133 LD：道の選び方 ROUTE=hot（★v0.22.137）／fight（戦闘・エリート・裏道を先に＝熱い道）／garage（ボスの前の段にガレージがあれば必ず選ぶ＝冷ます道）／なし＝今のまま */
   route:null,
-  /* ★v0.22.151 E14（design 24-4）：ボットも合成する（遊ぶ人に近い測りに）。FUSE=0 で前の形（合成しない）。合成できる組が複数なら、エピックになる組 → 強化ずみになる組 → 先の組 */
+  /* ★v0.22.151 E14（design 24-4）：ボットも合成する（遊ぶ人に近い測りに）。FUSE=0 で前の形（合成しない）。合成できる組が複数なら、エピックになる組 → 先の組（★v0.22.155 から強化ずみ同士の組だけ） */
   fuse:true,cnt:{fuse:0,rot:0},
-  fusePick(){const fo=fuseOptions();if(!fo.length)return null;const rk=o=>(rarityOf(o.id)==="E"?2:0)+(o.up?1:0);return fo.slice().sort((x,y)=>rk(y)-rk(x))[0]},
+  fusePick(){const fo=fuseOptions().filter(o=>o.up);/* ★v0.22.155 design 24-7（C）：材料が2枚とも強化ずみのときだけ合成（②のフルオートと同じ形） */if(!fo.length)return null;const rk=o=>(rarityOf(o.id)==="E"?2:0)+(o.up?1:0);return fo.slice().sort((x,y)=>rk(y)-rk(x))[0]},
   node(){const r=G.map[G.row];if(BETA.route==="fight"){const P=["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}
     if(BETA.route==="hot"){const lo=G.hp<G.maxhp*0.5,P=lo?["garage","shop","lucky","sim","battle","hidden","elite","boss"]:["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}/* ★v0.22.137 ROUTE=hot：戦闘を先に・体力が半分より下ならガレージ */
     if(BETA.route==="garage"){const nx=G.map[G.row+1];if(nx&&nx[0]&&nx[0].k==="boss"){const g=r.findIndex(n=>n.k==="garage");if(g>=0)return g}}

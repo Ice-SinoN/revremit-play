@@ -176,3 +176,4 @@ button.bspd.on{color:#FFD34D}
 #rr2v .rlghost:not(.won){background:transparent;color:#C9B6FF;border:1px solid #C9B6FF}
 /* v0.5.12 フルオートのヒートの色（①の炎と同じ段：1〜2 橙・3〜4 赤・5 青） */
 #farmui .fheat.h-orange{color:#FFA43D}#farmui .fheat.h-red{color:#FF5A5A}#farmui .fheat.h-blue{color:#6FC8FF}
+#rr2v .cdxdl{color:#9FE6FF;white-space:nowrap}

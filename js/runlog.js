@@ -18,7 +18,7 @@ function rlEntry(clear,X){const g=G;let a=0,row=0;try{const r=Math.min(g.row,g.m
   const deck=(g.deck||[]).filter(c=>!c.gen).map(c=>({id:c.id,up:c.up?1:0}));/* v2：ゴースト（design 10-17-3）のため [{id,up}] に */
   const res=clear?"clear":X.give?"giveup":"lose";
   return{at:Date.now(),v:2,ver:(typeof VERSION_NO==="function"?VERSION_NO():""),farm:X.farm?1:0,char:g.char,mode:g.mode,night:g.night||0,res,result:res,area:a+1,row,reach:{area:a+1,row},
-    stats:{maxHp:g.maxhp||0,tune:Object.assign({tire:0,shift:0,engine:0,light:0,ecu:0},g.tune)},heatMax:+(g.heatMax||g.heat||0)||0,
+    deliv:X.farm||g.fullAuto?0:(+g.deliv||0),/* v0.5.15 B5 届けた記録（①の G.deliv・フルオートは 0） */stats:{maxHp:g.maxhp||0,tune:Object.assign({tire:0,shift:0,engine:0,light:0,ecu:0},g.tune)},heatMax:+(g.heatMax||g.heat||0)||0,
     enemy:!clear&&!X.give&&B&&B.result==="dead"?B.key:null,min:X.t0?Math.max(0,Math.round((Date.now()-X.t0)/60000)):null,
     rank:(S.res&&S.res.rank)||null,log:+S.runEndLog||0,deck,parts:(g.parts||[]).slice(),
     bring:(g.bring||[]).map(m=>({char:m.char,rank:m.rank,cards:(m.cards||[]).map(c=>c.id+(c.up?"+":""))})),tune:Object.assign({},g.tune)}}
@@ -45,13 +45,13 @@ function rlDetail(x){if(!x)return`<div class="small dim">記録をタップす�
   const tune=Object.entries(x.tune||{}).filter(([,v])=>v).map(([k,v])=>`${({tire:"タイヤ",shift:"シフト",engine:"エンジン",light:"ライト",ecu:"ECU"})[k]||k} ${v}`).join("・")||"なし";
   return`<div class="cdxh">${rlWhen(x.at)}　${rr2Esc(rr2Name(x.char))}・${x.mode}・${x.night?"NIGHT "+x.night:"夜なし"}${x.farm?'<span class="rlauto">オート</span>':""}</div>
    <div class="small"><span class="rlres rl-${x.res}">${RL_RES[x.res]||x.res}</span>　エリア${x.area} ${x.row}段まで${x.enemy&&ENEMIES[x.enemy]?`・相手 ${rr2Esc(ENEMIES[x.enemy].n)}`:""}</div>
-   <div class="small">ランク ${x.rank||"－"}・ログ +${x.log||0}・${x.min!=null?x.min+"分":"時間 －"}${x.heatMax?`・ヒート最大 ${x.heatMax}`:""}</div>${x.ghostMet?`<div class="small"><span class="rlghost${x.ghostWon?" won":""}">${x.ghostWon?"ゴーストに勝った":"ゴーストに会った"}</span></div>`:""}
+   <div class="small">ランク ${x.rank||"－"}・ログ +${x.log||0}・${x.min!=null?x.min+"分":"時間 －"}${x.heatMax?`・ヒート最大 ${x.heatMax}`:""}${x.deliv?`・届けた記録 +${x.deliv}`:""}</div>${x.ghostMet?`<div class="small"><span class="rlghost${x.ghostWon?" won":""}">${x.ghostWon?"ゴーストに勝った":"ゴーストに会った"}</span></div>`:""}
    <div class="rlsc"><div class="small"><span class="gold">デッキ ${n}枚</span><br><span class="rlwrap">${deck||"－"}</span></div>
    <div class="small"><span class="gold">パーツ</span> <span class="rlwrap">${(x.parts||[]).map(p=>rr2Esc(PARTS[p]?PARTS[p].n:p)).join("・")||"なし"}</span></div>
    <div class="small"><span class="gold">持ちこんだミニカー</span> <span class="rlwrap">${(x.bring||[]).map(m=>`${rr2Esc(rr2Name(m.char))} ${m.rank}（${m.cards.map(rlCard).map(rr2Esc).join("・")}）`).join("／")||"なし"}</span></div>
    <div class="small"><span class="gold">チューン</span> ${rr2Esc(tune)}</div></div>`}
 /* 書き出し：CSV（1ラン1行）と JSON。列の名前は道具で読みやすい英字 */
-const RL_COLS=["at","farm","char","mode","night","res","area","row","enemy","min","rank","log","heatMax","ghostMet","ghostWon","maxHp","ver","parts","bring","deck","tune"];
+const RL_COLS=["at","farm","char","mode","night","res","area","row","enemy","min","rank","log","heatMax","ghostMet","ghostWon","deliv","maxHp","ver","parts","bring","deck","tune"];
 function rlCSV(L){const q=s=>{s=String(s==null?"":s);return/[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s};
   return[RL_COLS.join(",")].concat(L.map(x=>RL_COLS.map(k=>{const v=x[k];
     if(k==="at")return q(new Date(v).toISOString());if(k==="parts")return q((v||[]).join(" "));if(k==="deck")return q(Object.entries(rlDeckMap(x)).map(([a,n])=>a+"x"+n).join(" "));if(k==="maxHp")return q(x.stats?x.stats.maxHp:"");if(k==="ghostMet"||k==="ghostWon")return q(x[k]?1:0);

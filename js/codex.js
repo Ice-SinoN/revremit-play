@@ -125,7 +125,7 @@ function renderCodex(){const v=rr2Layer(),t=CDX.tab,L=cdxItems(t);
   if(t==="gloss")flt=`<button class="u9 cdxf${CDX.gsort==="yomi"?" main":""}" onclick="CDX.gsort='yomi';renderCodex()">五十音</button><button class="u9 cdxf${CDX.gsort==="cat"?" main":""}" onclick="CDX.gsort='cat';renderCodex()">型ごと</button>`;
   const r=t==="gloss"?null:cdxRate(t),all=cdxAll();
   const rate=r?`<span class="cdxr">${r[0]}／${r[1]}（${cdxPct(r)}%）</span>`:`<span class="cdxr">${L.length} 語</span>`;
-  v.innerHTML=tabs+backBtn("もどる","codexBack()")+`<div class="cdxbar" ${at(8,56,624,28)}><span class="cdxflt">${flt}</span>${rate}<span class="cdxr dim">全体 ${cdxPct(all)}%</span></div>`+
+  v.innerHTML=tabs+backBtn("もどる","codexBack()")+`<div class="cdxbar" ${at(8,56,624,28)}><span class="cdxflt">${flt}</span>${rate}<span class="cdxr dim">全体 ${cdxPct(all)}%</span>${typeof delivCount==="function"?`<span class="cdxr cdxdl" title="送り届けた記録">届けた ${delivCount()}</span>`:""}</div>`+/* v0.5.15 B5 届けた数（①の delivCount） */
     `<div class="cdxlist cdx-${t}" ${at(8,88,300,264)}>${cdxListHTML(t,L)}</div><div class="cdxdet sign" ${at(316,88,316,264)}>${cdxDetailHTML(t,L)}</div>`;
   const ls=v.querySelector(".cdxlist");if(ls&&CDX.scroll&&CDX.scroll[t])ls.scrollTop=CDX.scroll[t];if(ls)ls.onscroll=()=>{(CDX.scroll=CDX.scroll||{})[t]=ls.scrollTop};
   GLOSS.scan(v)}
