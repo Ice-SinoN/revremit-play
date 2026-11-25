@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.134（β2）";
+const VERSION="試作 v0.22.135（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -244,7 +244,7 @@ function hud(x){const full=FULL_SCREENS.includes(window.SCREEN);return `<div cla
 /* ---- マップ（左から右へ・今のエリアの段だけ。640 いっぱい）。背景はグラフィック班の map\c2 があれば ---- */
 const MAP_ART=k=>`assets/c2/map/c2/revremit_map_bg_${AREA_BG[k]||k}.png`;
 function showMap(){
-  setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");if(G.row===0&&!G.duoStart){G.duoStart=1;setTimeout(()=>{if(window.SCREEN==="map")duoShow("start")},700)}/* ★v0.22.132 ランのはじめ */
+  setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");if(G.row===0&&!G.duoStart){G.duoStart=1;setTimeout(()=>{if(window.SCREEN==="map")duoShow("runstart")},700)}/* ★v0.22.132 ランのはじめ（★v0.22.135 専用の文） */
   const ai=areaIdx(),rows=G.map.map((r,i)=>[r,i]).filter(([r])=>r[0].a===ai),cols=rows.length,step=Math.floor(620/cols),AR=AREAS[ai];
   const bgp=MAP_ART(AR.key);
   let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span></div>`;
@@ -365,7 +365,7 @@ function stageTap(){if(busy()){uiSkip();return}if(S.sel>=0){S.sel=-1;A.pv=null;r
 function setPreview(i){A.pv=null;if(i<0||!B.hand[i])return;const c=B.hand[i],p=preview(c);
   const acts=cardActions(i),sh=acts[0]?acts[0][1]:false,sim=p.ok?simulateCard(i,sh):null;
   A.pv={band:bandRangeOf(c),gas:p.ok?p.gas:gasOf(c),ok:p.ok,sim,gasAfter:sim?sim.gas:null}}
-function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
+function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.maxhp*0.3){G.duoLow=1;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow("low")},300)}/* ★v0.22.135 耐久が3割を切ったとき（1ランに1回） */try{SND.gear()}catch(e){}/* ★v0.22.127 */
   if(!B)return;setScreen("battle");
   const e=B.e,full=!canDraw(),locked=B.over,L=RES;
   /* ★v0.22.8 design 10-7：予告が変わった瞬間に1回だけ enemy_attack_warn（大きな攻撃・貫通） */
@@ -970,8 +970,9 @@ function duoAllies(){if(!G)return[];const T=TEXT.duo||{},me=(G.char||"YUKI").toL
 function duoShow(sc){try{if((typeof OPTS!=="undefined"&&OPTS.banter===false)||window.TUTORIAL_ON||!G||G.fullAuto||(window.FARM&&FARM.on))return;const A=duoAllies();if(!A.length)return;
   const T=TEXT.duo,me=G.char.toLowerCase();G.duoI=(G.duoI||0)+1;let al=A.length>1&&!(sc==="boss"&&T["duo_"+me+"_"+A[0].toLowerCase()+"_rival"]&&!(G.duoRival||{})[A[0]])?A[G.duoI%A.length]:A[0];const ak=al.toLowerCase();
   let key=null;if(sc==="boss"&&T[`duo_${me}_${ak}_rival`]&&!(G.duoRival||{})[al]){key=`duo_${me}_${ak}_rival`;G.duoRival=G.duoRival||{};G.duoRival[al]=1}
-  if(!key){const ks=[1,2,3].map(i=>`duo_${me}_${ak}_${sc}_${i}`).filter(k=>T[k]);if(!ks.length)return;const c=ks.filter(k=>k!==G.duoLast);key=pick(c.length?c:ks)}G.duoLast=key;
-  const [a,b]=T[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?20:282;/* ★v0.22.134 QA：報酬の画面は上（お金の行にかけない） */
+  const TB=TEXT.banter||{},bn=sc==="runstart"||sc==="low";/* ★v0.22.135 29-7：ランのはじめ（banter_*_start）・耐久3割（banter_*_low） */
+  if(!key){const ks=[1,2,3].map(i=>bn?`banter_${me}_${ak}_${sc==="low"?"low":"start"}_${i}`:`duo_${me}_${ak}_${sc}_${i}`).filter(k=>(bn?TB:T)[k]);if(!ks.length)return;const c=ks.filter(k=>k!==G.duoLast);key=pick(c.length?c:ks)}G.duoLast=key;
+  const [a,b]=(bn?TB:T)[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?20:282;/* ★v0.22.134 QA：報酬の画面は上（お金の行にかけない） */
   document.querySelectorAll("#ui .duo").forEach(e=>e.remove());const d=document.createElement("div");d.className="duo";Object.assign(d.style,{left:"184px",top:y+"px",width:"272px",position:"absolute"});
   d.innerHTML=`<div class="dl me"><b>${esc(nm(G.char))}</b>${esc(a).replace(/\n/g,"<br>")}</div><div class="dl al">${artHave(face)?`<img class="px" src="${artURL(face)}" alt="">`:""}<div><span class="commk">通信</span><b>${esc(nm(al))}</b><br>${esc(b).replace(/\n/g,"<br>")}</div></div>`;
   d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";
