@@ -19,7 +19,7 @@ if(process.env.DRIVE){const D=process.env.DRIVE;let k=0;vm.runInContext(`globalT
 /* ★v0.22.126 LD 11-84：WEAK=0|1|2（弱点ギアを狙う）。出力にボスごとの勝ちと、ボス戦のアタックのうち弱点のギアで当てた割合 */
 BETA.weak=+(process.env.WEAK||0);BETA.route=process.env.ROUTE||null;/* ★v0.22.133 ROUTE=fight|garage */if(process.env.WEAK_HIT)BETA.WEAK_HIT=+process.env.WEAK_HIT;if(process.env.WEAK_STEP)BETA.WEAK_STEP=+process.env.WEAK_STEP;
 /* ★v0.22.126 WX=dry|rain|snow：天候のあるマス（戦闘・エリート・裏道）を全部その天候にする（天候の得意・不得意の測り）。なし＝ふつうの抽選 */
-BETA.wx=process.env.WX||null;if(process.env.WXOLD==="1")vm.runInContext("WX_ON.splice(3)",ctx);/* ★v0.22.147 霧・夜明けを切って前と比べる（WXOLD=1） */if(process.env.FORK==="0")vm.runInContext(`{const o=nightRules;nightRules=n=>Object.assign(o(n),{fork:0})}`,ctx);/* ★v0.22.144 分かれ道 +1 を切って前と比べる（FORK=0） */
+BETA.wx=process.env.WX||null;if(process.env.GG==="0")vm.runInContext("for(const k in GHOST_GUARD)delete GHOST_GUARD[k]",ctx);/* ★v0.22.150 ゴーストの守りを切って前と比べる（GG=0） */if(process.env.WXOLD==="1")vm.runInContext("WX_ON.splice(3)",ctx);/* ★v0.22.147 霧・夜明けを切って前と比べる（WXOLD=1） */if(process.env.FORK==="0")vm.runInContext(`{const o=nightRules;nightRules=n=>Object.assign(o(n),{fork:0})}`,ctx);/* ★v0.22.144 分かれ道 +1 を切って前と比べる（FORK=0） */
 const N=+process.argv[2]||200,kind=process.argv[3]||"smart",night=+(process.env.NIGHT||1),pool=process.env.POOL||"all";
 const POOLS={all:"all",start:"start",a1:{areas:["a1"]},a2:{areas:["a1","a2"]},clear:{areas:["a1","a2","clear"],nightMax:1}};
 /* ★v0.22.130 LD（窓口 11-25 14:02）：POOL=prog＝夜ごとの解放の形（balance 10-3）。N1 はじめ・N2〜5 表の解放・N6〜 全部。仲間はその子の a1・a2・clear も足す。

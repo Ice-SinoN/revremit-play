@@ -483,7 +483,7 @@ const OPS={
  atkLostHp:(x,v,k)=>{let d=Math.min(k,Math.round((G.maxhp-G.hp)*v));if(G.hp<=G.maxhp/2)d=Math.round(d*1.5);if(d>0)x.attack(d,true)},
  atkPerfCount:(x,v,k)=>{const n=Math.max(0,G.st.perfect-(B.perf0||0)),d=Math.min(k,Math.round(n*v));if(d<=0)return;const b=B.e.block;B.e.block=0;x.attack(d,true);B.e.block=b;addLog("防御を無視")},
 };
-function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
+function hitEnemy(d){const e=B.e;if(e.gg&&e.gg.k==="half"&&B.pTurns<e.gg.n&&d>0){d=Math.ceil(d/2);addLog("ゴーストの守り：ダメージ半分")}/* ★v0.22.150 A1 */const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
 function wxName0(){const w=wxNow();return(typeof TEXT!=="undefined"&&TEXT.wx&&TEXT.wx[w]&&TEXT.wx[w].n)||(WEATHER[w]&&WEATHER[w].n)||w}
 /* ★v0.22.128 ボスの第2形態の天候（design 10-18-1）：体力 50% で天候が変わる（残光 雨・白夜 雪・零号 霧・空転 雨・散花 霧・未決 夜明け）。形のないボス（残光・白夜）も天候だけ変わる */
@@ -684,6 +684,7 @@ function enemyStep(){
   const e=B.e;B.enemyActed=true;e.frzD=0;
   if(e.mirrorArm){e.mAdd=Math.floor(e.block*e.mirror);e.mirrorArm=false}
   e.block=e.blkKeep?Math.floor(e.block*e.blkKeep):0;
+  if(e.gg){const g=e.gg;e.gAct=(e.gAct||0)+1;let v=0;if(g.k==="nth"&&e.gAct%g.n===0)v=g.v;else if(g.k==="low"&&!e.gLow&&e.hp<=e.maxhp/2){e.gLow=1;v=g.v}else if(g.k==="chain")v=Math.min(g.v,B.cards||0);if(v>0){e.block+=v;addLog(`ゴーストの守り：防御 +${v}`);ev({k:"eblk",v})}}/* ★v0.22.150 A1 */
   if(e.burn>0){e.hp-=e.burn;addLog(`炎上で ${e.burn}ダメージ`);ev({k:"eburn",v:e.burn});e.burn--;if(e.hp<=0)return"win";checkPhase()}
   const pat=curPat(e),p=pat[e.pi%pat.length];e.pi++;
   if(e.morph&&e.pi>=pat.length){e.pi=0;e.mi++}
@@ -715,13 +716,16 @@ const GHOST_P=0.25;
 function ghostRoll(ai){if(!G||G.ghostDone||!G.ghostRec||ai<1)return;G.ghostRolled=G.ghostRolled||{};if(G.ghostRolled[ai])return;G.ghostRolled[ai]=1;if(Math.random()>=(G.ghostP!=null?G.ghostP:GHOST_P))return;G.ghostDone=1;
   const ns=G.map.flatMap(r=>r).filter(n=>n.a===ai&&n.k==="elite");if(!ns.length)return;const n=pick(ns);n.ghost=1;G.ghostDef=ghostDef(G.ghostRec,ai);ENEMIES.__ghost=G.ghostDef}
 function ghostReady(){if(!ENEMIES.__ghost&&G&&G.ghostDef)ENEMIES.__ghost=G.ghostDef;return!!ENEMIES.__ghost}
+/* ★v0.22.150 A1（design 10-17-2・24-4）：ゴーストに「キャラの守りの仕組み」を敵の形で。HINA・NANA は design 10-17-2 の例どおり。YUKI・MOMO は design に形がないので①の仮（デザイン班に確かめ）
+   half＝プレイヤーの最初の n ターン、ゴーストが受けるダメージ半分（切り上げ）／nth＝ゴーストの n 回目の行動ごとに防御 +v／low＝体力が半分を切ったあとの最初の行動で1回だけ防御 +v／chain＝ゴーストの行動のはじめに、直前のプレイヤーの番に打たれたカードの枚数だけ防御（最大 v） */
+const GHOST_GUARD={HINA:{k:"half",n:2,t:"最初の2ターン ダメージ半分"},NANA:{k:"nth",n:3,v:6,t:"3回ごとに防御 +6"},YUKI:{k:"low",v:12,t:"体力半分で1回 防御 +12"},MOMO:{k:"chain",v:6,t:"打たれた枚数だけ防御（最大 6）"}};
 function ghostDef(rec,ai){const el=ENEMIES[AREAS[ai].elite]||{hp:200},ch=rec.char||G.char,C=CHARS[ch]||CHARS.YUKI;
   const val=c=>{const d=CARDS[c.id]||{};return(c.up&&d.vu!=null?d.vu:d.v)||0};
   const atks=rec.deck.filter(c=>CARDS[c.id]&&CARDS[c.id].t==="atk"&&!CARDS[c.id].gen&&CARDS[c.id].r!=="OG").sort((a,b)=>val(b)-val(a));
   const g=rec.deck.filter(c=>CARDS[c.id]&&CARDS[c.id].t==="grd").sort((a,b)=>val(b)-val(a))[0];
   const a1=atks[0],a2=atks.find(c=>c.id!==(a1&&a1.id))||atks[1];
   const pat=[a1?["atk",Math.max(4,Math.round(val(a1)*0.8))]:["atk",12],a2?["multi",Math.max(2,Math.round(val(a2)*0.8/2)),2]:["atk",10],["blk",g?Math.max(6,Math.round(val(g))):10]];
-  const TX=typeof TEXT!=="undefined"?TEXT:{};return{n:(TX.ghost&&TX.ghost.name||"{name}のゴースト").replace("{name}",(TX.names&&TX.names[ch])||ch),rank:"elite",ghost:1,gchar:ch,art:"ghost_"+ch,hp:Math.round(el.hp*1.1),spd:C.car.spd||10,pat,rage:rec.result==="clear"?1:0,gimTxt:rec.result==="clear"?"全クリアの記録：動くたびに攻撃 +1":"前の記録のデッキで走る"}}
+  const TX=typeof TEXT!=="undefined"?TEXT:{};return{n:(TX.ghost&&TX.ghost.name||"{name}のゴースト").replace("{name}",(TX.names&&TX.names[ch])||ch),rank:"elite",ghost:1,gchar:ch,art:"ghost_"+ch,hp:Math.round(el.hp*1.1),spd:C.car.spd||10,pat,rage:rec.result==="clear"?1:0,gg:GHOST_GUARD[ch]||null,gimTxt:(rec.result==="clear"?"全クリアの記録：動くたびに攻撃 +1":"前の記録のデッキで走る")+(GHOST_GUARD[ch]?"／"+GHOST_GUARD[ch].t:"")}}
 /* ★v0.22.146 B5 送り届けた記録の数（progression 1-32 H・design 10-20）：勝つたびに 雑魚 1・エリート／裏道／ゴースト 3・ボス 10。負けたランでもそれまでの分は入る（勝った瞬間に profile.deliv へ）。
    チュートリアル・練習・フルオートは数えない。スロットごと（profile）＝引き継ぎコードにも入る。節目（ROAD LOG の小話）と街の灯りの段は、文と絵がそろったら（今は数だけ） */
 const DELIV={battle:1,elite:3,ghost:3,boss:10,marks:[50,100,200,500,1000],city:[100,300,750,1500,3000]};
