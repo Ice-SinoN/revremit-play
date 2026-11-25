@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.136（β2）";
+const VERSION="試作 v0.22.137（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -224,7 +224,7 @@ function toggleBring(i){const m=S.mcAll[i];if(!m)return;const s=S.mcSel,k=s.inde
 function startWithMinicars(){const p=S.mcAll.filter(m=>S.mcSel.includes(m.id));S.mcSel=[];S.flow=S.flow||{mode:S.mcMode};flowToMode(p)}/* ★v0.22.28 確認の画面へ */
 /* ボット用：newRun("MT") でガレージを飛ばして走れる（組んだデッキを使う） */
 /* ★つづきから */
-function continueRun(){const r=loadRun();if(!r){showTitle();return}if(window.FARM&&FARM.on&&!(r.G&&r.G.fullAuto)){FARM.on=false;FARM.snap=null}/* ★v0.22.68 */G=r.G;B=null;uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
+function continueRun(){const r=loadRun();if(!r){showTitle();return}if(window.FARM&&FARM.on&&!(r.G&&r.G.fullAuto)){FARM.on=false;FARM.snap=null}/* ★v0.22.68 */G=r.G;B=null;if(G.ghostDef)ENEMIES.__ghost=G.ghostDef;/* ★v0.22.137 */uidN=1+Math.max(0,...G.deck.map(c=>c.uid||0));SND.setCar();
   const st=r.stage||{};if(st.s==="battle"&&ENEMIES[st.key]){if(st.j!=null)G.path[G.row]=st.j;startBattleState(st.key);enterBattle()}
   else if(st.s==="link"||st.s==="win"&&st.key&&ENEMIES[st.key]&&ENEMIES[st.key].ally){allyBossAfter(true)}/* ★v0.22.64 つなぎの会話から再開 */
   else if(st.s==="win"){const rk=st.rank;if(rk==="boss")bossParts(nextRow);else if(rk==="elite")partsChoice("パーツを1つ選ぶ",nextRow);else nextRow()}
@@ -252,10 +252,10 @@ function showMap(){
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
       const st=i<G.row?"done":i===G.row?"now":"later",hidQ=n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
       const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
-      const chain=n.k==="boss"&&!G.allyBossDone&&typeof allyBossOf==="function"&&allyBossOf(n),lab2=chain?"連戦":lab;/* ★v0.22.64 design 10-4b：その子のボス → 零号（2つ重ねのアイコンはグラフィック班の絵が来るまで同じアイコンをずらして重ねる） */
-      const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
-      h+=i===G.row?`<button class="node k-${n.k} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
-                  :`<div class="node k-${n.k} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
+      const chain=n.k==="boss"&&!G.allyBossDone&&typeof allyBossOf==="function"&&allyBossOf(n),lab2=chain?"連戦":n.ghost&&!(n.k==="hidden"&&i>G.row+1)?"ゴースト":lab;/* ★v0.22.64 design 10-4b：その子のボス → 零号（2つ重ねのアイコンはグラフィック班の絵が来るまで同じアイコンをずらして重ねる） */
+      const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const gh=n.ghost&&!hidQ,hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
+      h+=i===G.row?`<button class="node k-${n.k}${gh?" ghost":""} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
+                  :`<div class="node k-${n.k}${gh?" ghost":""} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
   h+=heatBar(476,22);/* ★v0.22.131 */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
@@ -289,8 +289,9 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
 function enterBattle(){if(typeof sprTrim==='function'&&G)sprTrim(['YUKI',G.char]);/* ★v0.22.125 今のキャラ以外の仲間の戦闘シートを手放す（スマホのメモリ） */if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
-  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();{const rk=(ENEMIES[B.key]||{}).rank;if(!B.sim&&(rk==="elite"||rk==="boss")&&!B.hidden&&S.duoB!==B){S.duoB=B;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow(rk==="boss"?"boss":"start")},rk==="boss"?400:1600)}}/* ★v0.22.132 掛け合い */
+  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();if(B.e.ghost&&!B.sim&&S.ghB!==B){S.ghB=B;const L=TEXT.ghost&&TEXT.ghost.lines[G.char],t=L&&(G.ghostRec&&G.ghostRec.result==="clear"?L.clear:L.line);if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`${(TEXT.names||{})[G.char]||G.char}：${t}`,120,3200)},700)}/* ★v0.22.137 ゴーストに出会った一言 */{const rk=(ENEMIES[B.key]||{}).rank;if(!B.sim&&(rk==="elite"||rk==="boss")&&!B.hidden&&!B.e.ghost&&S.duoB!==B){S.duoB=B;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow(rk==="boss"?"boss":"start")},rk==="boss"?400:1600)}}/* ★v0.22.132 掛け合い */
   const E=Object.assign({},ENEMIES[B.key]);if(B.e&&B.e.phased&&E.phase&&E.phase.art&&SPR[E.phase.art]&&!SPR[E.phase.art].proc){E.art=E.phase.art;E.pal=null}/* ★v0.22.9 */if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
+  if(E.ghost)ghostSpr(E.gchar);/* ★v0.22.137 */
   const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
   Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
   /* ★v0.22.10 不具合（虎雪 19:04）：先に動く敵の一発・始まりの効果で耐久が 0 になったとき、負けの流れに入らず止まっていた
@@ -463,7 +464,7 @@ function showWin(){SND.red(0);if(S.jw!==B){S.jw=B;if(B.hidden){SND.engineStop();
   saveRun({s:"win",rank:w.rank,key:w.key});
   if(w.rank==="boss"&&!B.hidden&&S.rfxW!==B){S.rfxW=B;remitFx(()=>{setScreen("win");setScene("dim");showWinBody(w)});return}/* ★v0.22.132 撃破演出をエリアのボスにも（progression 1-26 の 7） */
   showWinBody(w)}
-function showWinBody(w){if(w.rank==="boss"&&S.duoW!==S.win){S.duoW=S.win;setTimeout(()=>{if(window.SCREEN==="win")duoShow("win")},300)}/* ★v0.22.132 */
+function showWinBody(w){if(w.ghost){ghostReward(w);return}if(w.rank==="boss"&&S.duoW!==S.win){S.duoW=S.win;setTimeout(()=>{if(window.SCREEN==="win")duoShow("win")},300)}/* ★v0.22.132 */
   /* ★背景 reward：ライト3つ（x 156・319・483）の下にカード、作業台の前にお金と「もらわない」 */
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！${w.otk?"　<span class='gold'>ワンターンキル！</span>":""}</div><div class="small">${w.rank==="hidden"?"裏道のカードを開いた":"カードを1枚もらう（デッキに足す）"}</div></div>`;
   {const T=G.ticket,four=T&&T.k==="cardPick"&&!T.used&&w.rank!=="hidden";if(four)T.used=1;S.rewards=w.rank==="hidden"?[]:rewardOptions(w.rank,four?4:3)}/* ★v0.22.65 整備チケット：最初の戦闘の報酬を4枚から */
@@ -476,7 +477,7 @@ function showWinBody(w){if(w.rank==="boss"&&S.duoW!==S.win){S.duoW=S.win;setTime
 }
 const LAMP_X=[156,319,483];
 function takeCard(id){if(id&&CARDS[id]&&CARDS[id].r==="OG"){const o=G.deck.findIndex(c=>rarityOf(c)==="OG");if(o>=0){const old=G.deck.splice(o,1)[0];toast2(((TEXT.ui||{}).og_swap||"奥義を入れかえた：{a} → {b}").replace("{a}",CD(old).n).replace("{b}",CARDS[id].n),56,2500)}}/* ★v0.22.102 奥義は1枚まで＝入れかえ */
-  if(id)G.deck.push(inst(id));afterWin()}
+  if(id){const c=inst(id);if(S.ghostUp)c.up=true;G.deck.push(c)}S.ghostUp=false;afterWin()}
 /* その子のボス：サーキットのボスのマスで、その子で走っていて、まだ倒していないとき */
 function allyBossOf(n){const ab=typeof ALLY_BOSS!=="undefined"&&ALLY_BOSS[G.char];return ab&&ENEMIES[ab]&&AREAS[n.a].boss==="boss3"&&!G.allyBossDone?ab:null}
 /* その子のボスに勝ったあと：パーツ → 「○○_boss_post」→ 同じマスで零号へ（段は進めない） */
@@ -492,12 +493,12 @@ function remitFx(done){if((typeof OPTS!=="undefined"&&OPTS.remitFx===false)||(G&
   setScreen("remitfx");setScene("dim");ui().innerHTML=`<div class="remitfx" ${at(0,0,640,360)} onclick="S.rfx&&S.rfx()">${artHave(bg)?`<img class="px" src="${artURL(bg)}" ${at(0,0,640,360)}>`:""}<div class="rfw"></div><div class="rft">REMIT</div><div class="rfl"></div></div>`;
   SND.se("enemy_down");S.rfx=fin;setTimeout(fin,dur);try{if(artHave(bg)&&window.RRHOOK)RRHOOK.emit("seen_img",{path:bg})}catch(e){}/* ★v0.22.132 イラストライブラリ（②）に入る */}
 function bossParts(done){if(G.allyPartPend){const k=G.allyPartPend,nm=ENEMIES[k]&&ENEMIES[k].n||"";partsChoice(`連戦の報酬（${nm}）：パーツを1つ選ぶ`,()=>{G.allyPartPend=null;partsChoice("ボス撃破！パーツを1つ選ぶ",done)})}else partsChoice("ボス撃破！パーツを1つ選ぶ",done)}
-function afterWin(){if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")bossParts(nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
+function afterWin(){if(S.win&&S.win.ghost){nextRow();return}/* ★v0.22.137 ゴーストは3つから1つだけ */if(S.win&&ENEMIES[S.win.key]&&ENEMIES[S.win.key].ally){allyBossAfter();return}const r=S.win.rank;if(r==="boss")bossParts(nextRow);else if(r==="elite")partsChoice("エリート撃破！パーツを1つ選ぶ",nextRow);else nextRow()}
 
 /* ---- パーツの3択 ---- */
-function partsChoice(title,done){
+function partsChoice(title,done,opts){
   setScreen("parts");setScene("dim");
-  {const T=G.ticket,four=T&&T.k==="partPick"&&!T.used;if(four)T.used=1;S.partOpts=partOptions(four?4:3)}S.pdone=done;/* ★v0.22.65 整備チケット：最初のパーツの候補が4つ */const full=G.parts.length>=RULES.partsMax;
+  if(opts)S.partOpts=opts;else{const T=G.ticket,four=T&&T.k==="partPick"&&!T.used;if(four)T.used=1;S.partOpts=partOptions(four?4:3)}S.pdone=done;/* ★v0.22.65 整備チケット：最初のパーツの候補が4つ */const full=G.parts.length>=RULES.partsMax;
   ui().innerHTML=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(title)}</div>${full?`<div class="small gold">パーツが${RULES.partsMax}つ。選ぶと入れ替え</div>`:`<div class="small">ライトの下から1つ</div>`}</div>`+
    (S.partOpts.length?S.partOpts.map((p,i)=>`<button class="pt lit" ${at(S.partOpts.length>3?30+i*148:LAMP_X[i]-70,52,140,184)} onclick="takePart('${p}')"><span class="slot${PARTS[p].own!=="N"?" sp":""}">${partIcon(p,64)}</span><b>${esc(partName(p))}</b><br><span class="small">${esc(PARTS[p].d)}</span></button>`).join(""):`<div class="sign" ${at(220,120,200,24)}>候補がない</div>`)+
    backBtn("取らない","S.pdone()");
@@ -782,7 +783,7 @@ function deckUL(){return SAVE&&SAVE.cur?unlockedCards(PRF()):null}
 function nightMaxAvail(){return Math.min(typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length,NIGHTS.length,(PRF().unlock.nightMax||0)+1)}
 function curNight(){const n=+PRF().night||nightMaxAvail();return Math.max(1,Math.min(n,nightMaxAvail()))}
 function labOpen(){return(PRF().unlock.nightMax||0)>=1||PRF().log>0}
-function runOpts(){const p=PRF();return{wxFirst:!((p.stats&&p.stats.runs)||0),/* ★v0.22.126 初めのラン＝エリア1 の最初の3段はドライ */night:curNight(),ul:{cards:unlockedCards(p),parts:unlockedParts(p)},hidden:(p.unlock.nightMax||0)>=1}}
+function runOpts(){const p=PRF();let gh=null;try{gh=window.runlog&&runlog.pickGhost?runlog.pickGhost(curChar()):null}catch(e){}/* ★v0.22.137 ゴーストのもと */return{ghost:gh,wxFirst:!((p.stats&&p.stats.runs)||0),/* ★v0.22.126 初めのラン＝エリア1 の最初の3段はドライ */night:curNight(),ul:{cards:unlockedCards(p),parts:unlockedParts(p)},hidden:(p.unlock.nightMax||0)>=1}}
 function pickNight(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length;
   modal(`<div class="h">夜をえらぶ</div><div class="small dim">決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く</div><div class="scroll nlist" style="height:190px">`+
     NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
@@ -804,7 +805,7 @@ function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C
 /* ★v0.22.63 ②へのつなぎ目：RR_HOOKS.runEnd に関数を足すと、ランの終わり（ログを足したあと・1ランに1回）に呼ばれる。{clear,rank,log,logParts,got,G}。G.fullAuto はフルオート周回のラン。夜なし（テスト）のランでは呼ばない */
 const RR_HOOKS=window.RR_HOOKS=window.RR_HOOKS||{};
 function rrHook(k,a){(RR_HOOKS[k]||[]).forEach(f=>{try{f(a)}catch(e){console.error(e)}})}
-function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;const p=PRF(),u=p.unlock,got=[];
+function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;try{if(window.runlog&&runlog.add&&!G.practice)runlog.add({ghostMet:G.ghostMet?1:0,ghostWon:G.ghostWon?1:0,heatMax:G.heatMax||0})}catch(e){}/* ★v0.22.137 design 10-17-3 */const p=PRF(),u=p.unlock,got=[];
   if(!G.night){S.runEndLog=0;return 0}// 夜なし（テスト・α の道）は数えない
   const beforeC=new Set(unlockedCards(p)),beforeP=new Set(unlockedParts(p));
   const area=a=>{[a,G.char+":"+a].forEach(k=>{if(!u.areas.includes(k))u.areas.push(k)})};if(G.st.bosses>=1)area("a1");if(G.st.bosses>=2)area("a2");if(clear)area("clear");
@@ -978,3 +979,27 @@ function duoShow(sc){try{if((typeof OPTS!=="undefined"&&OPTS.banter===false)||wi
   d.innerHTML=`<div class="dl me"><b>${esc(nm(G.char))}</b>${esc(a).replace(/\n/g,"<br>")}</div><div class="dl al">${artHave(face)?`<img class="px" src="${artURL(face)}" alt="">`:""}<div><span class="commk">通信</span><b>${esc(nm(al))}</b><br>${esc(b).replace(/\n/g,"<br>")}</div></div>`;
   d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";if(window.SCREEN==="win"){d.classList.add("win");d.style.top=Math.max(286,359-d.offsetHeight)+"px"}/* ★v0.22.136 QA：報酬の画面は下のはし（見出しにも、お金の行にもなるべくかけない） */
   try{SND.se("comm_blip")}catch(e){}const ms=(typeof OPTS!=="undefined"&&OPTS.bspd===2)?2000:3500;setTimeout(()=>d.remove(),ms)}catch(e){}}
+/* ★v0.22.137 ライバルのゴースト（design 10-17-2）：見た目＝そのキャラの戦闘の絵を左右反転し、薄紫〜灰に寄せて1ドットの薄紫の縁。新しい絵は要らない */
+function ghostSpr(ch){const k="ghost_"+ch;if(SPR[k]&&!SPR[k].proc)return;const S0=SPR[ch];if(!S0||S0.proc)return;
+  const T=S0.tags,pickT=(...ns)=>ns.map(n=>T[n]).find(Boolean)||T.stand||[0,0],use={stand:pickT("idle","stand"),atk:pickT("atk_l","atk_h","atk"),hit:pickT("hit")};
+  const frames=[],dur=[],tags={};
+  Object.entries(use).forEach(([nm,[a,b]])=>{const st=frames.length;for(let i=a;i<=b;i++){const src=S0.frames[i];if(!src)continue;const w=src.width,h=src.height,cv=mkCanvas(w,h),g=cv.getContext("2d");g.translate(w,0);g.scale(-1,1);g.drawImage(src,0,0);g.setTransform(1,0,0,1,0,0);
+      const d=g.getImageData(0,0,w,h),q=d.data,al=new Uint8Array(w*h);for(let p=0;p<w*h;p++)al[p]=q[p*4+3]>0?1:0;
+      for(let p=0;p<w*h;p++){const o=p*4;if(!q[o+3])continue;const l=(q[o]*0.3+q[o+1]*0.59+q[o+2]*0.11)/255;q[o]=Math.round(90+l*120);q[o+1]=Math.round(80+l*110);q[o+2]=Math.round(120+l*120)}
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){const p=y*w+x;if(al[p])continue;if((x>0&&al[p-1])||(x<w-1&&al[p+1])||(y>0&&al[p-w])||(y<h-1&&al[p+w])){const o=p*4;q[o]=200;q[o+1]=170;q[o+2]=255;q[o+3]=255}}
+      g.putImageData(d,0,0);frames.push(cv);dur.push((S0.dur&&S0.dur[i])||120)}tags[nm]=[st,frames.length-1]});
+  tags.idle=tags.stand;const f=S0.foot||[112,220],w0=(S0.frames[0]||{width:224}).width;SPR[k]={frames,dur,tags,foot:[w0-f[0],f[1]]}}
+/* 報酬：3つから1つ（①自分の専用パーツ ②エピックのカード ③強化ずみのカード）＋お金 +20 */
+function ghostPartOpts(){const own=Object.keys(PARTS).filter(p=>PARTS[p].own===G.char&&!G.parts.includes(p)&&!(G.soldParts||[]).includes(p)&&!(typeof isMcPart==="function"&&isMcPart(p)));
+  return(own.length?shuffle(own):shuffle(partPool().filter(p=>PARTS[p].own==="N"))).slice(0,3)}
+function ghostEpicOpts(){const ul=G.ul?G.ul.cards:Object.keys(CARDS);return shuffle([...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&rarityOf(id)==="E"&&!CARDS[id].gen&&(!G.ul||ul.includes(id)))).slice(0,3)}
+function ghostUpOpts(){return shuffle([...new Set(G.deck.filter(c=>!c.gen&&CARDS[c.id]&&CARDS[c.id].t!=="jam"&&!["SK","OG"].includes(rarityOf(c))).map(c=>c.id))]).slice(0,3)}
+function ghostReward(w){S.rewards=[];const L=TEXT.ghost&&TEXT.ghost.lines[G.char];if(L&&L.win)setTimeout(()=>{if(window.SCREEN==="win")toast2(`${(TEXT.names||{})[G.char]||G.char}：${L.win}`,286,3000)},300);
+  const C=[["part","専用パーツ","持っていない自分のパーツから3つ"],["epic","エピックのカード","解放ずみのエピックから3枚"],["up","強化ずみのカード","今のデッキのカードを、強化した形で3枚"]];
+  let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！</div><div class="small">ゴーストの報酬：3つから1つ選ぶ（お金 +${w.gold}）</div></div>`;
+  h+=C.map(([k,n,d],i)=>`<button class="pt lit ghr" ${at(LAMP_X[i]-70,52,140,184)} onclick="ghostPick('${k}')"><b>${esc(n)}</b><br><span class="small">${esc(d)}</span></button>`).join("");
+  ui().innerHTML=h}
+function ghostPick(k){SND.se("ui_ok");if(k==="part"){partsChoice("ゴーストの報酬：パーツを1つ選ぶ",nextRow,ghostPartOpts());return}
+  S.ghostUp=k==="up";S.rewards=k==="epic"?ghostEpicOpts():ghostUpOpts();if(!S.rewards.length){S.ghostUp=false;partsChoice("ゴーストの報酬：パーツを1つ選ぶ",nextRow,ghostPartOpts());return}
+  ui().innerHTML=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${k==="epic"?"エピックのカード":"強化ずみのカード"}を1枚</div><div class="small">デッキに足す</div></div>`+
+    S.rewards.map((id,i)=>cardBig(id,{art:true,up:k==="up",cls:"lit",attrs:`${at(LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+backBtn("もらわない","takeCard(null)")}

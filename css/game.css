@@ -635,3 +635,8 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .duo.win{padding:1px 4px;line-height:11px}.duo.win .dl.al{margin-top:1px;padding-top:1px}.duo.win .dl.al img{width:20px;height:20px;flex-basis:20px}
 .bmadd{font:10px "PM12B";line-height:11px;color:#b6ff3a;text-align:center;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;pointer-events:none}
 .bmode *{pointer-events:none}
+
+/* ★v0.22.137 ゴーストのマス（エリートのアイコンを薄紫に・字「ゴースト」）・報酬の札 */
+.node.ghost .mi{filter:grayscale(.6) sepia(.3) hue-rotate(220deg) brightness(1.15) drop-shadow(0 0 2px #c8a8ff)}
+.node.ghost .nl{color:#d8c4ff}
+.ghr b{display:block;margin:60px 0 8px;font-size:14px;color:#d8c4ff}.ghr .small{display:block;padding:0 8px}

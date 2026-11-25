@@ -175,7 +175,7 @@ function newRunState(mode,charId,bring,dk,opt){
      night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
      st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0,mcParts:[],soldParts:[]};/* ★v0.22.37 持ちこみのパーツ・売ったパーツ（10-14・10-19） */
   G.mods=JSON.parse(JSON.stringify(opt.mods||(typeof PRF==="function"&&SAVE&&SAVE.cur&&PRF().mods)||{}));/* ★v0.22.47 改造 */
-  G.wxFirst=!!opt.wxFirst;G.map=genMap();
+  G.wxFirst=!!opt.wxFirst;G.ghostRec=opt.ghost||null;G.ghostDone=0;G.ghostMet=0;G.ghostWon=0;G.map=genMap();
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
     if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
@@ -187,11 +187,11 @@ function mcBonus(m){const i=Math.max(0,RANKS.indexOf(m.rank));return{hp:MC_BONUS
 function areaIdx(){const r=G.map[Math.min(G.row,G.map.length-1)];return r[0].a}
 function curArea(){return AREAS[areaIdx()]}
 /* マスの敵：最初の3段はやさしい雑魚だけ */
-function nodeEnemy(n){const a=AREAS[n.a];if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
+function nodeEnemy(n){const a=AREAS[n.a];if(n.ghost&&ghostReady())return"__ghost";/* ★v0.22.137 */if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
 /* 次の段へ。ボスのあとは耐久を 30% 回復（design 付録）。戻り値 "map"｜"area"（次のエリアに入った）｜"clear" */
 function advanceRow(){{const nd=G.map[G.row]&&G.map[G.row][G.path[G.row]];if(nd){const H=RULES.heat;if(nd.k==="garage")heatSet(H.garage,"ガレージで冷めた");else if(/^(shop|sim|lucky)$/.test(nd.k))heatSet((G.heat||0)+H.shop)}}/* ★v0.22.131 ヒートが冷める */const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
   if(G.row>=G.map.length){G.st.clear=true;return"clear"}
-  if(prev.k==="boss"){G.st.bosses++;const ah=NR().areaHeal,h=Math.round(G.maxhp*(ah!=null?ah:RULES.areaHeal));G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();return"area"}
+  if(prev.k==="boss"){G.st.bosses++;const ah=NR().areaHeal,h=Math.round(G.maxhp*(ah!=null?ah:RULES.areaHeal));G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();ghostRoll(areaIdx());return"area"}
   return"map"}
 /* 候補に出るパーツ：共通＋自分の専用だけ（★v0.22.37 虎雪 15:23・design 10-14：持ちこんだキャラの専用は出さない）。持っているもの・このランで売ったものは除く */
 function partPool(){const sold=G.soldParts||[];
@@ -249,7 +249,7 @@ function startBattleState(key){
   const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
   const abm=RULE().areaBossHp&&(G.night||0)>=2&&AREAS.some(a=>a.boss===key)?RULE().areaBossHp:1;/* ★v0.22.90 LD 11-47 A：HINA・NANA は NIGHT 2 からエリアのボス（残光・白夜・零号）×0.75 */
   const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm*abm*heatMul());/* ★v0.22.131 ヒート +3%／段 */
-  const wx=(node&&node.wx)||"dry";
+  const wx=(node&&node.wx)||"dry";if(E.ghost)G.ghostMet=1;/* ★v0.22.137 */
   B={key,wx,am:(AR.atkMul||1)*nr.atkMul*el*hm*heatMul(),hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?2500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
@@ -702,16 +702,29 @@ function addLogSafe(t){try{if(B&&!B.over)addLog(t)}catch(e){}}
 function heatMul(){return 1+(G&&G.heat||0)*RULES.heat.hpAtk}
 function heatGain(n){if(!n||n.k==="boss"||!/^(battle|elite|hidden)$/.test(n.k))return 0;const H=RULES.heat;let d=n.k==="battle"?H.win:H.elite;const w=n.wx||"dry";if(w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w)d+=H.badWx;return d}
 function featCost(){return Math.round(RULES.featPrice*(1+(G&&G.heat||0)*RULES.heat.gold))}
+/* ★v0.22.137 ライバルのゴースト（design 10-17-2）：エリア2・3 に入ったとき 25% で、そのエリアのエリートのマス1つがゴースト（1ランに1回）。
+   もと＝ランの記録（②の runlog.pickGhost・newRunState の opt.ghost）。体力＝そのエリアのエリート ×1.1、行動＝記録のアタック上位2枚（×0.8）とガード1枚、速さ＝そのキャラ、記録が全クリアなら rage */
+const GHOST_P=0.25;
+function ghostRoll(ai){if(!G||G.ghostDone||!G.ghostRec||ai<1)return;G.ghostRolled=G.ghostRolled||{};if(G.ghostRolled[ai])return;G.ghostRolled[ai]=1;if(Math.random()>=(G.ghostP!=null?G.ghostP:GHOST_P))return;G.ghostDone=1;
+  const ns=G.map.flatMap(r=>r).filter(n=>n.a===ai&&n.k==="elite");if(!ns.length)return;const n=pick(ns);n.ghost=1;G.ghostDef=ghostDef(G.ghostRec,ai);ENEMIES.__ghost=G.ghostDef}
+function ghostReady(){if(!ENEMIES.__ghost&&G&&G.ghostDef)ENEMIES.__ghost=G.ghostDef;return!!ENEMIES.__ghost}
+function ghostDef(rec,ai){const el=ENEMIES[AREAS[ai].elite]||{hp:200},ch=rec.char||G.char,C=CHARS[ch]||CHARS.YUKI;
+  const val=c=>{const d=CARDS[c.id]||{};return(c.up&&d.vu!=null?d.vu:d.v)||0};
+  const atks=rec.deck.filter(c=>CARDS[c.id]&&CARDS[c.id].t==="atk"&&!CARDS[c.id].gen&&CARDS[c.id].r!=="OG").sort((a,b)=>val(b)-val(a));
+  const g=rec.deck.filter(c=>CARDS[c.id]&&CARDS[c.id].t==="grd").sort((a,b)=>val(b)-val(a))[0];
+  const a1=atks[0],a2=atks.find(c=>c.id!==(a1&&a1.id))||atks[1];
+  const pat=[a1?["atk",Math.max(4,Math.round(val(a1)*0.8))]:["atk",12],a2?["multi",Math.max(2,Math.round(val(a2)*0.8/2)),2]:["atk",10],["blk",g?Math.max(6,Math.round(val(g))):10]];
+  const TX=typeof TEXT!=="undefined"?TEXT:{};return{n:(TX.ghost&&TX.ghost.name||"{name}のゴースト").replace("{name}",(TX.names&&TX.names[ch])||ch),rank:"elite",ghost:1,gchar:ch,art:"ghost_"+ch,hp:Math.round(el.hp*1.1),spd:C.car.spd||10,pat,rage:rec.result==="clear"?1:0,gimTxt:rec.result==="clear"?"全クリアの記録：動くたびに攻撃 +1":"前の記録のデッキで走る"}}
 function winRewards(){
   const key=B.key,E=ENEMIES[key],gd=RULES.gold;
   let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);gold=Math.round(gold*NR().goldMul);if(has("cat"))gold+=gd.cat;
-  if(E.rank==="elite"&&!B.hidden)G.st.elites++;
+  if(E.rank==="elite"&&!B.hidden)G.st.elites++;if(E.ghost){G.ghostWon=1;gold+=20}/* ★v0.22.137 ゴーストの報酬：お金 +20（ほかは画面で3つから1つ） */
   let hidCard=null;if(B.hidden){G.st.hidden++;const left=hiddenList(G.char).filter(id=>CARDS[id]&&!(G.ul&&G.ul.cards.includes(id))&&!G.hiddenWon.includes(id));
     if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;
   const h0=G.heat||0;{const H=RULES.heat;let d=E.ally?0/* design 10-4b：連戦のボスの −2 は零号のあとに1回だけ */:E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
-  return{key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard,heat:[h0,G.heat||0]};
+  return{ghost:!!E.ghost,key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard,heat:[h0,G.heat||0]};
 }
 /* ★v0.21 ログ（ラン後のマネー・design 9-7）。負けても突破したエリアのぶんは入る */
 function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};
