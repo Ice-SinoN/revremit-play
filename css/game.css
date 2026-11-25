@@ -665,3 +665,5 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 /* ★v0.22.157 AD：奥義の名前を左上に置くカットイン（腕が左下にかかる絵） */
 #ogcut.ttop .nm{top:98px}#ogcut.ttop .ln{top:122px}
 #ui .yogiri .ygn rt{font:9px/10px "PM10";letter-spacing:2px;color:rgba(208,216,232,.7)}
+/* ★v0.22.162 夜霧の上の足りない所＝fill の部品（128×64・縦横につながる）を、絵の上はしに下そろえで並べる */
+#ui .yogiri .ygf{position:absolute;left:0;right:0;top:0;image-rendering:pixelated;pointer-events:none}
