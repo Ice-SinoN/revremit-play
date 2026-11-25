@@ -151,6 +151,10 @@ function genMap(){
         if(r===a.mid&&!row.some(n=>n.k==="shop"||n.k==="sim"))row[0]={k:Math.random()<0.5?"shop":"sim"};}
       row.forEach(n=>{n.a=ai;n.r=r;if(n.k==="shop"){n.feat=Math.random()<RULES.featRate;n.sale=Math.random()<RULES.saleRate}});
       map.push(row)}
+    // ★v0.22.144 分かれ道 +1（design 24-1）：NIGHT 2 から。真ん中の段（全体の 1/3〜2/3・はじめとガレージの段は除く）のうち、マスのいちばん少ない段に1つ足す（4つまで）。種類はほかのマスと同じ重み
+    if(G&&G.night&&NR().fork){const base=map.length-a.rows,lo=Math.max(1,Math.ceil(a.rows/3)),hi=Math.min(a.rows-2,Math.floor(a.rows*2/3)),cand=[];for(let r=lo;r<=hi;r++)if(map[base+r].length<4)cand.push(r);
+      if(cand.length){const mn=Math.min(...cand.map(r=>map[base+r].length)),c2=cand.filter(r=>map[base+r].length===mn),r=c2[rnd(0,c2.length-1)],ew=NR().eliteW,w=NODE_W.filter(x=>r>=x[2]).map(x=>x[0]==="elite"&&ew?[x[0],ew,x[2]]:x),t=w.reduce((s,x)=>s+x[1],0);let q=Math.random()*t,k="battle";for(const x of w){q-=x[1];if(q<0){k=x[0];break}}
+        const n={k,a:ai,r,fork:1};if(k==="shop"){n.feat=Math.random()<RULES.featRate;n.sale=Math.random()<RULES.saleRate}map[base+r].push(n)}}
     // ★裏道（design 9-6）：NIGHT 1 を初めてクリアしたあと。エリアに入ったとき 35% で、4〜9段目のどこかに1つ
     if(G&&G.hiddenOn&&Math.random()<UNLOCK.hiddenRate){const base=map.length-a.rows,r=rnd(UNLOCK.hiddenRows[0],Math.min(UNLOCK.hiddenRows[1],a.rows-2)),row=map[base+r];
       const j=row.length<4?row.length:rnd(0,row.length-1),n={k:"hidden",a:ai,r};if(j<row.length&&(row[j].k==="shop"||row[j].k==="sim")&&r===a.mid)row.push(n);else row[j]=n}
@@ -160,7 +164,7 @@ function genMap(){
 /* ★v0.22.126 天候（design 10-16-1）：戦闘・エリート・裏道のマスごとに1つ。同じ段はなるべくちがう天候。初めのランのエリア1 最初の3段はドライ */
 function wxPick(ak){return wxPick0(ak)}
 function wxPick0(ak){const W=(typeof WX_W!=="undefined"&&WX_W[ak])||{dry:1};let t=0;const ls=(typeof WX_ON!=="undefined"?WX_ON:["dry"]).map(k=>{const w=k==="dry"?Object.keys(W).filter(x=>!WX_ON.includes(x)).reduce((s,x)=>s+W[x],W.dry||0):(W[k]||0);t+=w;return[k,w]});let q=Math.random()*t;for(const[k,w]of ls){q-=w;if(q<0)return k}return"dry"}
-function wxRow(row,ak,dry){const used={},F=typeof nightFace==="function"&&G&&nightFace(G.night);row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}if(F&&F.wx){const fk=Object.keys(F.wx).find(k=>Math.random()<F.wx[k]);if(fk){n.wx=fk;used[fk]=(used[fk]||0)+1;return}}/* ★v0.22.139 夜の顔はそのまま（同じ段のちがいより先） */let w=wxPick0(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick0(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick0(ak);if(!used[alt])w=alt}used[w]=(used[w]||0)+1;n.wx=w})}
+function wxRow(row,ak,dry){const used={},F=typeof nightFace==="function"&&G&&nightFace(G.night);row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}if(F&&F.wx){const fk=Object.keys(F.wx).find(k=>Math.random()<F.wx[k]);if(fk){n.wx=fk;used[fk]=(used[fk]||0)+1;return}}/* ★v0.22.139 夜の顔はそのまま（同じ段のちがいより先） */let w=wxPick0(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick0(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick0(ak);if(!used[alt])w=alt}if(used[w]>=2&&w!=="dry")w="dry";/* ★v0.22.144 分かれ道で4つの段がふえたので、同じ天候は1つの段に2つまで（夜の顔の天候は別） */used[w]=(used[w]||0)+1;n.wx=w})}
 function wxNow(){return(B&&!B.over&&B.wx)||"dry"}
 function wxDef(){return(typeof WEATHER!=="undefined"&&WEATHER[wxNow()])||{}}
 function wxMinus(){const w=wxNow();return w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w}

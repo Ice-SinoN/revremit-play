@@ -25,6 +25,7 @@ const BETA_NIGHTS=4;
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）
   eliteW:n>=2?20:null,        // エリートの重み 12 → 20
+  fork:n>=2?1:0,              // ★v0.22.144 design 24-1：NIGHT 2 から、各エリアの真ん中の段（1/3〜2/3）に分かれ道を1つ足す（段の数は同じ）
   hpMul:n>0&&NIGHT_HP[n]||1,  // 敵の体力（全部）★v0.22.77 design 10-23 の表（v0.22.72 の N2 ×2.2・9-4 の N4 ×1.1 を置きかえ）
   areaHeal:n>=5?0.1:null,     // ボスのあとの回復
   eliteMul:n>=6?1.2:1,        // エリートの体力・攻撃
