@@ -171,3 +171,6 @@ button.bspd.on{color:#FFD34D}
 #rr2v .cdxrb{position:relative;display:inline-block;margin-top:10px}
 #rr2v .cdxrt{position:absolute;left:0;bottom:100%;font:9px/10px 'PM10';color:#C9CED6;white-space:nowrap;letter-spacing:0;font-weight:normal}
 #rr2v .cdxst{font-style:normal;margin-left:5px;padding:0 3px;border:1px solid #C5FF45;color:#C5FF45;font:10px/12px 'PM10';vertical-align:2px;white-space:nowrap}
+/* v0.5.11 ゴースト（design 10-17）の印 */
+#rr2v .rlghost{font:10px 'PM10';color:#0A0812;background:#C9B6FF;padding:0 3px;margin-left:4px;white-space:nowrap}
+#rr2v .rlghost:not(.won){background:transparent;color:#C9B6FF;border:1px solid #C9B6FF}
