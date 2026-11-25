@@ -155,7 +155,7 @@ const FUSE=[
  {a:"n_hokori",b:"n_koutotsu",id:"f_n_hokorikoutotsu"},{a:"n_taikan",b:"n_totsugeki",id:"f_n_taikantotsugeki"},{a:"n_shukumei",b:"n_teppeki",id:"f_n_shukumeikabe"}];
 Object.assign(CARDS,{
  f_y_hyoukasen:{yomi:"ひょうかせん",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"氷華閃",t:"atk",c:2000,gas:2,v:12,vu:18,band:"M",fx:[["atk","v"],["frz",3]],d:"{v} ダメージ・凍結 3。"},
- f_y_tokai:{yomi:"とうかい",fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"凍界",t:"atk",c:4500,gas:2,v:24,vu:36,k:3,ku:5,fx:[["atk","v"],["frz","k"]],d:"{v} ダメージ・凍結 {k}。"},/* ★v0.22.164 design 10-21（合成カードを持たせたランの測り −17.5）：20→24・凍結 2→3（強化 5＝吹雪の檻と同じ）。強化のダメージは合成カードの決まり ×1.5＝36。もどす線：+3 をこえたら v 24→22。文はシナリオ班（{f}＝①の {k}） */
+ f_y_tokai:{yomi:"とうかい",fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"凍界",t:"atk",c:4500,gas:2,v:24,vu:36,k:3,ku:5,fx:[["atk","v"],["frz","k"]],d:"{v} ダメージ・凍結 {k}。"},/* ★v0.22.165 文は text v0.22.55 28-5（{f}→{k}・同じ文）。★v0.22.164 design 10-21（合成カードを持たせたランの測り −17.5）：20→24・凍結 2→3（強化 5＝吹雪の檻と同じ）。強化のダメージは合成カードの決まり ×1.5＝36。もどす線：+3 をこえたら v 24→22。文はシナリオ班（{f}＝①の {k}） */
  f_y_gyakuhan:{yomi:"ぎゃくはん",fused:1,r:"R",mo:"guard",own:"YUKI",n:"逆ハン",t:"grd",c:2500,gas:1,v:10,vu:15,fx:[["blk","v"],["counterAdd"]],d:"防御 {v}。次の番の最初のアタックに、この防御の半分を足す。",num:"blk"},/* 直し：14→10 */
  f_y_soujin:{yomi:"そうじん",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"霜刃",t:"atk",c:2500,gas:2,v:0.35,vu:0.5,fx:[["blkGear",3],["atkBlk","v"]],d:"ギア ×3 の防御を得てから、今の防御 ×{v} ダメージ。"},/* 直し：×0.7→×0.35 */
  f_y_shakusetsu:{yomi:"しゃくせつ",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"灼雪",t:"atk",c:1500,gas:2,v:14,vu:21,band:"R",bm:2,fx:[["atk","v"],["burn",4]],d:"{v} ダメージ・炎上 4（レッドで2倍）。"},
