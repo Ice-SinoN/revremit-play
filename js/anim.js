@@ -225,6 +225,7 @@ function draw(dt){
     else if(f.k==="cat"){g.globalAlpha=Math.sin(k*Math.PI)*0.8;catPx(g,Math.round(f.x),Math.round(f.y-k*6),4)}
     g.globalAlpha=1});
   g.setTransform(1,0,0,1,0,0);
+  if(A.mode==="battle"&&B&&!B.over)redEdge(g,dt);
   if(A.flash){g.globalAlpha=1-A.flash.t/A.flash.life;g.fillStyle=A.flash.col;g.fillRect(0,0,RES.W,RES.H);g.globalAlpha=1}
 }
 function drawBattle(g){
@@ -396,3 +397,17 @@ function meterC2(g,x0,y0){const M=METER;g.drawImage(M.blank,x0,y0);if(!B||!G)ret
   // シフトアップの残り（1ターン3回）
   for(let i=0;i<RULES.shiftCap;i++){g.fillStyle=i>=B.shiftsT?"#C5FF45":"#2A2F3A";g.fillRect(x0+8+i*7,y0+100,5,3)}
 }
+
+/* ★v0.22.127 レッドの演出（design 10-18 G）：レッドゾーンのあいだ、画面のふちが赤く光る。入口で薄く・リミットに近いほど濃く・ゆっくり脈打つ（1.6秒・明るさの変化は小さく＝点滅にしない）。
+   canvas に描くので字・ボタン（#ui）にはかからない。設定 OPTS.redFx："full"（ふつう）／"weak"（弱め＝半分）／"off"（切）。prefers-reduced-motion なら脈打たない */
+let RED_EDGE=null;
+function redEdgeCanvas(){if(RED_EDGE)return RED_EDGE;const W=RES.W,H=RES.H,cv=mkCanvas(W,H),g=cv.getContext("2d"),T=30;
+  const lin=(x0,y0,x1,y1)=>{const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,"rgba(255,32,48,1)");gr.addColorStop(0.45,"rgba(255,32,48,.35)");gr.addColorStop(1,"rgba(255,32,48,0)");return gr};
+  g.fillStyle=lin(0,0,0,T);g.fillRect(0,0,W,T);g.fillStyle=lin(0,H,0,H-T);g.fillRect(0,H-T,W,T);
+  g.globalCompositeOperation="lighter";g.fillStyle=lin(0,0,T,0);g.fillRect(0,0,T,H);g.fillStyle=lin(W,0,W-T,0);g.fillRect(W-T,0,T,H);
+  RED_EDGE=cv;return cv}
+function redLevelNow(){if(!B||!G||typeof redLo!=="function")return 0;const r=A.mr!=null?A.mr:B.rpm,lo=redLo(),hi=car().limit;if(r<lo)return 0;return Math.max(0.15,Math.min(1,(r-lo)/Math.max(1,hi-lo)))}
+function redEdge(g,dt){const md=(typeof OPTS!=="undefined"&&OPTS.redFx)||"full";const tgt=md==="off"||B.sim?0:redLevelNow()*(md==="weak"?0.5:1);
+  A.redA=(A.redA||0)+(tgt-(A.redA||0))*Math.min(1,dt/180);if(A.redA<0.01)return;
+  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,pul=rm?1:0.85+0.15*Math.sin(A.now/1600*Math.PI*2);
+  g.globalAlpha=Math.min(0.75,A.redA*0.7*pul);g.drawImage(redEdgeCanvas(),0,0);g.globalAlpha=1}

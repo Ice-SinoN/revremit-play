@@ -6,13 +6,13 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.126（β2）";
+const VERSION="試作 v0.22.127（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
 const SCREEN_BG={title:"title",deck:"garage",garage:"garage",release:"result",win:"reward",parts:"reward",shop:"shop",sim:"sim",rest:"garage",result:"result"};
 function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_base.png`]||IMG[`assets/c2/fx/c2/revremit_fx_bg_${k}.png`]||null:null}
-function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
+function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();try{SND.gear()}catch(e){}if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
 const FULL_SCREENS=["remitfx","battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
@@ -364,7 +364,7 @@ function stageTap(){if(busy()){uiSkip();return}if(S.sel>=0){S.sel=-1;A.pv=null;r
 function setPreview(i){A.pv=null;if(i<0||!B.hand[i])return;const c=B.hand[i],p=preview(c);
   const acts=cardActions(i),sh=acts[0]?acts[0][1]:false,sim=p.ok?simulateCard(i,sh):null;
   A.pv={band:bandRangeOf(c),gas:p.ok?p.gas:gasOf(c),ok:p.ok,sim,gasAfter:sim?sim.gas:null}}
-function renderBattle(){
+function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   if(!B)return;setScreen("battle");
   const e=B.e,full=!canDraw(),locked=B.over,L=RES;
   /* ★v0.22.8 design 10-7：予告が変わった瞬間に1回だけ enemy_attack_warn（大きな攻撃・貫通） */

@@ -19,11 +19,15 @@ const SND={on:true,
   limiter(){SND.call(A=>A.overrev())},
   blow(){SND.call(A=>A.blow())},
   /* BGM：同じ曲なら鳴らしなおさない（audio.js 側で判定） */
-  bgm(id){SND.call(A=>A.bgm(id))},
+  bgm(id){SND.cur=id;SND.call(A=>A.bgm(id));SND.gear(true)},
   bgmStop(){SND.call(A=>A.bgmStop())},
   jingle(id,o){SND.call(A=>A.jingle(id,o))},
   /* レッドゾーンにいるあいだ BGM にハイパス */
-  redOn:false,red(rpm){const on=!!(G&&B&&rpm>=redLo()&&!B.over);if(on!==SND.redOn){SND.redOn=on;SND.call(A=>{A.redFilter(on);A.redLoop&&A.redLoop(on)})}}/* ★v0.22.64 ⑤ */,
+  redOn:false,red(rpm){const on=!!(G&&B&&rpm>=redLo()&&!B.over);if(on!==SND.redOn){SND.redOn=on;SND.call(A=>{A.redFilter(on);A.redLoop&&A.redLoop(on,{level:SND.redLv()})})}}/* ★v0.22.64 ⑤・★v0.22.127 設定の強さ */,
+  redLv(){const m=(typeof OPTS!=="undefined"&&OPTS.redFx)||"full";return m==="off"?0:m==="weak"?0.5:1},
+  /* ★v0.22.127 ギアで重なる BGM（design 10-18 F）：エリアの戦闘曲3曲（battle_*）だけ、今のギア／段の数で4パート（いつも・中・高い・最大）。AT も同じ。ほかの曲・設定「切」は全部のパート */
+  gearOn(){return!(typeof OPTS!=="undefined"&&OPTS.bgmLayer===false)&&/^battle_/.test(SND.cur||"")&&window.SCREEN==="battle"&&B&&!B.over},
+  gear(force){const on=SND.gearOn(),key=on?(B.gear+1)+"/"+car().gears:"all";if(!force&&key===SND.gKey)return;SND.gKey=key;SND.call(A=>{if(!A.bgmGear)return;if(on)A.bgmGear(B.gear+1,{max:car().gears});else A.bgmLayers("DBHMX")})},
   /* 場面ごとの曲（audio-list 6章）。ショップ・会話などの曲がまだないところはマップの曲を流用 */
   areaBgm(kind){const a=G?curArea().key:"street",k={street:"street",touge:"touge",circuit:"circuit"}[a]||"street";
     if(kind==="battle"){const E=ENEMIES[B.key],ally=G.char&&G.char!=="YUKI"?"theme_"+G.char.toLowerCase():null;// ★v0.22.1 仲間のランはふつうの戦闘を3エリアともその子のテーマ・裏道は hidden（audio-list 6-2）
