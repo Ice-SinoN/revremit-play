@@ -187,7 +187,7 @@ FULL_SCREENS.push("hub","mcbox");Object.assign(SCREEN_BG,{hub:"garage",mcbox:"ga
 function hubBack(){if(S.hubOpen)showHub();else showTitle()}
 function showHub(){S.hubOpen=true;setScreen("hub");setScene("dim");setBg("garage");closeModal();SND.bgm("garage");const p=PRF(),mc=loadMinicars(),ch=curChar(),op=charsOpen().filter(c=>TREE[c]);
   const B=(x,y,w,h,t,s,on,cls)=>`<button class="u9 hubb${cls?" "+cls:""}" ${at(x,y,w,h)} onclick="${on}"><b>${t}</b>${s?`<span class="small dim">${s}</span>`:""}</button>`;
-  let h=`<div class="hdr" ${at(8,6,300,18)}>ガレージ</div>${backBtn("タイトルへ","S.hubOpen=false;showTitle()")}`+
+  let h=`<div class="hdr" ${at(8,6,300,18)}>ガレージ</div>${backBtn("タイトルへ","S.hubOpen=false;showTitle()")}<div class="small hubdeliv" ${at(16,34,400,16)}>送り届けた記録　<b>${typeof delivCount==="function"?delivCount():0}</b>${typeof delivNext==="function"&&delivNext()?`<span class="dim">　（次の節目 ${delivNext()}）</span>`:""}</div>`+/* ★v0.22.146 B5 */
    B(16,62,196,66,"ミニカー",`${mc.length}／${MINICAR_MAX}台・中身を見る・処分`,"showMcBox()")+
    B(222,62,196,66,"デッキを組む",`${esc(TEXT.names[ch]||ch)}・${deckCount(loadDeck(ch))}枚`,"showDeck()")+
    B(428,62,196,66,"みおのラボ",`ログ ${p.log||0}・カードを開く／改造`,"showLab()")+

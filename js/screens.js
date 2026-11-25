@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.145（β2）";
+const VERSION="試作 v0.22.146（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -805,7 +805,7 @@ function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C
 const RR_HOOKS=window.RR_HOOKS=window.RR_HOOKS||{};
 function rrHook(k,a){(RR_HOOKS[k]||[]).forEach(f=>{try{f(a)}catch(e){console.error(e)}})}
 function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;try{if(window.runlog&&runlog.add&&!G.practice)runlog.add({ghostMet:G.ghostMet?1:0,ghostWon:G.ghostWon?1:0,heatMax:G.heatMax||0})}catch(e){}/* ★v0.22.137 design 10-17-3 */const p=PRF(),u=p.unlock,got=[];
-  if(!G.night){S.runEndLog=0;return 0}// 夜なし（テスト・α の道）は数えない
+  if(!G.night){S.runEndLog=0;S.runDeliv=0;return 0}// 夜なし（テスト・α の道）は数えない
   const beforeC=new Set(unlockedCards(p)),beforeP=new Set(unlockedParts(p));
   const area=a=>{[a,G.char+":"+a].forEach(k=>{if(!u.areas.includes(k))u.areas.push(k)})};if(G.st.bosses>=1)area("a1");if(G.st.bosses>=2)area("a2");if(clear)area("clear");
   S.joinQ=[];
@@ -822,7 +822,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;try{
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */
    const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?(G.night>=6?2:G.night>=3?1:0):0);if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
-  const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();rrHook("runEnd",{clear,rank,log:lg.total,logParts:lg,got,G});return lg.total}
+  S.runDeliv=G.fullAuto?0:(G.deliv||0);/* ★v0.22.146 B5 */const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();rrHook("runEnd",{clear,rank,log:lg.total,logParts:lg,got,G});return lg.total}
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
   const ch=G&&G.char||"YUKI",sl=sRankList(ch),sc=sCountOf(p,ch);
@@ -843,7 +843,7 @@ function afterCarShow(got){const p=PRF();
   const grp={};got.forEach(t=>{const k=t.includes("：")?t.split("：")[0]:"";(grp[k]=grp[k]||[]).push(k?t.slice(k.length+1):t)});
   const lines=Object.entries(grp).map(([k,v])=>`<div class="small">${k?`<b>${esc(k)}</b>　`:""}${v.map(esc).join("・")}</div>`).join("");
   const ogh=(S.ogGot||[]).map(o=>{const d=CARDS[o.id],A=typeof OUGI_ART!=="undefined"&&OUGI_ART[d.og]||{},src=A.cutin1||A.cutin;return `<div class="oggot${o.gold?" gold":""}">${src?`<img src="${esc(artSrc(src))}" alt="">`:""}<div class="small"><b>${o.gold?"金の縁":"奥義 解放"}</b>　${esc(d.n)}</div></div>`}).join("");S.ogGot=null;/* ★v0.22.102 design 10-15-4 解放の知らせ */
-  showTitle();modal(`<div class="h">このランで</div>${ogh}<div class="small">ログ +${S.runEndLog||0}（合計 ${p.log}）</div>${lines?`<div class="scroll" style="max-height:170px">${lines}</div>`:""}<div class="row"><button class="main" onclick="closeModal();showTitle()">OK</button></div>`)}
+  showTitle();modal(`<div class="h">このランで</div>${ogh}<div class="small">ログ +${S.runEndLog||0}（合計 ${p.log}）</div>${S.runDeliv?`<div class="small">届けた記録 +${S.runDeliv}（合計 ${p.deliv||0}）</div>`:""}${lines?`<div class="scroll" style="max-height:170px">${lines}</div>`:""}<div class="row"><button class="main" onclick="closeModal();showTitle()">OK</button></div>`)}
 /* 強化ショップ：ログでカードを解放（design 9-7。名前は案「ログ」） */
 function showLab(){setScreen("lab");setScene("dim");setBg("garage");closeModal();SND.bgm("lab");S.labSel=S.labSel||UNLOCK.shop[0][0];S.labTab=S.labTab||"open";renderLab()}
 /* ★v0.22.47 ラボのタブ（text 27-5-1）：カードを開く／カードを改造 */

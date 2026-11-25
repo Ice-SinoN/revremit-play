@@ -722,9 +722,19 @@ function ghostDef(rec,ai){const el=ENEMIES[AREAS[ai].elite]||{hp:200},ch=rec.cha
   const a1=atks[0],a2=atks.find(c=>c.id!==(a1&&a1.id))||atks[1];
   const pat=[a1?["atk",Math.max(4,Math.round(val(a1)*0.8))]:["atk",12],a2?["multi",Math.max(2,Math.round(val(a2)*0.8/2)),2]:["atk",10],["blk",g?Math.max(6,Math.round(val(g))):10]];
   const TX=typeof TEXT!=="undefined"?TEXT:{};return{n:(TX.ghost&&TX.ghost.name||"{name}のゴースト").replace("{name}",(TX.names&&TX.names[ch])||ch),rank:"elite",ghost:1,gchar:ch,art:"ghost_"+ch,hp:Math.round(el.hp*1.1),spd:C.car.spd||10,pat,rage:rec.result==="clear"?1:0,gimTxt:rec.result==="clear"?"全クリアの記録：動くたびに攻撃 +1":"前の記録のデッキで走る"}}
+/* ★v0.22.146 B5 送り届けた記録の数（progression 1-32 H・design 10-20）：勝つたびに 雑魚 1・エリート／裏道／ゴースト 3・ボス 10。負けたランでもそれまでの分は入る（勝った瞬間に profile.deliv へ）。
+   チュートリアル・練習・フルオートは数えない。スロットごと（profile）＝引き継ぎコードにも入る。節目（ROAD LOG の小話）と街の灯りの段は、文と絵がそろったら（今は数だけ） */
+const DELIV={battle:1,elite:3,ghost:3,boss:10,marks:[50,100,200,500,1000],city:[100,300,750,1500,3000]};
+function delivPts(E,hid){return E.rank==="boss"?DELIV.boss:E.ghost?DELIV.ghost:(E.rank==="elite"||hid)?DELIV.elite:DELIV.battle}
+function delivAdd(E,hid){if(!G||G.practice||G.fullAuto||(typeof window!=="undefined"&&window.TUTORIAL_ON)||(typeof B!=="undefined"&&B&&B.sim))return 0;const n=delivPts(E,hid);G.deliv=(G.deliv||0)+n;
+  try{if(typeof PRF==="function"){const p=PRF();p.deliv=(p.deliv||0)+n}}catch(e){}return n}
+function delivCount(){try{return(typeof PRF==="function"&&PRF().deliv)||0}catch(e){return 0}}
+function delivCity(n){n=n==null?delivCount():n;return DELIV.city.filter(x=>n>=x).length}/* 街の灯りの段 0〜5 */
+function delivNext(n){n=n==null?delivCount():n;return DELIV.marks.find(x=>x>n)||null}/* 次の節目 */
 function winRewards(){
   const key=B.key,E=ENEMIES[key],gd=RULES.gold;
   let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);gold=Math.round(gold*NR().goldMul);if(has("cat"))gold+=gd.cat;
+  delivAdd(E,B.hidden);/* ★v0.22.146 B5 */
   if(E.rank==="elite"&&!B.hidden)G.st.elites++;if(E.ghost){G.ghostWon=1;gold+=20}/* ★v0.22.137 ゴーストの報酬：お金 +20（ほかは画面で3つから1つ） */
   let hidCard=null;if(B.hidden){G.st.hidden++;const left=hiddenList(G.char).filter(id=>CARDS[id]&&!(G.ul&&G.ul.cards.includes(id))&&!G.hiddenWon.includes(id));
     if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
