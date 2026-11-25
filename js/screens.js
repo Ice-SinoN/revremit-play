@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.156（β2）";
+const VERSION="試作 v0.22.157（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -248,7 +248,8 @@ function showMap(){
   const ai=areaIdx(),rows=G.map.map((r,i)=>[r,i]).filter(([r])=>r[0].a===ai),cols=rows.length,step=Math.floor(620/cols),AR=AREAS[ai];
   const bgp=MAP_ART(AR.key);
   let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span>${(()=>{const F=typeof nightFace==="function"&&nightFace(G.night);return F&&G.night>=1?`<span class="small nface">　${esc(F.n)}</span>`:""})()}</div>`;/* ★v0.22.139 夜の顔 */
-  rows.forEach(([r,i],ci)=>{const x=10+ci*step;
+  const FV0=(typeof nightFace==="function"&&nightFace(G.night)||{}).fogView,fogC=FV0?rows.findIndex(([r,i])=>i>G.row+FV0):-1;/* ★v0.22.157 design 24-9 c：見えない所は「夜霧」の雲（1枚）・上に1行 */
+  rows.forEach(([r,i],ci)=>{const x=10+ci*step;if(fogC>=0&&ci>=fogC)return;
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
       const FV=(typeof nightFace==="function"&&nightFace(G.night)||{}).fogView,fogQ=FV&&i>G.row+FV,/* ★v0.22.139 霧の夜：2段先まで */st=i<G.row?"done":i===G.row?"now":"later",hidQ=fogQ||n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
       const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
@@ -256,6 +257,8 @@ function showMap(){
       const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const gh=n.ghost&&!hidQ,hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
       h+=i===G.row?`<button class="node k-${n.k}${gh?" ghost":""} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k}${gh?" ghost":""} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
+  if(fogC>=0){const x0=10+fogC*step-4,yg="assets/c2/ui/c2/revremit_ui_map_yogiri.png",U=TEXT.ui||{};/* 絵（グラフィック班）が届くまでは仮の黒い雲（CSS） */
+    h+=`<div class="yogiri${artHave(yg)?" art":""}" ${at(x0,58,640-x0,212)}${artHave(yg)?` style="left:${x0}px;top:58px;width:${640-x0}px;height:212px;background-image:url('${artURL(yg)}')"`:""}><div class="ygl small">${esc(U.yogiri_line||`霧の夜：${FV0}段先まで見える`)}</div><div class="ygn">${esc(U.yogiri_name||"夜霧")}</div></div>`}
   h+=heatBar(476,22,true);/* ★v0.22.131（★v0.22.153 回復の字は炎の左） */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
@@ -387,7 +390,7 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   ${G.mode==="MT"&&B.perfChain>0?`<button class="pchain" ${at(6,55,96,14)} onclick="toast2(TU('perfect_chain_help','パーフェクトが続いた数。'),56,3000)">${esc(TU("perfect_chain","PERFECT ×{n}").replace("{n}",B.perfChain))}</button>`:""}
   <div class="ename${isBoss?" boss":""}" ${at(...(isBoss?LB.ename:L.ename))}>${esc(e.n)}${form?`<span class="small">・${form}</span>`:""}${tag?`<span class="tg">${tag}</span>`:""}</div>
   ${isBoss&&e.weakGear?`<div class="weakt${weakKnown(e)?" on":""}" ${at(340,44+12*(e.gimTxt?gimLines(e).length:0),296,12)}>${esc(weakLabel(e))}</div>`:""}
-  <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${wxDef().hideIntent&&wxMinus()?"？"/* ★v0.22.128 霧：予告が見えない（大きな攻撃の音は鳴る） */:esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
+  <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${wxDef().hideIntent&&wxMinus()?esc(intentFog(e))/* ★v0.22.128 霧：予告が見えない（大きな攻撃の音は鳴る）★v0.22.157 design 24-9 a：種類だけ見せる */:esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${(()=>{const R=RULE(),rs=R.rescue?(()=>{const used=(B.rescueT||0)>=(R.rescueN||1),ic=`assets/c2/ui/c2/revremit_ui_rescue_${used?"used":"ready"}.png`;/* ★v0.22.36 花の便りの印（text 27-2 rescue_icon） */
       return `<span class="rsc${used?" used":""}" title="${used?"花の便り（このターンはもう届いた）":"花の便り（まだ届く）"}">${artHave(ic)?`<img class="px" src="${artURL(ic)}" alt="">`:""}花の便り</span>`})():"";
@@ -398,6 +401,7 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),wk:weakHit(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" onpointerdown="cardLP(${i})" onpointerup="cardLPx()" onpointerleave="cardLPx()" onpointercancel="cardLPx()" ${locked?"disabled":""}`})}).join("");
+  if(S.wxNote&&Date.now()<S.wxNote.until)h+=`<div class="drvnote wxn" style="left:4px;top:198px;width:174px;position:absolute">${esc(S.wxNote.t)}</div>`;/* ★v0.22.157 描きなおしても1秒は残す */
   h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
@@ -445,6 +449,8 @@ function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
   if((B.drive||"eco")===k||!canDrive()){SND.se(canDrive()?"ui_cancel":"card_cant");toast2(`${T.drive_pick_d||"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"}　${T["drive_"+(B.drive||"eco")+"_d"]||""}`,56,3000);return}
   if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle();driveNote(k)}}
 /* ★v0.22.133 design 23-2：切りかえた直後に札の上に1行を1秒（AD：上の行に重ねない） */
+/* ★v0.22.157 design 24-9 b：霧でシフトしたとき、資源の帯の上に「霧 防御 +2」を1秒 */
+function wxBlkNote(v){const T=TEXT.ui||{},t=(T.wx_fog_blk||"霧 防御 +{v}").replace("{v}",v);S.wxNote={t,until:Date.now()+1000};document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote wxn";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>{document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove())},1000)}}
 function driveNote(k){const T=TEXT.ui||{},D=RULES.drive[k]||{},m0=atMultNow?atMultNow():D.mult,m=Number.isInteger(m0)?m0.toFixed(1):String(m0),g=driveGas(k);
   const t=T["drive_note_"+k]||(k==="eco"?`エコ：${g?`ガソリン +${g}・`:""}×${m}`:`スポーツ：×${m}・高回転まで`);
   document.querySelectorAll("#ui .drvnote").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>d.remove(),1000)}}

@@ -656,3 +656,11 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 #ui .heathl.l{text-align:right}
 /* ★v0.22.154 QA：型のボタンは「型のメモ」とポイントを2行（文字「大」でも切れない） */
 .hubb.hubt{gap:1px;padding-top:2px;padding-bottom:2px}.hubb.hubt .small{white-space:normal;line-height:1.15;display:block}
+/* ★v0.22.157 design 24-9 c：夜霧（見えない所）。絵が届くまでは仮の黒い雲 */
+#ui .yogiri{position:absolute;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 30% 40%,rgba(40,44,60,.96),rgba(14,16,26,.97) 60%,rgba(8,9,16,.98));border-left:2px solid rgba(120,128,150,.35);border-radius:18px 0 0 18px;box-shadow:-10px 0 18px rgba(8,9,16,.8)}
+#ui .yogiri.art{background-size:cover;background-position:left center;border:0;box-shadow:none}
+#ui .yogiri .ygl{position:absolute;left:10px;top:6px;right:6px;color:#d0d8e8;white-space:nowrap;overflow:hidden;text-shadow:0 1px 0 #000}
+#ui .yogiri .ygn{position:absolute;left:0;right:0;top:92px;text-align:center;font:16px/20px 'PM12B','PM12';color:rgba(208,216,232,.55);letter-spacing:4px}
+#ui .drvnote.wxn{color:#e6ebf5;border-color:#b8c2d6}
+/* ★v0.22.157 AD：奥義の名前を左上に置くカットイン（腕が左下にかかる絵） */
+#ogcut.ttop .nm{top:98px}#ogcut.ttop .ln{top:122px}

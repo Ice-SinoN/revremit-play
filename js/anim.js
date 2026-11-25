@@ -117,7 +117,7 @@ function mOugi(e,D){if(ogQuiet()||!D.og)return[];const A0=(typeof OUGI_ART!=="un
       st.push({d:1200,on(){A.pOver=sprK;A.P.tag=tag;A.P.fi=0},up(k){A.P.fi=Math.min(11,Math.floor(k*12));if(A.ogSkip)this.t=this.d},end(){A.pOver=null;A.P.tag="stand";A.P.fi=0}})}
     else st.push({d:300,on(){A.lastFlash=0;flash("#FFFFFF",300)},up:skip})}
   st.push({d:1,on(){A.ogSkip=false;SND.se(D.og)}});return st}
-function ogCutShow(A0,D,T,gold){ogCutHide();const st=document.getElementById("stage");if(!st)return;const src=(A0.cutin1&&(!window.ART_HAVE||ART_HAVE.has(A0.cutin1)))?A0.cutin1:A0.cutin;const el=document.createElement("div");el.id="ogcut";if(gold)el.className="gold";
+function ogCutShow(A0,D,T,gold){ogCutHide();const st=document.getElementById("stage");if(!st)return;const src=(A0.cutin1&&(!window.ART_HAVE||ART_HAVE.has(A0.cutin1)))?A0.cutin1:A0.cutin;const el=document.createElement("div");el.id="ogcut";el.className=(gold?"gold":"")+(A0.txt==="top"?" ttop":"");/* ★v0.22.157 AD：絵ごとに奥義の名前の置き場（txt:"top"＝左上＝タコメーターの弧の所。緋雪閃の新しい絵を入れるときに OUGI_ART.ougi_yuki_kousetsu.txt="top"） */
   el.innerHTML=`<div class="dim"></div>${src?`<img class="band" src="${artSrc(src)}" alt="">`:""}<div class="frame"></div><div class="nm">${D.n}</div><div class="ln">${(T.line||"")}</div>`;
   el.addEventListener("pointerdown",ev=>{ev.stopPropagation();A.ogSkip=true});st.appendChild(el);requestAnimationFrame(()=>el.classList.add("in"))}
 function ogCutHide(){const el=document.getElementById("ogcut");if(el)el.remove()}
@@ -156,7 +156,7 @@ function playEvents(evs){
         if(x.k==="frz")push({d:1,on(){fxParts(EC().x,EC().y-10,8,["#7FD8FF","#F7F9F5"],{v:25,g:10});fxWord(EC().x-10,EC().y-56,"FREEZE","#7FD8FF")}});
         if(x.k==="burn")push({d:1,on(){fxParts(EC().x,EC().y,8,["#FF8A3D","#FF4040","#FFD34D"],{a:-Math.PI/2,spread:0.8,v:30,g:-20})}});
         if(x.k==="heal")push({d:1,on(){fxNum(PC().x,PC().y-24,"+"+x.v,"#C5FF45");A.disp.php+=x.v}});
-        if(x.k==="pblk")push({d:1,on(){A.disp.pblk+=x.v}});
+        if(x.k==="pblk")push({d:1,on(){A.disp.pblk+=x.v;if(x.wx){fxNum(PC().x+14,PC().y-34,"+"+x.v,"#d0d8e8");if(typeof wxBlkNote==="function")wxBlkNote(x.v)}}});/* ★v0.22.157 design 24-9 b：霧の得を数字で */
         if(x.k==="over")push(mOver(x));
         if(x.k==="blow")push(...mBlow());
         // α2：ガソリンがもどる・大技の条件・場の効果・第2形態・ロールケージ

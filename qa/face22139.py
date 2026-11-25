@@ -24,9 +24,9 @@ with sync_playwright() as p:
       if not e["spE"] or e["spE"][0]!="スプラッシュ" or not e["spE"][1] or e["n1el"].startswith("splash"):ng(f"スプラッシュ {e}")
       if not e["f4"]>e["f3"]*1.15:ng(f"雪の夜の凍結 {e['f3']} {e['f4']}")
     # 霧の夜のマップ
-    m=pg.evaluate("async()=>{PRF().char='YUKI';PRF().night=3;qaNewRun({mode:'MT',night:3});G.row=0;showMap();await new Promise(r=>setTimeout(r,300));const ns=[...document.querySelectorAll('.node')];const far=G.map.filter((r,i)=>i>3&&r[0].a===0).flat().length;const near=G.map.filter((r,i)=>i>=1&&i<=3).flat().filter(n=>n.k!=='hidden').length;const q=ns.filter(e=>e.textContent.includes('？')).length;return {q,far,near,face:(document.querySelector('.nface')||{}).textContent}}")
+    m=pg.evaluate("async()=>{PRF().char='YUKI';PRF().night=3;qaNewRun({mode:'MT',night:3});G.row=0;showMap();await new Promise(r=>setTimeout(r,300));const ns=[...document.querySelectorAll('.node')];const far=G.map.filter((r,i)=>i>3&&r[0].a===0).flat().length;const near=G.map.filter((r,i)=>i>=1&&i<=3).flat().filter(n=>n.k!=='hidden').length;const q=ns.filter(e=>e.textContent.includes('？')).length;const yg=document.querySelector('#ui .yogiri');const yr=yg&&yg.getBoundingClientRect();const under=yr?ns.filter(e=>e.getBoundingClientRect().right>yr.left+2).length:-1;return {q,far,near,yg:yg&&yg.innerText.split(String.fromCharCode(10)).join('|'),under,face:(document.querySelector('.nface')||{}).textContent}}")
     pg.screenshot(path=f"/tmp/wxs/face3_{w}.png")
-    if m["q"]<m["far"]*0.9 or m["q"]>m["far"]+3 or "霧の夜" not in (m["face"] or ""):ng(f"{w}: 霧の夜のマップ {m}")
+    if not m["yg"] or "夜霧" not in m["yg"] or m["under"]!=0 or "霧の夜" not in (m["face"] or ""):ng(f"{w}: 霧の夜のマップ {m}")
     # 夜をえらぶ画面
     # ★v0.22.143 E13：夜をえらぶ画面は消した → 準備の画面の夜の行で N1〜N4 の名前
     n=pg.evaluate("async()=>{const t=[];for(const k of [1,2,3,4]){PRF().night=k;S.flow={mode:'MT'};showReady();await new Promise(r=>setTimeout(r,150));t.push(((document.querySelector('#ui .nface')||{}).textContent||'').trim())}return {t,gone:typeof showNights}}")

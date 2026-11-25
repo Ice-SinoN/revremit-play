@@ -496,7 +496,7 @@ function dead(){if(G.hp<=0&&B&&B.phoenix&&!B.phoenixUsed){B.phoenixUsed=true;G.h
   if(G.hp<=0&&has("cage")&&!G.cageUsed){G.cageUsed=true;G.hp=1;addLog("ロールケージ：耐久1で耐えた");ev({k:"cage"})}return G.hp<=0}
 /* ★シフトアップで起きること（1ターン shiftCap 回まで・design 0-1・0-4） */
 function onShiftUp(g){
-  if(wxDef().shiftBlk){B.block+=wxDef().shiftBlk;addLog(`${wxName0()}：シフトで防御 +${wxDef().shiftBlk}`);ev({k:"pblk",v:wxDef().shiftBlk})}/* ★v0.22.128 霧 */
+  if(wxDef().shiftBlk){B.block+=wxDef().shiftBlk;addLog(`${wxName0()}：シフトで防御 +${wxDef().shiftBlk}`);ev({k:"pblk",v:wxDef().shiftBlk,wx:1})}/* ★v0.22.157 b：wx＝霧の得の見せ方 *//* ★v0.22.128 霧 */
   const h0=B.hand.length,lfirst=has("launch")&&!B.launchDrawn;
   B.shiftsT++;
   // ★v0.22.1 ローンチコントロール：戦闘で最初のシフトアップで1枚多く引く／AT の詰まりの救済（atLowDraw）：1ターン最初の自動シフトで、手札が2枚以下なら1枚引く
@@ -662,6 +662,8 @@ function eAtk(e,v){return Math.max(0,Math.round(v*B.am*(wxMinus()&&wxDef().eAtk|
 /* ★v0.22.8 design 10-7：大きな攻撃の予告（攻撃・連撃・貫通の合計がエンジン耐久の最大の 1/3 以上、貫通はいつでも） */
 function bigIntent(e){const p=curAct(e);if(!p)return false;if(p[0]==="prc")return true;
   const t=p[0]==="atk"?eAtk(e,p[1]):p[0]==="multi"?eAtk(e,p[1])*p[2]:0;return t>0&&t>=G.maxhp*(B&&B.e&&B.e.rank==="boss"?1/3:1/2)}/* ★design 10-7：ボス 1/3・ほか 1/2・貫通はいつでも */
+/* ★v0.22.157 design 24-9 a：霧の予告は種類だけ（数字は「？」） */
+function intentFog(e){const p=curAct(e)||[];return({atk:"攻撃？",multi:"攻撃？",prc:"攻撃？",blk:"守り？",buf:"強化？",rev:"回転？",jam:"ジャマ？",apd:"ジャマ？"})[p[0]]||"？"}
 function intent(e){const p=curAct(e);
   switch(p[0]){case"atk":return`攻撃 ${eAtk(e,p[1])}`;case"multi":return`攻撃 ${eAtk(e,p[1])}×${p[2]}`;case"prc":return`貫通 ${eAtk(e,p[1])}`;
    case"blk":return`防御 ${p[1]}`;case"buf":return`攻撃アップ ${p[1]}`;case"rev":return`回転 +${p[1]}`;case"jam":return`ジャマ（${CARDS[p[1]].n}×${p[2]}）`;case"apd":return"ガソリン −1";}return""}
