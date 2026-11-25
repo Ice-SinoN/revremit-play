@@ -618,3 +618,7 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .duo b{color:#b6ff3a;margin-right:4px}.duo .dl{display:flex;gap:4px;align-items:flex-start}.duo .dl.al{margin-top:2px;border-top:1px dashed #2b3d6a;padding-top:2px}
 .duo .dl.al img{width:24px;height:24px;flex:0 0 24px;image-rendering:pixelated}.duo .dl.al b{color:#8cc4ff}
 .duo .commk{font-size:8px;padding:0 2px;margin-right:3px}
+
+/* ★v0.22.133 */
+.bmode.two.off{opacity:1;color:#8a8fa8}.bmode.two.off b{color:#5d6a8a}
+.drvnote{background:#0b0d18;border:1px solid #5cc8ff;color:#fff;font:10px 'PM12B';line-height:14px;padding:0 4px;white-space:nowrap;text-shadow:0 1px 0 #000;z-index:31;pointer-events:none}

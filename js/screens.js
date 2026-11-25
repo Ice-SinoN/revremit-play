@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.132（β2）";
+const VERSION="試作 v0.22.133（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -418,7 +418,7 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
   if(!window.TUTORIAL_ON)h+=bandHtml(locked);/* ★v0.22.131 design 23-1：メーター枠の上の帯（走りかたの札・資源の行）。ドライブモードは AT の札に */
-  if(!window.TUTORIAL_ON&&!G.practice)h+=heatBar(4,110);/* ★v0.22.131 */
+  if(!window.TUTORIAL_ON&&!G.practice)h+=heatBar(338,0);/* ★v0.22.133 AD：上の帯（行動順と右の情報のあいだ） */
   if(B.wx&&B.wx!=="dry"){const w=B.wx;h+=`<button class="wxb wx-${w}" ${at(4,74,96,14)} onclick="wxHelp()">${esc(wxNameB(w))}${wxFav(w)?"★得意":""}</button>`}/* ★v0.22.126 天候の札 */
   {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
@@ -438,7 +438,11 @@ function driveCtl(locked){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&ca
   return `<div class="drvc${can?"":" off"}" ${at(4,198,172,24)}><span class="dl">${esc(T.drive_pick||"ドライブモード")}</span>`+["eco","sport"].map(k=>`<button class="dv${k===cur?" on":""}" onclick="drivePick('${k}')">${esc(T["drive_"+k]||(k==="eco"?"エコ":"スポーツ"))}</button>`).join("")+`</div>`}
 function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
   if((B.drive||"eco")===k||!canDrive()){SND.se(canDrive()?"ui_cancel":"card_cant");toast2(`${T.drive_pick_d||"ターンのはじめに、エコかスポーツを選ぶ（AT だけ）。"}　${T["drive_"+(B.drive||"eco")+"_d"]||""}`,56,3000);return}
-  if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");toast2(`${T["drive_"+k]||k}：${T["drive_"+k+"_d_"+G.char]||(k==="eco"&&!driveGas("eco")?"火力をおさえる（ガソリンはふえない）。":"")||T["drive_"+k+"_d"]||""}`,56,2000);A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle()}}
+  if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle();driveNote(k)}}
+/* ★v0.22.133 design 23-2：切りかえた直後に札の上に1行を1秒（AD：上の行に重ねない） */
+function driveNote(k){const T=TEXT.ui||{},D=RULES.drive[k]||{},m0=atMultNow?atMultNow():D.mult,m=Number.isInteger(m0)?m0.toFixed(1):String(m0),g=driveGas(k);
+  const t=T["drive_note_"+k]||(k==="eco"?`エコ：${g?`ガソリン +${g}・`:""}×${m}`:`スポーツ：×${m}・高回転まで`);
+  document.querySelectorAll("#ui .drvnote").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>d.remove(),1000)}}
 function tabShift(i){if(B.over)return;if(busy())uiSkip();const c=B.hand[i];if(!c)return;const p=preview(c);
   if(S.sel===i&&p.ok&&p.canShift&&tutAllow("play",{i,shift:true})){doPlay(i,true);return}clickCard(i)}
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
@@ -934,7 +938,7 @@ function bandRes(){const out=[],R=RULE();
   if(R.rescue){const n=R.rescueN||1,left=Math.max(0,n-(B.rescueT||0)),ic=`assets/c2/ui/c2/revremit_ui_rescue_${left?"ready":"used"}.png`;out.push({ic,n:left,used:!left,t:left?"花の便り（まだ届く）":"花の便り（このターンはもう届いた）"})}
   return out}
 function bandHtml(locked){const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
-  let h=`<div class="band${two?" two":""}" ${at(4,y0,174,250-y0)}></div>`;
+  let h=`<div class="band${two?" two":""}" ${at(4,y0,res.length?174:44,250-y0)}></div>`;/* ★v0.22.133 AD：資源のない子は札の幅だけ */
   if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt" ${at(4,233,44,18)} onclick="modeHelp()">MT${a>0?`<b>+${a}</b>`:""}</button>`}
   else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}" ${at(4,214,44,36)} onclick="atTag()">AT<br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}
     else h+=`<button class="bmode at" ${at(4,233,44,18)} onclick="modeHelp()">AT</button>`}
@@ -942,9 +946,12 @@ function bandHtml(locked){const md=bandMode(),res=bandRes();if(!md&&!res.length)
   res.slice(0,4).forEach((r,i)=>{h+=`<span class="bres${r.used?" used":""}" ${at(52+i*31,235,30,14)} title="${esc(r.t)}">${artHave(r.ic)?`<img class="px" src="${artURL(r.ic)}" alt="">`:"<i></i>"}<b>${r.n}</b></span>`});
   return h}
 /* AT の札：番のはじめならドライブモードを切りかえ（今のまま1番に1回）。切りかえられないときは説明の小窓 */
-function atTag(){if(!B||B.over)return;if(busy())uiSkip();const cur=B.drive||"eco",nx=cur==="eco"?"sport":"eco";
+function atTag(){if(S.bmLong){S.bmLong=0;return}if(!B||B.over)return;if(busy())uiSkip();const cur=B.drive||"eco",nx=cur==="eco"?"sport":"eco";
   if(canDrive()&&!B.driveT&&B.cards===0){drivePick(nx);return}modeHelp()}
-function modeHelp(auto){const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
+/* ★v0.22.133 AD：札の長押し（0.45秒）ならいつでも説明 */
+document.addEventListener("pointerdown",ev=>{const b=ev.target&&ev.target.closest&&ev.target.closest(".bmode");if(!b)return;S.bmLong=0;clearTimeout(S.bmT);S.bmT=setTimeout(()=>{S.bmLong=1;modeHelp()},450)},true);
+["pointerup","pointercancel","pointerleave"].forEach(t=>document.addEventListener(t,()=>clearTimeout(S.bmT),true));
+function modeHelp(auto){if(!auto&&S.bmLong===1&&document.querySelector(".glpop.mhelp")){S.bmLong=0;return}const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
   const lines=modeBanner(),p=document.createElement("div");p.className="glpop mhelp";p.innerHTML=`<b>${esc(md)}</b><div>${lines.map(esc).join("<br>")}</div>`;
   st.appendChild(p);const H=p.offsetHeight;p.style.left="4px";p.style.top=Math.max(4,(md==="AT"&&driveOn()?214:233)-H-4)+"px";
   if(window.GLOSS)GLOSS.pop=p;if(!auto)try{SND.se("ui_ok")}catch(e){}
