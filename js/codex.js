@@ -58,7 +58,7 @@ function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p
 
 /* ---- ヒント（手に入れ方の1行。仮の文：シナリオ班の文が来たら TEXT.ui.cdx_* で差しかえ）---- */
 function cdxCardHint(id){const U=UNLOCK,nm=rr2Name;if(CARDS[id]&&CARDS[id].r==="OG")return cdxOgHint(id);
-  if(U.startCards.includes(id))return"はじめから使える";
+  if(U.startCards.includes(id))return(TEXT.ui&&TEXT.ui.dex_how_start)||"はじめから（報酬・ショップに出る）";/* v0.5.17 design 16-29・text 37-3 */
   const ar={a1:"エリア1 を初めて突破",a2:"エリア2 を初めて突破",clear:"初めての全クリア"};
   for(const k in U.area)if(U.area[k].includes(id))return ar[k];
   if(U.sRank.includes(id))return"S ランク以上のミニカーを作る";if(U.hidden.includes(id))return"裏道で勝つ";

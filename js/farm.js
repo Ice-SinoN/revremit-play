@@ -89,7 +89,7 @@ function farmCardScore(id){const d=CARDS[id];if(!d||d.t==="jam")return -99;const
   s+=farmRotFuseBonus(id);return s}
 /* v0.5.15 design 24-4 E14：遊ぶ人に近く。①ローテーション（rotate のカード）はデッキに1枚もなければ取る（2枚目からは取りにくく）
    ②合成の材料（FUSE の相手がもうデッキにある）は少し取りやすく ③シムでは合成を強化より先に（いちばんよい合成） */
-const FARM_RF={rot0:2.5,rotMore:-2,fusePair:1.5};
+const FARM_RF={rot0:2.5,rotMore:-2,fusePair:0};/* v0.5.16 合成の材料の取りやすさは外した（design 24-7 の測り：+1.5 だと N1 全クリア −19） */
 function farmHasRot(id){const d=CARDS[id];return!!(d&&(d.fx||[]).some(f=>f[0]==="rotate"))}
 function farmRotFuseBonus(id){let s=0;const L=G.deck.filter(x=>!CD(x).gen);
   if(farmHasRot(id))s+=L.some(x=>farmHasRot(x.id))?FARM_RF.rotMore:FARM_RF.rot0;
@@ -115,7 +115,7 @@ function farmShop(){const n=S.shop;if(!n)return;
       if(buyFeat(n,pr,false,-1))farmFeed(`目玉商品：${PARTS[n.featPart].n}（−${pr}）`,"gold")}}
   S.useTicket=false}
 function farmSim(){const fo=fuseOptions();const t=upgradeTargets();
-  if(fo.length){const o=farmFuseBest(fo);farmFeed("合成："+(CARDS[o.id]||{}).n,"gold");uiFuse(o.id);return}/* v0.5.15 合成を先に（E14） */
+  {const fu=t.length?fo.filter(o=>o.up):fo;if(fu.length){const o=farmFuseBest(fu);farmFeed("合成："+(CARDS[o.id]||{}).n,"gold");uiFuse(o.id);return}}/* v0.5.17 design 24-9（C＋B）：合成は、材料が2枚とも強化ずみ、または強化する候補がもうないとき */
   if(t.length){let bi=t[0],bv=-1e9;t.forEach(i=>{const c=G.deck[i],d=CD(c);let v=farmCardScore(c.id)+(d.t==="atk"?1:0);if(G.char==="YUKI"&&typeof BOT!=="undefined"&&BOT.UP_PREF){const k=BOT.UP_PREF.indexOf(c.id);if(k>=0)v+=3-k*0.2}if(v>bv){bv=v;bi=i}});farmFeed("強化："+CD(G.deck[bi]).n+"+","gold");uiUpgrade(bi);return}
   S.simSel=null;S.simTab=null;nextRow()}
 

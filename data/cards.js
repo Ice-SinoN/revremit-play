@@ -155,13 +155,13 @@ const FUSE=[
  {a:"n_hokori",b:"n_koutotsu",id:"f_n_hokorikoutotsu"},{a:"n_taikan",b:"n_totsugeki",id:"f_n_taikantotsugeki"},{a:"n_shukumei",b:"n_teppeki",id:"f_n_shukumeikabe"}];
 Object.assign(CARDS,{
  f_y_hyoukasen:{yomi:"ひょうかせん",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"氷華閃",t:"atk",c:2000,gas:2,v:12,vu:18,band:"M",fx:[["atk","v"],["frz",3]],d:"{v} ダメージ・凍結 3。"},
- f_y_tokai:{yomi:"とうかい",fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"凍界",t:"atk",c:4500,gas:2,v:20,vu:30,fx:[["atk","v"],["frz",2]],d:"{v} ダメージ・凍結 2。"},/* 直し：v 24→20・凍結 4→2・上乗せなし */
+ f_y_tokai:{yomi:"とうかい",fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"凍界",t:"atk",c:4500,gas:2,v:24,vu:36,k:3,ku:5,fx:[["atk","v"],["frz","k"]],d:"{v} ダメージ・凍結 {k}。"},/* ★v0.22.164 design 10-21（合成カードを持たせたランの測り −17.5）：20→24・凍結 2→3（強化 5＝吹雪の檻と同じ）。強化のダメージは合成カードの決まり ×1.5＝36。もどす線：+3 をこえたら v 24→22。文はシナリオ班（{f}＝①の {k}） */
  f_y_gyakuhan:{yomi:"ぎゃくはん",fused:1,r:"R",mo:"guard",own:"YUKI",n:"逆ハン",t:"grd",c:2500,gas:1,v:10,vu:15,fx:[["blk","v"],["counterAdd"]],d:"防御 {v}。次の番の最初のアタックに、この防御の半分を足す。",num:"blk"},/* 直し：14→10 */
  f_y_soujin:{yomi:"そうじん",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"霜刃",t:"atk",c:2500,gas:2,v:0.35,vu:0.5,fx:[["blkGear",3],["atkBlk","v"]],d:"ギア ×3 の防御を得てから、今の防御 ×{v} ダメージ。"},/* 直し：×0.7→×0.35 */
  f_y_shakusetsu:{yomi:"しゃくせつ",fused:1,r:"R",mo:"atk_heavy",own:"YUKI",n:"灼雪",t:"atk",c:1500,gas:2,v:14,vu:21,band:"R",bm:2,fx:[["atk","v"],["burn",4]],d:"{v} ダメージ・炎上 4（レッドで2倍）。"},
  f_y_rinkaitsurara:{yomi:"りんかいつらら",fused:1,r:"E",mo:"atk_finisher",own:"YUKI",n:"臨界氷柱",t:"atk",c:1000,gas:2,v:40,vu:60,fx:[["kousetsu","v",0]],d:"{v} ダメージ。レッドの外では半分。"},
  f_h_akebono:{yomi:"あけぼのうち",fused:1,r:"R",mo:"atk_heavy",own:"HINA",n:"曙打",t:"atk",c:1000,gas:1,v:12,vu:18,fx:[["atkFirstTurn","v"]],d:"{v} ダメージ。戦闘の最初のターンなら2倍。"},
- f_h_dainichirin:{yomi:"だいにちりん",fused:1,r:"E",mo:"atk_finisher",own:"HINA",n:"大日輪",t:"atk",c:3000,gas:2,v:26,vu:39,fx:[["atk","v"],["atkAtks",5]],d:"{v} ダメージ＋このターン先に打ったアタックの数 ×5。",num:"sum"},
+ f_h_dainichirin:{yomi:"だいにちりん",fused:1,r:"E",mo:"atk_finisher",own:"HINA",n:"大日輪",t:"atk",c:3000,gas:2,v:26,vu:39,fx:[["atk","v"],["atkAtks",4]],d:"{v} ダメージ＋このターン先に打ったアタックの数 ×4。",num:"sum"},/* ★v0.22.164 design 10-21（+7.3）：×5→×4。もどす線：−3.5 より下なら ×4→×5・v 26→22 */
  f_h_kagerouhibana:{yomi:"かげろうひばな",fused:1,r:"R",mo:"atk_light",own:"HINA",n:"陽炎火花",t:"atk",c:1500,gas:1,v:3,vu:5,fx:[["atkHits","v",4,4]],d:"{v} ダメージを4回。"},
  f_h_shippunuki:{yomi:"しっぷうぬき",fused:1,r:"R",mo:"atk_light",own:"HINA",n:"疾風抜き",t:"atk",c:1500,gas:1,v:7,vu:11,fx:[["atkHits","v",1,2],["draw",1]],d:"{v} ダメージ・1枚引く。シフトアップしていたら2回当たる。"},
  f_h_hidamarigrip:{yomi:"ひだまりグリップ",fused:1,r:"R",mo:"guard",own:"HINA",n:"陽だまりグリップ",t:"grd",c:1500,gas:1,v:8,vu:12,fx:[["blk","v"],["heal",2],["nextTurnAtk",3]],d:"防御 {v}・エンジン耐久 +2。次の番の最初のアタック +3。",num:"blk"},
