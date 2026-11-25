@@ -75,10 +75,10 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
     NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
       if(x.n>last)return`<button class="nrow2 nfull" disabled><b>${esc(lab)}</b>　<span class="small dim">🔒 ${esc(BETA_TXT.nightLock)}</span></button>`;/* ★v0.22.81 虎雪 14:07：NIGHT 5 以降は正式版で */
       const st=`${starHTML(clearedNight(ch,mode,x.n),mode)}<span class="dim"> ${starHTML(clearedNight(ch,o,x.n),o)}</span>`;
-      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow2" onclick="PRF().night=${x.n};SAVE.auto();SND.jingle('night_select',{lv:${x.n}});renderNights()"><span class="nst">${st}</span><b>${esc(lab)}</b>${bl}<br><span class="small">${esc(x.add)}</span></button>`
+      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow2" onclick="PRF().night=${x.n};SAVE.auto();SND.jingle('night_select',{lv:${x.n}});renderNights()"><span class="nst">${st}</span><b>${esc(lab)}</b>${bl}<br>${(()=>{const F=typeof nightFace==="function"&&nightFace(x.n);return F&&x.n>1?`<span class="small nface">${esc(F.n)}：${esc(F.l)}</span>`:`<span class="small">${esc(x.add)}</span>`})()}</button>`
         :`<button class="nrow2" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+`</div>
    <div class="sign side" ${at(472,70,160,120)}><div class="h">NIGHT ${cur}</div><div class="small">${starHTML(clearedNight(ch,mode,cur),mode+" クリア")}</div><div class="small dim">${starHTML(clearedNight(ch,o,cur),o+" クリア")}</div>
-    <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div></div>
+    <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div><div class="small dim">${esc((NIGHTS[cur-1]||{}).add||"")}</div></div>
    <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"走りかた"}</span></button></div>`;
   if($("#nl"))$("#nl").scrollTop=sc}
 function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else flowToMode([])}

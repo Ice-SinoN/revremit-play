@@ -49,6 +49,7 @@ const OUGI_ART={};
 const ART_FALLBACK={coupe:"bike",kei:"van",touring:"van",formula:"bike",boss2:"boss1",boss3:"boss1",kuuten:"boss1",sanka:"boss2",miketsu:"boss2"};
 /* 色の入れかえ。hue＝色相を回す（度）、sat・lit＝倍率、map＝{"#元":"#先"}（グラフィック班の表が来たらこちら） */
 const PALS={
+  splash:{hue:170,sat:1.15,lit:0.95},/* ★v0.22.139 雨の夜のエリート */
   // design 付録の仮の色（グラフィック班の色変えの表が来たら map で置きかえ）
   elite_wraith:{hue:150,lit:0.9},elite_downhill:{hue:200,sat:1.2},elite_wrecker:{hue:40},
   z_sedan:{hue:60},z_minivan:{sat:0.5},z_offbike:{sat:0.6,lit:1.15},z_rally:{hue:20},z_gtcar:{hue:240},z_safety:{hue:50,sat:1.4},boss3_p2:{hue:180},

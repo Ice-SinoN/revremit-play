@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.138（β2）";
+const VERSION="試作 v0.22.139（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -247,10 +247,10 @@ function showMap(){
   setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");if(G.row===0&&!G.duoStart){G.duoStart=1;setTimeout(()=>{if(window.SCREEN==="map")duoShow("runstart")},700)}/* ★v0.22.132 ランのはじめ（★v0.22.135 専用の文） */
   const ai=areaIdx(),rows=G.map.map((r,i)=>[r,i]).filter(([r])=>r[0].a===ai),cols=rows.length,step=Math.floor(620/cols),AR=AREAS[ai];
   const bgp=MAP_ART(AR.key);
-  let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span></div>`;
+  let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span>${(()=>{const F=typeof nightFace==="function"&&nightFace(G.night);return F&&G.night>1?`<span class="small nface">　${esc(F.n)}</span>`:""})()}</div>`;/* ★v0.22.139 夜の顔 */
   rows.forEach(([r,i],ci)=>{const x=10+ci*step;
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
-      const st=i<G.row?"done":i===G.row?"now":"later",hidQ=n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
+      const FV=(typeof nightFace==="function"&&nightFace(G.night)||{}).fogView,fogQ=FV&&i>G.row+FV,/* ★v0.22.139 霧の夜：2段先まで */st=i<G.row?"done":i===G.row?"now":"later",hidQ=fogQ||n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
       const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
       const chain=n.k==="boss"&&!G.allyBossDone&&typeof allyBossOf==="function"&&allyBossOf(n),lab2=chain?"連戦":n.ghost&&!(n.k==="hidden"&&i>G.row+1)?"ゴースト":lab;/* ★v0.22.64 design 10-4b：その子のボス → 零号（2つ重ねのアイコンはグラフィック班の絵が来るまで同じアイコンをずらして重ねる） */
       const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const gh=n.ghost&&!hidQ,hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
@@ -371,7 +371,7 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   const e=B.e,full=!canDraw(),locked=B.over,L=RES;
   /* ★v0.22.8 design 10-7：予告が変わった瞬間に1回だけ enemy_attack_warn（大きな攻撃・貫通） */
   {const k=`${G.st.battles}|${B.key}|${e.phased?1:0}|${e.mi||0}|${e.pi||0}`;if(k!==S.warnKey){S.warnKey=k;if(!locked&&e.hp>0&&bigIntent(e))SND.se("enemy_attack_warn")}}
-  const tl=timeline().map((x,i)=>`<span class="${x}">${i===0?"今 ":""}${x==="p"?esc(G.char):esc(e.n.slice(0,6))}</span>`).join("");
+  const tl=timeline().map((x,i)=>`<span class="${x}">${i===0?"今 ":""}${x==="p"?esc(G.char):esc(e.ghost?"ゴースト":e.n.length>6?e.n.slice(0,5)+"…":e.n)/* ★v0.22.139 QA：切れるときは「…」・ゴーストは「ゴースト」 */}</span>`).join("");
   const isBoss=e.rank==="boss",LB=L.boss;
   const tag=e.rank==="elite"?"エリート":e.rank==="boss"?"ボス":"",form=formOf(e);
   const st=[];if(B.curDouble)st.push("次の攻撃2倍");if(B.curAdd)st.push(`次の攻撃+${B.curAdd}`);if(B.wideAdd)st.push(`ワイド+${B.wideAdd}`);

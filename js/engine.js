@@ -158,8 +158,9 @@ function genMap(){
     map.push([{k:"boss",a:ai,r:a.rows,wx:"dry"}]);
   });return map}
 /* ★v0.22.126 天候（design 10-16-1）：戦闘・エリート・裏道のマスごとに1つ。同じ段はなるべくちがう天候。初めのランのエリア1 最初の3段はドライ */
-function wxPick(ak){const W=(typeof WX_W!=="undefined"&&WX_W[ak])||{dry:1};let t=0;const ls=(typeof WX_ON!=="undefined"?WX_ON:["dry"]).map(k=>{const w=k==="dry"?Object.keys(W).filter(x=>!WX_ON.includes(x)).reduce((s,x)=>s+W[x],W.dry||0):(W[k]||0);t+=w;return[k,w]});let q=Math.random()*t;for(const[k,w]of ls){q-=w;if(q<0)return k}return"dry"}
-function wxRow(row,ak,dry){const used={};row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}let w=wxPick(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick(ak);if(!used[alt])w=alt}used[w]=(used[w]||0)+1;n.wx=w})}
+function wxPick(ak){return wxPick0(ak)}
+function wxPick0(ak){const W=(typeof WX_W!=="undefined"&&WX_W[ak])||{dry:1};let t=0;const ls=(typeof WX_ON!=="undefined"?WX_ON:["dry"]).map(k=>{const w=k==="dry"?Object.keys(W).filter(x=>!WX_ON.includes(x)).reduce((s,x)=>s+W[x],W.dry||0):(W[k]||0);t+=w;return[k,w]});let q=Math.random()*t;for(const[k,w]of ls){q-=w;if(q<0)return k}return"dry"}
+function wxRow(row,ak,dry){const used={},F=typeof nightFace==="function"&&G&&nightFace(G.night);row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}if(F&&F.wx){const fk=Object.keys(F.wx).find(k=>Math.random()<F.wx[k]);if(fk){n.wx=fk;used[fk]=(used[fk]||0)+1;return}}/* ★v0.22.139 夜の顔はそのまま（同じ段のちがいより先） */let w=wxPick0(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick0(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick0(ak);if(!used[alt])w=alt}used[w]=(used[w]||0)+1;n.wx=w})}
 function wxNow(){return(B&&!B.over&&B.wx)||"dry"}
 function wxDef(){return(typeof WEATHER!=="undefined"&&WEATHER[wxNow()])||{}}
 function wxMinus(){const w=wxNow();return w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w}
@@ -187,7 +188,7 @@ function mcBonus(m){const i=Math.max(0,RANKS.indexOf(m.rank));return{hp:MC_BONUS
 function areaIdx(){const r=G.map[Math.min(G.row,G.map.length-1)];return r[0].a}
 function curArea(){return AREAS[areaIdx()]}
 /* マスの敵：最初の3段はやさしい雑魚だけ */
-function nodeEnemy(n){const a=AREAS[n.a];if(n.ghost&&ghostReady())return"__ghost";/* ★v0.22.137 */if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
+function nodeEnemy(n){const a=AREAS[n.a];if(n.ghost&&ghostReady())return"__ghost";if(n.k==="elite"&&typeof nightFace==="function"&&G&&(nightFace(G.night)||{}).splash)return splashKey(n.a);/* ★v0.22.139 雨の夜 *//* ★v0.22.137 */if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
 /* 次の段へ。ボスのあとは耐久を 30% 回復（design 付録）。戻り値 "map"｜"area"（次のエリアに入った）｜"clear" */
 function advanceRow(){{const nd=G.map[G.row]&&G.map[G.row][G.path[G.row]];if(nd){const H=RULES.heat;if(nd.k==="garage")heatSet(H.garage,"ガレージで冷めた");else if(/^(shop|sim|lucky)$/.test(nd.k))heatSet((G.heat||0)+H.shop)}}/* ★v0.22.131 ヒートが冷める */const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
   if(G.row>=G.map.length){G.st.clear=true;return"clear"}
@@ -216,7 +217,7 @@ function rewardOptions(rank,nn){nn=nn||3;
   const out=[];
   const hh=G.heat||0,RW={C:RULES.rarityW.C+RULES.heat.rar[0]*hh,R:RULES.rarityW.R+RULES.heat.rar[1]*hh,E:RULES.rarityW.E+RULES.heat.rar[2]*hh};/* ★v0.22.131 ヒートでレア度アップ */
   const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
-    for(const q of rs){x-=RW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
+    for(const q of rs){x-=RW[q]||10;if(x<0){r=q;break}}const L=list.filter(id=>rarityOf(id)===r),fm=typeof nightFace==='function'&&(nightFace(G.night)||{}).frzReward;if(!fm)return pick(L);/* ★v0.22.139 雪の夜：凍結のカードが出やすい */const ww=L.map(id=>JSON.stringify(CARDS[id].fx||[]).includes('"frz')||JSON.stringify(CARDS[id].fx||[]).includes('freeze')?fm:1),tt=ww.reduce((a,b)=>a+b,0);let y=Math.random()*tt;for(let i=0;i<L.length;i++){y-=ww[i];if(y<0)return L[i]}return L[L.length-1]};
   if(rank==="elite"){const hi=pool.filter(id=>rarityOf(id)!=="C");if(hi.length)out.push(draw(hi))}
   if(rank==="boss"){const hi=pool.filter(id=>rarityOf(id)==="E");if(hi.length)out.push(pick(hi))}
   while(out.length<nn){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
@@ -704,6 +705,8 @@ function heatGain(n){if(!n||n.k==="boss"||!/^(battle|elite|hidden)$/.test(n.k))r
 function featCost(){return Math.round(RULES.featPrice*(1+(G&&G.heat||0)*RULES.heat.gold))}
 /* ★v0.22.137 ライバルのゴースト（design 10-17-2）：エリア2・3 に入ったとき 25% で、そのエリアのエリートのマス1つがゴースト（1ランに1回）。
    もと＝ランの記録（②の runlog.pickGhost・newRunState の opt.ghost）。体力＝そのエリアのエリート ×1.1、行動＝記録のアタック上位2枚（×0.8）とガード1枚、速さ＝そのキャラ、記録が全クリアなら rage */
+/* ★v0.22.139 雨の夜のエリート「スプラッシュ」（design 12-3）：そのエリアのエリートの色変え・行動に泥はね（mud）を1つ足す */
+function splashKey(ai){const k="splash"+ai;if(!ENEMIES[k]){const E=ENEMIES[AREAS[ai].elite];const pat=(E.pat||[]).slice();pat.splice(1,0,["jam","mud",1]);ENEMIES[k]=Object.assign({},E,{n:"スプラッシュ",pal:"splash",pat,splash:1,gimTxt:(E.gimTxt?E.gimTxt+"・":"")+"泥はねを山札に混ぜる"})}return k}
 const GHOST_P=0.25;
 function ghostRoll(ai){if(!G||G.ghostDone||!G.ghostRec||ai<1)return;G.ghostRolled=G.ghostRolled||{};if(G.ghostRolled[ai])return;G.ghostRolled[ai]=1;if(Math.random()>=(G.ghostP!=null?G.ghostP:GHOST_P))return;G.ghostDone=1;
   const ns=G.map.flatMap(r=>r).filter(n=>n.a===ai&&n.k==="elite");if(!ns.length)return;const n=pick(ns);n.ghost=1;G.ghostDef=ghostDef(G.ghostRec,ai);ENEMIES.__ghost=G.ghostDef}
