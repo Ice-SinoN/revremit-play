@@ -663,7 +663,8 @@ function eAtk(e,v){return Math.max(0,Math.round(v*B.am*(wxMinus()&&wxDef().eAtk|
 function bigIntent(e){const p=curAct(e);if(!p)return false;if(p[0]==="prc")return true;
   const t=p[0]==="atk"?eAtk(e,p[1]):p[0]==="multi"?eAtk(e,p[1])*p[2]:0;return t>0&&t>=G.maxhp*(B&&B.e&&B.e.rank==="boss"?1/3:1/2)}/* ★design 10-7：ボス 1/3・ほか 1/2・貫通はいつでも */
 /* ★v0.22.157 design 24-9 a：霧の予告は種類だけ（数字は「？」） */
-function intentFog(e){const p=curAct(e)||[];return({atk:"攻撃？",multi:"攻撃？",prc:"攻撃？",blk:"守り？",buf:"強化？",rev:"回転？",jam:"ジャマ？",apd:"ジャマ？"})[p[0]]||"？"}
+function intentFog(e){const p=curAct(e)||[],U=(typeof TEXT!=="undefined"&&TEXT.ui)||{},k={atk:"atk",multi:"atk",prc:"atk",blk:"grd",jam:"debuff",apd:"debuff"}[p[0]];if(k)return U["fog_intent_"+k]||({atk:"攻撃？",grd:"守り？",debuff:"ジャマ？"})[k];
+  return U["fog_intent_"+p[0]]||({buf:"強化？",rev:"回転？"})[p[0]]||U.fog_intent_other||"？？？"}/* ★v0.22.158 text 34-2b（強化・回転は fog_intent_buf／fog_intent_rev が届いたらそれ） */
 function intent(e){const p=curAct(e);
   switch(p[0]){case"atk":return`攻撃 ${eAtk(e,p[1])}`;case"multi":return`攻撃 ${eAtk(e,p[1])}×${p[2]}`;case"prc":return`貫通 ${eAtk(e,p[1])}`;
    case"blk":return`防御 ${p[1]}`;case"buf":return`攻撃アップ ${p[1]}`;case"rev":return`回転 +${p[1]}`;case"jam":return`ジャマ（${CARDS[p[1]].n}×${p[2]}）`;case"apd":return"ガソリン −1";}return""}

@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.157（β2）";
+const VERSION="試作 v0.22.158（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -258,7 +258,7 @@ function showMap(){
       h+=i===G.row?`<button class="node k-${n.k}${gh?" ghost":""} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k}${gh?" ghost":""} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
   if(fogC>=0){const x0=10+fogC*step-4,yg="assets/c2/ui/c2/revremit_ui_map_yogiri.png",U=TEXT.ui||{};/* 絵（グラフィック班）が届くまでは仮の黒い雲（CSS） */
-    h+=`<div class="yogiri${artHave(yg)?" art":""}" ${at(x0,58,640-x0,212)}${artHave(yg)?` style="left:${x0}px;top:58px;width:${640-x0}px;height:212px;background-image:url('${artURL(yg)}')"`:""}><div class="ygl small">${esc(U.yogiri_line||`霧の夜：${FV0}段先まで見える`)}</div><div class="ygn">${esc(U.yogiri_name||"夜霧")}</div></div>`}
+    h+=`<div class="yogiri${artHave(yg)?" art":""}" onclick="yogiriHelp()" ${at(x0,58,640-x0,212)}${artHave(yg)?` style="left:${x0}px;top:58px;width:${640-x0}px;height:212px;background-image:url('${artURL(yg)}')"`:""}><div class="ygl small">${esc(U.fog_map_cloud||U.yogiri_line||`霧の夜：${FV0}段先まで見える`)}</div><div class="ygn">${rubyTxt(U.fog_map_name||U.yogiri_name||"夜霧")}</div></div>`}
   h+=heatBar(476,22,true);/* ★v0.22.131（★v0.22.153 回復の字は炎の左） */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
@@ -450,7 +450,10 @@ function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
   if(setDrive(k)){SND.se(k==="eco"?"drive_eco":"drive_sport");A.pv=null;if(S.sel>=0)setPreview(S.sel);renderBattle();driveNote(k)}}
 /* ★v0.22.133 design 23-2：切りかえた直後に札の上に1行を1秒（AD：上の行に重ねない） */
 /* ★v0.22.157 design 24-9 b：霧でシフトしたとき、資源の帯の上に「霧 防御 +2」を1秒 */
-function wxBlkNote(v){const T=TEXT.ui||{},t=(T.wx_fog_blk||"霧 防御 +{v}").replace("{v}",v);S.wxNote={t,until:Date.now()+1000};document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote wxn";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>{document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove())},1000)}}
+/* ★v0.22.158 text 34-2b：「夜霧《よぎり》」の《》はルビ／夜霧をタップで説明 */
+function rubyTxt(t){return esc(t).replace(/([^\s《》]+)《([^》]+)》/g,"<ruby>$1<rt>$2</rt></ruby>")}
+function yogiriHelp(){const U=TEXT.ui||{};SND.se("ui_ok");toast2(U.fog_map_help||"霧の夜は、マップの先が見えない。",80,3500)}
+function wxBlkNote(v){const T=TEXT.ui||{},t=(T.fog_buff||T.wx_fog_blk||"霧 防御 +{v}").replace("{v}",v);S.wxNote={t,until:Date.now()+1000};document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote wxn";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>{document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove())},1000)}}
 function driveNote(k){const T=TEXT.ui||{},D=RULES.drive[k]||{},m0=atMultNow?atMultNow():D.mult,m=Number.isInteger(m0)?m0.toFixed(1):String(m0),g=driveGas(k);
   const t=T["drive_note_"+k]||(k==="eco"?`エコ：${g?`ガソリン +${g}・`:""}×${m}`:`スポーツ：×${m}・高回転まで`);
   document.querySelectorAll("#ui .drvnote").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>d.remove(),1000)}}

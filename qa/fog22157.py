@@ -1,4 +1,4 @@
-# ★v0.22.157 design 24-9 霧の見せ方（強さは変えない）：a 霧の予告は種類だけ（攻撃？・守り？・ジャマ？…）・大きな攻撃の音は鳴る／b 霧でシフトしたら資源の帯の上に「霧 防御 +2」1秒・数字が飛ぶ／c 霧の夜のマップの見えない所は「夜霧」の雲1枚と上の1行（マスは出さない）。python qa/fog22157.py <html>
+# ★v0.22.157 design 24-9（★v0.22.158 text 34-2b の文・夜霧のルビ・タップで説明） 霧の見せ方（強さは変えない）：a 霧の予告は種類だけ（攻撃？・守り？・ジャマ？…）・大きな攻撃の音は鳴る／b 霧でシフトしたら資源の帯の上に「霧 防御 +2」1秒・数字が飛ぶ／c 霧の夜のマップの見えない所は「夜霧」の雲1枚と上の1行（マスは出さない）。python qa/fog22157.py <html>
 import sys,json,pathlib
 from playwright.sync_api import sync_playwright
 html=pathlib.Path(sys.argv[1]).resolve().as_uri();R={"ng":[]};errs=[]
@@ -13,12 +13,12 @@ with sync_playwright() as p:
       const se=[];const oo=SND.se;SND.se=(i,x)=>{se.push(i);return oo.call(SND,i,x)};B.e.pat=[['atk',99]];B.e.pi=0;renderBattle();await w(100);SND.se=oo;
       B.hand=[inst('hyouga')];B.rpm=5000;B.gear=0;B.gas=9;renderBattle();const b0=B.block;doPlay(0,true);o.blk=B.block-b0;o.note=[];for(let i=0;i<60&&!o.note.length;i++){await w(50);o.note=[...document.querySelectorAll('#ui .drvnote.wxn')].map(e=>e.textContent)}await w(1300);o.note2=document.querySelectorAll('#ui .drvnote.wxn').length;
       PRF().night=3;qaNewRun({mode:'MT',night:3});G.row=0;showMap();await w(300);const y=document.querySelector('#ui .yogiri');o.yg=y&&y.innerText.replace(/\\n/g,'|');
-      const yr=y.getBoundingClientRect();o.under=[...document.querySelectorAll('#ui .node')].filter(n=>{const r=n.getBoundingClientRect();return r.right>yr.left+2}).length;o.q=[...document.querySelectorAll('#ui .node')].filter(n=>n.textContent.includes('？')&&!/k-hidden/.test(n.className)).length;
+      const yr=y.getBoundingClientRect();const T2=[];const ot=window.toast2;window.toast2=(t)=>T2.push(t);y.click();window.toast2=ot;o.help=T2[0]||'';o.ruby=!!y.querySelector('ruby rt');o.under=[...document.querySelectorAll('#ui .node')].filter(n=>{const r=n.getBoundingClientRect();return r.right>yr.left+2}).length;o.q=[...document.querySelectorAll('#ui .node')].filter(n=>n.textContent.includes('？')&&!/k-hidden/.test(n.className)).length;
       qaNewRun({mode:'MT',night:2});showMap();await w(200);o.n2=!!document.querySelector('#ui .yogiri');return o}""")
     R[str(vw)]=o
     if o["types"]!=["次：攻撃？","次：攻撃？","次：守り？","次：ジャマ？","次：強化？"]:R["ng"].append([vw,"types",o["types"]])
     if o["blk"]<2 or o["note"]!=["霧 防御 +2"] or o["note2"]:R["ng"].append([vw,"blk",o["blk"],o["note"],o["note2"]])
-    if not o["yg"] or "夜霧" not in o["yg"] or "3段先まで見える" not in o["yg"] or o["under"] or o["n2"]:R["ng"].append([vw,"yogiri",o])
+    if o["help"]!="霧の夜は、マップが3段先までしか見えない。その先は夜霧の中。" or not o["ruby"] or not o["yg"] or "夜霧" not in o["yg"] or "3段先まで見える" not in o["yg"] or o["under"] or o["n2"]:R["ng"].append([vw,"yogiri",o])
     pg.screenshot(path=f"/tmp/fog157_{vw}.png");pg.close()
   b.close()
 R["errors"]=errs;print(json.dumps(R,ensure_ascii=False))
