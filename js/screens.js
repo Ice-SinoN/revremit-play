@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.141（β2）";
+const VERSION="試作 v0.22.142（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -247,7 +247,7 @@ function showMap(){
   setScreen("map");setScene("dim");closeModal();saveRun({s:"map"});SND.red(0);SND.areaBgm("map");if(G.row===0&&!G.duoStart){G.duoStart=1;setTimeout(()=>{if(window.SCREEN==="map")duoShow("runstart")},700)}/* ★v0.22.132 ランのはじめ（★v0.22.135 専用の文） */
   const ai=areaIdx(),rows=G.map.map((r,i)=>[r,i]).filter(([r])=>r[0].a===ai),cols=rows.length,step=Math.floor(620/cols),AR=AREAS[ai];
   const bgp=MAP_ART(AR.key);
-  let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span>${(()=>{const F=typeof nightFace==="function"&&nightFace(G.night);return F&&G.night>1?`<span class="small nface">　${esc(F.n)}</span>`:""})()}</div>`;/* ★v0.22.139 夜の顔 */
+  let h=(artHave(bgp)?`<img class="px" src="${artURL(bgp)}" ${at(0,0,640,360)}>`:"")+hud(4)+`<div class="h" ${at(8,20,400)}>エリア${ai+1}　${esc(AR.n)}<span class="small dim">　${G.row-rows[0][1]+1}/${cols}段</span>${(()=>{const F=typeof nightFace==="function"&&nightFace(G.night);return F&&G.night>=1?`<span class="small nface">　${esc(F.n)}</span>`:""})()}</div>`;/* ★v0.22.139 夜の顔 */
   rows.forEach(([r,i],ci)=>{const x=10+ci*step;
     r.forEach((n,j)=>{const y=r.length===1?150:Math.round(70+j*(180/(r.length-1||1)));
       const FV=(typeof nightFace==="function"&&nightFace(G.night)||{}).fogView,fogQ=FV&&i>G.row+FV,/* ★v0.22.139 霧の夜：2段先まで */st=i<G.row?"done":i===G.row?"now":"later",hidQ=fogQ||n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
@@ -398,7 +398,7 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" onpointerdown="cardLP(${i})" onpointerup="cardLPx()" onpointerleave="cardLPx()" onpointercancel="cardLPx()" ${locked?"disabled":""}`})}).join("");
-  h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
+  h+=shiftTabs(n,stepX,locked);h+=weakTabs(stepX);/* ★v0.22.142 C6 *//* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
@@ -429,6 +429,11 @@ function modeMark(c){const r=CARDS[c.id||c];return r&&(r.at||r.atShift)?G.mode:"
 function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const k=B.drive||"eco",D=RULES.drive[k];return[T.mode_ban_at1d||"AT：シフトは自動・ブローしない",(T["drive_ban_"+k+"_"+G.char]||(k==="eco"&&!driveGas("eco")?"エコ：火力 ×{m}":"")||T["drive_ban_"+k]||(k==="eco"?"エコ：火力 ×{m}・ガソリン +{g}":"スポーツ：火力 ×{m}")).replace("{m}",(m=>m%1?m:m.toFixed(1))(driveMult(k))).replace("{g}",driveGas(k))]}return[T.mode_ban_at1||"AT：シフトは自動",T.mode_ban_at2||"ブローしない・火力 ×0.9"]}
   return[T.mode_ban_mt1||"MT：パーフェクトで伸びる",noBlow()?(T.mode_ban_mt2a||"ブローなし（オーバーレブだけ）"):(T.mode_ban_mt2||"回しすぎるとブロー")]}
 /* MT：シフトできるカードの上に札（色＝出来）。選んだカードは下に「シフトで打つ」（2回目のタップでシフトを選べる） */
+/* ★v0.22.142 C6（残りの宿題）：手札に「弱点のギアで打てる」印。弱点を見つけたボスだけ（見つける前は出さない）。今のギアで打つと弱点＝「弱」、MT でシフトして打つと弱点＝「弱▲」、AT は自動シフトのあとのギアで見る。印だけ（強さは変わらない） */
+function weakHit(c){if(!B||!B.e||window.TUTORIAL_ON||typeof weakOf!=="function")return null;const w=weakOf(B.e);if(!w||!weakKnown(B.e))return null;const d=CD(c);if(d.t!=="atk")return null;const p=preview(c);if(!p.ok)return null;
+  const [a,b]=weakRange(w),inR=g=>g>=a&&g<=b,g0=B.gear+1;if(G.mode==="AT")return inR(p.auto?g0+1:g0)?"now":null;if(inR(g0))return"now";if(p.canShift&&inR(g0+1))return"shift";return null}
+function weakTabs(stepX){const L=RES;let h="";B.hand.forEach((c,i)=>{const k=weakHit(c);if(!k)return;const sel=S.sel===i,x=L.hand.x+i*stepX+26,y=L.hand.y-(sel?L.hand.selUp:0)+26;
+  h+=`<div class="wktab${k==="shift"?" sh":""}" ${at(x,y,k==="shift"?20:13,11)}>${k==="shift"?"弱▲":"弱"}</div>`});return h}
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
   B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok||!p.canShift)return;const g=p.grade,sel=S.sel===i,x=L.hand.x+i*stepX;
     if(sel)h+=`<button class="stab sel g-${g}" ${at(x,L.hand.y-L.hand.selUp+L.hand.ch+2,L.hand.cw,15)} onclick="tabShift(${i})">${esc((TEXT.ui||{}).stab_play||"シフトで打つ")}</button>`;

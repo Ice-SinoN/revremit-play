@@ -644,3 +644,6 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .main .nface{color:inherit}
 /* ★v0.22.141 BUG-58：夜の札の2行目は1行にして、入らない分は「…」（文字「大」でも札の枠の下で切れない） */
 .nrow2 .nface,.nrow2>.small{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;vertical-align:bottom}
+/* ★v0.22.142 C6 手札の弱点の印 */
+#ui .wktab{font:9px/11px 'PM10';text-align:center;color:#0A0812;background:#FFD34D;box-shadow:0 0 0 1px #000;border-radius:2px;z-index:3;pointer-events:none;white-space:nowrap;letter-spacing:0}
+#ui .wktab.sh{background:#F7F9F5}

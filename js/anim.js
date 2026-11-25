@@ -196,13 +196,15 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(50,t-(lastT||t));
   try{step(A.hitStop&&t<A.hitStop?0:dt*(typeof animSpeed==="function"?animSpeed():1));draw(dt)}/* ★v0.22.96 パーフェクトのキメ：画面が一瞬止まる */catch(e){if(!A.errLogged){A.errLogged=1;console.error(e)}}}
 /* ★零号の第2形態：ノイズを強めて見せる（横の帯をずらす・色ずれ。決定 2026-11-07） */
 let GLC=null;
-function glitchCanvas(cv){const w=cv.width,h=cv.height;if(!GLC||GLC.width!==w||GLC.height!==h){GLC=mkCanvas(w,h)}const g=GLC.getContext("2d");g.clearRect(0,0,w,h);
+/* ★v0.22.142 C7：ゴーストの「ときどきグリッチ」（design 10-17）。2.6秒に1回・0.18秒だけ、横の帯が少しずれる（±3px・色ずれ・点滅なし）。零号の強いグリッチ（A.E.glitch）とは別 */
+function ghostGlitchNow(){if(!B||!B.e||!B.e.ghost||A.E.glitch)return false;const t=A.now%2600;return t<180||(t>=300&&t<360)}
+function glitchCanvas(cv,light){const w=cv.width,h=cv.height;if(!GLC||GLC.width!==w||GLC.height!==h){GLC=mkCanvas(w,h)}const g=GLC.getContext("2d");g.clearRect(0,0,w,h);
   // ★v0.18.2：光の点滅は1秒に3回まで。色ずれは「強い」ときだけ（630ms に1回）、帯のずれは 100ms ごとに変える
-  const t=A.now,step=Math.floor(t/90),strong=step%7===0;let y=0,sd=(Math.floor(t/100)*9301+49297)%233280;const rnd=()=>(sd=(sd*9301+49297)%233280)/233280;
-  while(y<h){const bh=4+Math.floor(rnd()*18),off=(rnd()<(strong?0.6:0.25))?Math.round((rnd()-0.5)*(strong?24:8)):0;g.drawImage(cv,0,y,w,bh,off,y,w,bh);y+=bh}
+  const t=A.now,step=Math.floor(t/90),strong=!light&&step%7===0;let y=0,sd=(Math.floor(t/100)*9301+49297)%233280;const rnd=()=>(sd=(sd*9301+49297)%233280)/233280;
+  while(y<h){const bh=4+Math.floor(rnd()*18),off=(rnd()<(strong?0.6:light?0.45:0.25))?Math.round((rnd()-0.5)*(strong?24:light?10:8)):0;g.drawImage(cv,0,y,w,bh,off,y,w,bh);y+=bh}
   if(strong){g.globalCompositeOperation="lighter";g.globalAlpha=0.35;g.drawImage(tintCanvas(cv,"#FF2BD6"),3,0);g.drawImage(tintCanvas(cv,"#2BE8FF"),-3,0);g.globalAlpha=1;g.globalCompositeOperation="source-over"}
   return GLC}
-function drawSprite(g,set,tag,fi,x,y,o){if(!set)return;let cv=frameOf(set,tag,fi);if(o.pal)cv=palCanvas(cv,o.pal);if(o.tint)cv=tintCanvas(cv,o.tint);if(o.glitch)cv=glitchCanvas(cv);
+function drawSprite(g,set,tag,fi,x,y,o){if(!set)return;let cv=frameOf(set,tag,fi);if(o.pal)cv=palCanvas(cv,o.pal);if(o.tint)cv=tintCanvas(cv,o.tint);if(o.glitch)cv=glitchCanvas(cv,o.glitch===2);
   const s=o.scale||1,f=set.foot||[cv.width/2,cv.height];g.globalAlpha=o.alpha==null?1:o.alpha;
   g.drawImage(cv,Math.round(x-f[0]*s),Math.round(y-f[1]*s),cv.width*s,cv.height*s);g.globalAlpha=1}
 function draw(dt){
@@ -235,7 +237,7 @@ function drawBattle(g){
   const sh=(x,w)=>{g.fillStyle="rgba(0,0,0,.28)";g.fillRect(Math.round(x-w/2),PX.FLOOR-2,Math.round(w),4);g.fillStyle="rgba(0,0,0,.22)";g.fillRect(Math.round(x-w*0.35),PX.FLOOR-3,Math.round(w*0.7),6)};
   sh(A.P.x+A.P.dx,BODY()>40?64:32);sh(A.E.x+A.E.dx,(BODY()>40?(A.E.set.startsWith("boss")?96:64):36)*A.E.scale);
   const ei=idlePose(SPR[A.E.set]||SPR.van,A.E,1.7),pi=idlePose(PSPR(),A.P,0);
-  drawSprite(g,SPR[A.E.set]||SPR.van,ei.tag,ei.fi,A.E.x+A.E.dx,A.E.y+A.E.dy+ei.dy,{pal:A.E.pal,tint:A.E.tint,alpha:A.E.alpha,scale:A.E.scale,glitch:A.E.glitch});
+  drawSprite(g,SPR[A.E.set]||SPR.van,ei.tag,ei.fi,A.E.x+A.E.dx,A.E.y+A.E.dy+ei.dy,{pal:A.E.pal,tint:A.E.tint,alpha:A.E.alpha,scale:A.E.scale,glitch:A.E.glitch||(ghostGlitchNow()?2:0)});
   drawSprite(g,PSPR(),pi.tag,pi.fi,A.P.x+A.P.dx,A.P.y+A.P.dy+pi.dy,{tint:A.P.tint,alpha:A.P.alpha});
   // 体力のバー（★C2 v2 の見本どおり、頭の上）
   const bw=RES.bars.w,by=RES.bars.y;
