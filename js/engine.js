@@ -465,7 +465,7 @@ const OPS={
  /* ★v0.22.45 合成カード（design 10-21-2）の fx */
  atkHitsChainN:(x,v,base,max)=>{const k=Math.min(max,base+Math.floor(Math.min(B.chain,RULES.chainMax)/3));for(let i=0;i<k;i++)x.attack(v)},
  atkGear6:(x,a)=>x.attack(a*Math.min(B.gear+1,6)),
- perfBoth:(x,a,b)=>{const m=B.lastGrade==="perfect"?2:1;x.attack(a*m);x.block(b*m)},
+ perfBoth:(x,a,b,k)=>{const m=B.lastGrade==="perfect"?(k||2):1;x.attack(Math.round(a*m));x.block(Math.round(b*m))},/* ★v0.22.166 4つ目＝パーフェクトの倍率（なければ ×2）・四捨五入 */
  atkPerfCnt:(x,v,k,max)=>x.attack(v+Math.min(max,k*Math.max(0,G.st.perfect-(B.perf0||0)))),
  vsBigBoth:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank,m=r==="elite"||r==="boss"||B.hidden?1.5:1;x.block(a*m);x.attack(a*m)},
  atkVsBig:(x,a)=>{const r=ENEMIES[B.key]&&ENEMIES[B.key].rank;x.attack(r==="elite"||r==="boss"||B.hidden?a*1.5:a)},
