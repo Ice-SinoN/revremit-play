@@ -81,7 +81,8 @@ function fuiNums(){if(!G&&!FARM.on)return;const n=$("#fu-n");if(!n)return;
     fuiStrip(a,r0,rows.length)}
   const d=farmData(),inB=window.SCREEN==="battle"&&B&&!B.over,lim=inB&&typeof limit==="function"?limit():0,red=inB&&typeof redLo==="function"?redLo():0;
   $("#fu-nums").innerHTML=`<div class="fnum"><span>耐久</span><b>${G?G.hp:"－"}<span class="dim">/${G?G.maxhp:"－"}</span></b></div>
-   <div class="fnum"><span>ヒート</span><b class="${inB&&B.rpm>=red?"red":""}">${inB?B.rpm:"－"}${inB?`<span class="dim">/${lim}</span>`:""}</b></div>
+   <div class="fnum"><span>回転</span><b class="${inB&&B.rpm>=red?"red":""}">${inB?B.rpm:"－"}${inB?`<span class="dim">/${lim}</span>`:""}</b></div>
+   <div class="fnum"><span>ヒート</span><b class="fheat h-${fuiHeatSt()}">${G?(G.heat||0):"－"}<span class="dim">/${(typeof RULES!=="undefined"&&RULES.heat&&RULES.heat.max)||5}</span></b></div>
    <div class="fnum"><span>ギア</span><b>${inB?(B.gear+1)+"速":"－"}${inB?`<span class="dim"> G${B.gas}</span>`:""}</b></div>
    <div class="fnum"><span>お金</span><b>${G?G.money:"－"}</b></div>
    <div class="fnum flog"><span>勝ち負け</span><b><span class="lime">${FARM.sum.clear}</span> / <span class="red">${FARM.sum.lose}</span></b></div>
@@ -128,3 +129,6 @@ const _farmStopAsk=window.farmStopAsk;window.farmStopAsk=function(){if(FUI.view!
    <button class="fbtn warn" onclick="this.closest('.fmodal').remove();farmStop(true);FARM.n&&0;fuiOpen('result')">すぐ止める</button>
    <button class="fbtn sub" onclick="this.closest('.fmodal').remove()">つづける</button></div>`;p.appendChild(m)};
 RRHOOK.on("run_end",o=>{if(FARM.on)FARM.lastClear=!!o.clear});
+
+/* v0.5.12 ヒート（①v0.22.131）を数字の欄に。前の「ヒート」（回転の数）は「回転」に名前を変えた（同じ字で別のものになるため） */
+function fuiHeatSt(){const n=(G&&G.heat)||0;try{if(typeof heatState==="function")return heatState(n)}catch(e){}return n<=0?"off":n<=2?"orange":n<=4?"red":"blue"}

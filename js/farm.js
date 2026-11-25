@@ -98,7 +98,7 @@ function farmTakePart(p){if(!p)return false;
   const q=G.parts[wi],v=sellPrice(q);if(isMcPart(q))removePartAt(wi);else sellPart(q,wi);addPart(p,-1);SND.se("part_swap");farmFeed(`パーツ：${PARTS[p].n} を付けた（${PARTS[q].n} を${v?`売った +${v}`:"外した"}）`,"gold");return true}
 function farmShop(){const n=S.shop;if(!n)return;
   for(let guard=0;guard<12;guard++){let did=false;for(const k of FARM_TUNE){const pr=tunePrice(k,n,false);if(pr!=null&&G.money>=pr+15){if(buyTune(k,pr,false)){did=true;SND.se("shop_buy");farmFeed(`チューン：${TUNE[k][0]} Lv${G.tune[k]}（−${pr}）`,"gold")}}}if(!did)break}
-  if(n.feat&&n.featPart&&!n.featBought){const pr=shopPrice(RULES.featPrice,n,false);
+  if(n.feat&&n.featPart&&!n.featBought){const pr=shopPrice(typeof featCost==="function"?featCost():RULES.featPrice,n,false);/* v0.5.12 design 23-2：ヒートの値段をふつうのランとそろえる（featCost・①v0.22.131） */
     if(G.money>=pr&&(G.parts.length<RULES.partsMax||farmPartScore(n.featPart)>Math.min(...G.parts.map(farmPartScore)))){
       if(G.parts.length>=RULES.partsMax){let wi=0,wv=1e9;G.parts.forEach((q,i)=>{const v=farmPartScore(q);if(v<wv){wv=v;wi=i}});const q=G.parts[wi];if(isMcPart(q))removePartAt(wi);else sellPart(q,wi)}
       if(buyFeat(n,pr,false,-1))farmFeed(`目玉商品：${PARTS[n.featPart].n}（−${pr}）`,"gold")}}

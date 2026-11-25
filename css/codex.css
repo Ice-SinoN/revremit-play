@@ -174,3 +174,5 @@ button.bspd.on{color:#FFD34D}
 /* v0.5.11 ゴースト（design 10-17）の印 */
 #rr2v .rlghost{font:10px 'PM10';color:#0A0812;background:#C9B6FF;padding:0 3px;margin-left:4px;white-space:nowrap}
 #rr2v .rlghost:not(.won){background:transparent;color:#C9B6FF;border:1px solid #C9B6FF}
+/* v0.5.12 フルオートのヒートの色（①の炎と同じ段：1〜2 橙・3〜4 赤・5 青） */
+#farmui .fheat.h-orange{color:#FFA43D}#farmui .fheat.h-red{color:#FF5A5A}#farmui .fheat.h-blue{color:#6FC8FF}

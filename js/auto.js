@@ -41,7 +41,7 @@ setInterval(autoTick,60);
 
 /* ---- 設定 ---- */
 function showOpts(){SND.se("ui_ok");S.optsOpen=true;S.autoWas=AUTO.on;AUTO.on=false;renderOpts()}
-function renderOpts(){const fs=typeof FS_OK==="function"&&FS_OK(),inRun=!!G&&(window.SCREEN==="battle"||window.SCREEN==="map");
+function renderOpts(){document.querySelectorAll(".glpop.mhelp").forEach(e=>e.remove());if(window.GLOSS&&GLOSS.pop&&GLOSS.pop.classList.contains("mhelp"))GLOSS.pop=null;/* ★v0.22.134 QA：設定を開いたら走りかたの小窓を消す */const fs=typeof FS_OK==="function"&&FS_OK(),inRun=!!G&&(window.SCREEN==="battle"||window.SCREEN==="map");
   const sl=(k,n)=>`<div class="oprow"><span>${n}</span><input type="range" min="0" max="100" step="5" value="${Math.round(OPTS[k]*100)}" oninput="OPTS.${k}=this.value/100;optsApply();optsSave();this.nextElementSibling.textContent=this.value"><b>${Math.round(OPTS[k]*100)}</b></div>`;
   modal(`<div class="opts"><div class="h">設定</div>${sl("bgm","BGM")}${sl("se","効果音")}
    <div class="oprow"><span>レッドの演出</span><span class="opbtns">${[["full","ふつう"],["weak","弱め"],["off","切"]].map(([v,n])=>`<button class="${(OPTS.redFx||"full")===v?"main":""}" onclick="OPTS.redFx='${v}';optsSave();if(SND.redOn)SND.call(A=>A.redLevel&&A.redLevel(SND.redLv()));renderOpts()">${n}</button>`).join("")}</span></div>

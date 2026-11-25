@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.133（β2）";
+const VERSION="試作 v0.22.134（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -933,11 +933,14 @@ function heatHelp(){toast2(heatLine()+"　"+((TEXT.heat&&TEXT.heat.help)||"")+((
 /* ★v0.22.131 design 23-1：メーター枠のすぐ上の帯（x4〜178・1段 y233〜250／2段 y214〜250）。
    左はし＝走りかたの札（MT 44×18＝「MT」とパーフェクト連続の上乗せ／AT 44×36＝「AT」と「エコ／スポーツ」・タップでドライブモード／CVT 44×18）。その子の資源は x52 から（1つ＝アイコン12×12＋数・1段4つまで）。
    MT／AT の説明の2行は帯に入れない：札をタップで小窓、その走りかたで初めて走るランの最初の戦闘だけ自動で3秒 */
-function bandMode(){if(G.char==="KURO")return null;if(G.char==="MIO"||G.mode==="CVT")return"CVT";return G.mode}
+/* ★v0.22.134 ③の子（β の4人のほか）は③が自分の帯を出すので、①の帯・走りかたの小窓は出さない（二重にしない）。③が①の帯を使うときは BAND_OWN に足すだけ */
+const BAND_OWN=["YUKI","HINA","MOMO","NANA"];
+function bandMine(){return !!(G&&BAND_OWN.includes(G.char))}
+function bandMode(){if(!bandMine())return null;if(G.char==="KURO")return null;if(G.char==="MIO"||G.mode==="CVT")return"CVT";return G.mode}
 function bandRes(){const out=[],R=RULE();
   if(R.rescue){const n=R.rescueN||1,left=Math.max(0,n-(B.rescueT||0)),ic=`assets/c2/ui/c2/revremit_ui_rescue_${left?"ready":"used"}.png`;out.push({ic,n:left,used:!left,t:left?"花の便り（まだ届く）":"花の便り（このターンはもう届いた）"})}
   return out}
-function bandHtml(locked){const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
+function bandHtml(locked){if(!bandMine())return"";const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
   let h=`<div class="band${two?" two":""}" ${at(4,y0,res.length?174:44,250-y0)}></div>`;/* ★v0.22.133 AD：資源のない子は札の幅だけ */
   if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt" ${at(4,233,44,18)} onclick="modeHelp()">MT${a>0?`<b>+${a}</b>`:""}</button>`}
   else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}" ${at(4,214,44,36)} onclick="atTag()">AT<br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}
@@ -949,7 +952,7 @@ function bandHtml(locked){const md=bandMode(),res=bandRes();if(!md&&!res.length)
 function atTag(){if(S.bmLong){S.bmLong=0;return}if(!B||B.over)return;if(busy())uiSkip();const cur=B.drive||"eco",nx=cur==="eco"?"sport":"eco";
   if(canDrive()&&!B.driveT&&B.cards===0){drivePick(nx);return}modeHelp()}
 /* ★v0.22.133 AD：札の長押し（0.45秒）ならいつでも説明 */
-document.addEventListener("pointerdown",ev=>{const b=ev.target&&ev.target.closest&&ev.target.closest(".bmode");if(!b)return;S.bmLong=0;clearTimeout(S.bmT);S.bmT=setTimeout(()=>{S.bmLong=1;modeHelp()},450)},true);
+document.addEventListener("pointerdown",ev=>{const b=ev.target&&ev.target.closest&&ev.target.closest(".bmode");if(!b)return;S.bmLong=0;clearTimeout(S.bmT);S.bmT=setTimeout(()=>{S.bmLong=1;modeHelp()},500)/* ★v0.22.134 design 23-3：0.5秒（③とそろえた） */},true);
 ["pointerup","pointercancel","pointerleave"].forEach(t=>document.addEventListener(t,()=>clearTimeout(S.bmT),true));
 function modeHelp(auto){if(!auto&&S.bmLong===1&&document.querySelector(".glpop.mhelp")){S.bmLong=0;return}const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
   const lines=modeBanner(),p=document.createElement("div");p.className="glpop mhelp";p.innerHTML=`<b>${esc(md)}</b><div>${lines.map(esc).join("<br>")}</div>`;
@@ -968,7 +971,7 @@ function duoShow(sc){try{if((typeof OPTS!=="undefined"&&OPTS.banter===false)||wi
   const T=TEXT.duo,me=G.char.toLowerCase();G.duoI=(G.duoI||0)+1;let al=A.length>1&&!(sc==="boss"&&T["duo_"+me+"_"+A[0].toLowerCase()+"_rival"]&&!(G.duoRival||{})[A[0]])?A[G.duoI%A.length]:A[0];const ak=al.toLowerCase();
   let key=null;if(sc==="boss"&&T[`duo_${me}_${ak}_rival`]&&!(G.duoRival||{})[al]){key=`duo_${me}_${ak}_rival`;G.duoRival=G.duoRival||{};G.duoRival[al]=1}
   if(!key){const ks=[1,2,3].map(i=>`duo_${me}_${ak}_${sc}_${i}`).filter(k=>T[k]);if(!ks.length)return;const c=ks.filter(k=>k!==G.duoLast);key=pick(c.length?c:ks)}G.duoLast=key;
-  const [a,b]=T[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?238:282;
+  const [a,b]=T[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?20:282;/* ★v0.22.134 QA：報酬の画面は上（お金の行にかけない） */
   document.querySelectorAll("#ui .duo").forEach(e=>e.remove());const d=document.createElement("div");d.className="duo";Object.assign(d.style,{left:"184px",top:y+"px",width:"272px",position:"absolute"});
   d.innerHTML=`<div class="dl me"><b>${esc(nm(G.char))}</b>${esc(a).replace(/\n/g,"<br>")}</div><div class="dl al">${artHave(face)?`<img class="px" src="${artURL(face)}" alt="">`:""}<div><span class="commk">通信</span><b>${esc(nm(al))}</b><br>${esc(b).replace(/\n/g,"<br>")}</div></div>`;
   d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";
