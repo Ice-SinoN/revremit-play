@@ -650,3 +650,7 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 /* ★v0.22.147 A2 霧・夜明けのマップの札 */
 .wx-fog.wxt,.wxb.wx-fog{border-color:#b8c2d6;color:#e6ebf5}.wx-dawn.wxt,.wxb.wx-dawn{border-color:#ffb46a;color:#ffd9a8}
 .wxleg b.wx-fog{color:#d0d8e8}.wxleg b.wx-dawn{color:#ffc68a}
+/* ★v0.22.153 勝つと回復 */
+.heatheal{color:#ff9a3c}
+#ui .heathl{font:9px/11px 'PM10';color:#ffb070;text-align:center;white-space:nowrap;pointer-events:none;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000}
+#ui .heathl.l{text-align:right}

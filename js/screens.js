@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.152（β2）";
+const VERSION="試作 v0.22.153（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -256,7 +256,7 @@ function showMap(){
       const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const gh=n.ghost&&!hidQ,hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
       h+=i===G.row?`<button class="node k-${n.k}${gh?" ghost":""} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k}${gh?" ghost":""} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
-  h+=heatBar(476,22);/* ★v0.22.131 */
+  h+=heatBar(476,22,true);/* ★v0.22.131（★v0.22.153 回復の字は炎の左） */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
   <div class="small dim" ${at(150,326,420)}>${G.bring.length?"ミニカー："+G.bring.map(m=>esc(m.rank)).join("・")+`（攻撃 +${Math.round((G.atkBonus||0)*100)}%）`:""}</div>
@@ -476,7 +476,7 @@ function showWinBody(w){if(w.ghost){ghostReward(w);return}if(w.rank==="boss"&&S.
     :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(484,300,120,32)} onclick="takeCard(null)">つぎへ</button>`;
   h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(S.rewards.length>3?30+i*148:LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
    (w.rank==="hidden"?"":backBtn("もらわない","takeCard(null)"))+/* ★v0.22.1 BUG-30：裏道は「つぎへ」だけ */
-   `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}</div>`;
+   `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}${w.heal?`　<b class="heatheal">熱 +${w.heal}</b>`:""}</div>`;/* ★v0.22.153 */
   ui().innerHTML=h;
 }
 const LAMP_X=[156,319,483];
@@ -924,10 +924,11 @@ function wxPhase(){wxApply();const b=wxBoss2();if(!b||(G&&G.fullAuto)||(window.F
 function wxHelp(){const w=B&&B.wx;if(!w)return;toast2(wxNameB(w)+"："+(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w)),76,3000)}
 /* ★v0.22.131 ヒート（design 10-17-1）：炎5つ（今の段だけ燃える・1〜2 橙・3〜4 赤・5 青）。タップで1行 */
 function heatState(n){return n<=0?"off":n<=2?"orange":n<=4?"red":"blue"}
-function heatBar(x,y){if(!G)return"";const n=G.heat||0,st=heatState(n);let h="";for(let i=0;i<RULES.heat.max;i++){const s=i<n?st:"off",src="assets/c2/ui/c2/revremit_ui_heat_"+s+"_sheet.png";
+function heatBar(x,y,left){if(!G)return"";const n=G.heat||0,st=heatState(n);let h="";for(let i=0;i<RULES.heat.max;i++){const s=i<n?st:"off",src="assets/c2/ui/c2/revremit_ui_heat_"+s+"_sheet.png";
     h+=artHave(src)?`<span class="hf${i<n?" on":""}" style="background-image:url('${artURL(src)}')"></span>`:`<span class="hf txt ${s}">${i<n?"▲":"△"}</span>`}
-  return `<button class="heatb" ${at(x,y,96,18)} onclick="heatHelp()" aria-label="ヒート ${n}">${h}</button>`}
-function heatLine(){const n=G.heat||0,H=RULES.heat;return(TEXT.heat&&TEXT.heat.line||"ヒート {n}").replace("{n}",n).replace("{a}",Math.round(n*H.gold*100)).replace("{b}",Math.round(n*H.hpAtk*100))}
+  const hl=RULES.heat.winHeal&&n>0?`<div class="small heathl${left?" l":""}" ${left?at(x-102,y+4,100,11):at(x,y+18,96,11)}>勝つと回復 +${Math.round(n*RULES.heat.winHeal*100)}%</div>`:"";/* ★v0.22.153 */
+  return `<button class="heatb" ${at(x,y,96,18)} onclick="heatHelp()" aria-label="ヒート ${n}">${h}</button>${hl}`}
+function heatLine(){const n=G.heat||0,H=RULES.heat;return(TEXT.heat&&TEXT.heat.line||"ヒート {n}").replace("{n}",n).replace("{a}",Math.round(n*H.gold*100)).replace("{b}",Math.round(n*H.hpAtk*100))+(H.winHeal&&n>0?`・勝つと回復 +${Math.round(n*H.winHeal*100)}%`:"")}/* ★v0.22.153 */
 function heatHelp(){toast2(heatLine()+"　"+((TEXT.heat&&TEXT.heat.help)||"")+((TEXT.heat&&TEXT.heat.badwx)?"\n"+TEXT.heat.badwx:""),window.SCREEN==="battle"?110:60,3500)}
 /* ★v0.22.131 design 23-1：メーター枠のすぐ上の帯（x4〜178・1段 y233〜250／2段 y214〜250）。
    左はし＝走りかたの札（MT 44×18＝「MT」とパーフェクト連続の上乗せ／AT 44×36＝「AT」と「エコ／スポーツ」・タップでドライブモード／CVT 44×18）。その子の資源は x52 から（1つ＝アイコン12×12＋数・1段4つまで）。

@@ -37,4 +37,4 @@ const WEATHER={dry:{n:"ドライ"},rain:{n:"雨",chainAdd:0.03,coreMul:0.5},snow
 const WX_W={street:{dry:50,rain:25,snow:0,fog:15,dawn:10},touge:{dry:30,rain:10,snow:30,fog:20,dawn:10},circuit:{dry:45,rain:25,snow:5,fog:5,dawn:20}};
 const WX_ON=["dry","rain","snow","fog","dawn"];/* ★v0.22.147 A2（design 24-4）：ふつうのマスにも霧・夜明け（WX_W の表どおり） */
 /* ★v0.22.131 ヒート（design 10-17-1）：0〜5。勝つ +1・エリート（裏道も）+2・悪い所が効く天候で勝つ +1。ガレージで 0・ショップ／シム／ラッキー −1・ボスに勝つ −2。1段につき パーツ代 +10%・レア度 C −6／R +4／E +2・敵の体力と攻撃 +3%（ボスにも） */
-RULES.heat={max:5,win:1,elite:2,badWx:1,garage:0,shop:-1,boss:-2,gold:0.1,hpAtk:0.015/* ★v0.22.133 LD 11-93：+3% → +1.5%／段 */,rar:[-6,4,2]/* ★v0.22.152 LD 11-103・design 24-6：前の形にもどした（5段 C30・R50・E20）。v0.22.145 の [-9,6,3]＝R60・E25 は熱い道の差を埋めず、KURO の N1 が下がったため */};
+RULES.heat={max:5,win:1,elite:2,badWx:1,garage:0,shop:-1,boss:-2,gold:0.1,hpAtk:0.015/* ★v0.22.133 LD 11-93：+3% → +1.5%／段 */,winHeal:0.01/* ★v0.22.153 design 24-6：勝つたび、そのときのヒートの段 ×1% の最大耐久を回復（ボスのあとはなし） */,rar:[-6,4,2]/* ★v0.22.152 LD 11-103・design 24-6：前の形にもどした（5段 C30・R50・E20）。v0.22.145 の [-9,6,3]＝R60・E25 は熱い道の差を埋めず、KURO の N1 が下がったため */};
