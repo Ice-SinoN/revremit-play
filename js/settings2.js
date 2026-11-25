@@ -59,7 +59,7 @@ function fsApply(root){if(!root)return;const k=fsK();const els=[...root.querySel
     const f=+e.dataset.f0,min=Math.max(7,Math.floor(f*k*0.8));let n=parseFloat(e.style.fontSize)||f;
     while(over()&&n>min){n--;e.style.fontSize=n+"px";if(e.dataset.l0)e.style.lineHeight=Math.max(n,Math.round(+e.dataset.l0*n/f))+"px"}})}
 const FS_ROOTS=["#ui","#modal","#rr2v"];
-function fsAll(){FS_ROOTS.forEach(s=>fsApply($(s)));const p=$(".glpop");if(p)fsApply(p);if(typeof ellFit==="function")ellFit("#nl .nface")}/* ★v0.22.141 */
+function fsAll(){FS_ROOTS.forEach(s=>fsApply($(s)));const p=$(".glpop");if(p)fsApply(p)}
 (function(){let q=0;const run=()=>{q=0;if(fsK()!==1||document.querySelector("[data-fs]"))fsAll()};
   const mo=new MutationObserver(()=>{if(!q){q=1;requestAnimationFrame(run)}});
   const go=()=>{mo.observe($("#stage"),{childList:true,subtree:true})};if(document.readyState==="loading")addEventListener("DOMContentLoaded",go);else go()})();

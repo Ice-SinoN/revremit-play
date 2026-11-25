@@ -3,7 +3,7 @@
    タイトル「MT／AT で走る」→ キャラ → 夜（難易度）→（ミニカーがあれば）ガレージ → 確認 → 端末につなぐ演出 → ラン開始。
    クリアの★：キャラ × 走りかた × 夜（profile.clearRec["YUKI|MT"]=[夜...]）。前の版のセーブは、クリアしたミニカーから
    キャラ × 走りかたの「クリア済み（夜は不明＝0）」だけ足す（夜ごとの★は、この版からクリアした夜）。 */
-FULL_SCREENS.push("nights","runok","boot");Object.assign(SCREEN_BG,{nights:"garage",runok:"garage"});
+FULL_SCREENS.push("runok","boot");Object.assign(SCREEN_BG,{runok:"garage"});/* ★v0.22.143 E13：夜をえらぶ画面は消した（夜は準備の画面で選ぶ・design 24-4） */
 /* 戦闘スタイル（progression 1-23・デザイン班 11-19 11:45。文はあとでデザイン班が直す） */
 const CHAR_STYLE={
   YUKI:["守ってから返すカウンター型。凍結で敵の番を遅らせ、そのあいだに攻める。","ねらい：細雪・ホワイトアウトで止めて、白猫の護りの防御でしのぐ。はじめての人におすすめ。"],
@@ -25,7 +25,7 @@ function clearedNight(ch,mode,n){return(clearRecOf()[ch+"|"+mode]||[]).includes(
 function starHTML(on,lab){return`<span class="cst${on?" on":""}">${on?"★":"☆"}${lab?esc(lab):""}</span>`}
 function charStars(ch,mode){return["MT","AT"].map(m=>`<span class="${m===mode?"":"dim"}">${starHTML(clearedAny(ch,m),m)}</span>`).join(" ")}
 /* ---- 待機の絵（戦闘の idle）を小さな canvas に。未解放はシルエット ---- */
-function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage","tree"].includes(window.SCREEN)){S.chavOn=false;return}
+function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","garage","tree"].includes(window.SCREEN)){S.chavOn=false;return}
   document.querySelectorAll("canvas.chav").forEach(cv=>{const set=(cv.dataset.sil||cv.dataset.face)&&!(SPR[cv.dataset.ch]&&!SPR[cv.dataset.ch].proc)?(window.SILFR||{})[cv.dataset.ch]:SPR[cv.dataset.ch];/* ★v0.22.125 シルエットは1コマだけの軽い絵 */const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
     if(!set||set.proc){{const k=cv.dataset.ch;S.chavLoad=S.chavLoad||{};if(!cv.dataset.sil&&!cv.dataset.face&&ART_SRC[k]&&!S.chavLoad[k]){S.chavLoad[k]=1;ensureSpr([k]).then(()=>{S.chavLoad[k]=0})}}/* ★v0.22.125 手放した絵はここで読みなおす */g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
     if(cv.dataset.face){csSilFace(cv,g,set);return}
@@ -63,27 +63,9 @@ function renderChars(){const op=charsOpen(),sel=op.includes(S.chSel)?S.chSel:cur
     <div class="small gold">戦闘スタイル</div>${st.map(t=>`<div class="small">${esc(t)}</div>`).join("")}
     <div class="small gold">キャラの決まり</div><div class="small">${esc(ruleTxtOf(sel)||"なし")}</div>
     <div class="small dim">固有スキル：${esc(CARDS[C.skill].n)}</div></div>
-   <div class="col" ${at(484,250,140)}><button class="main u9" onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showNights()">${esc(TEXT.names[sel]||sel)}で走る<br><span class="small">つぎ：夜をえらぶ</span></button></div>`;
+   <div class="col" ${at(484,250,140)}><button class="main u9" onclick="PRF().char=S.chSel;SAVE.auto();S.deck=null;showReady()">${esc(TEXT.names[sel]||sel)}で走る<br><span class="small">つぎ：夜をえらぶ</span></button></div>`;
   ui().innerHTML=h;chavStart()}
 /* ---- 3. 夜（難易度）---- */
-function showNights(){setScreen("nights");setScene("dim");setBg("garage");closeModal();SND.se("ui_ok");renderNights()}
-function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length,ch=curChar(),mode=flowMode(),o=mode==="MT"?"AT":"MT";
-  const sc=$("#nl")?$("#nl").scrollTop:0;
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>夜をえらぶ（${esc(TEXT.names[ch]||ch)}${S.flow&&!S.flow.mode?"":"・"+esc(mode)}）</div>${backBtn("もどる","showChars()")}
-   <div class="sign" ${at(8,30,452,324)}></div><div class="small dim ninfo" ${at(16,34,440,26)}>決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く。★＝${esc(TEXT.names[ch]||ch)}でクリアした夜（うすい★は、もう1つの走りかた）</div>
-   <div class="scroll nlist2" id="nl" ${at(14,62,440,286)}>`+
-    NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
-      if(x.n>last)return`<button class="nrow2 nfull" disabled><b>${esc(lab)}</b>　<span class="small dim">🔒 ${esc(BETA_TXT.nightLock)}</span></button>`;/* ★v0.22.81 虎雪 14:07：NIGHT 5 以降は正式版で */
-      const st=`${starHTML(clearedNight(ch,mode,x.n),mode)}<span class="dim"> ${starHTML(clearedNight(ch,o,x.n),o)}</span>`;
-      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow2" onclick="PRF().night=${x.n};SAVE.auto();SND.jingle('night_select',{lv:${x.n}});renderNights()"><span class="nst">${st}</span><b>${esc(lab)}</b>${bl}<br>${(()=>{const F=typeof nightFace==="function"&&nightFace(x.n);return F?`<span class="small nface">${esc(F.n)}：${esc(x.n===1?x.add:F.l)}</span>`:`<span class="small">${esc(x.add)}</span>`})()}</button>`
-        :`<button class="nrow2" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+`</div>
-   <div class="sign side" ${at(472,70,160,120)}><div class="h">NIGHT ${cur}</div><div class="small">${starHTML(clearedNight(ch,mode,cur),mode+" クリア")}</div><div class="small dim">${starHTML(clearedNight(ch,o,cur),o+" クリア")}</div>
-    <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div><div class="small dim">${esc((NIGHTS[cur-1]||{}).add||"")}</div></div>
-   <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"走りかた"}</span></button></div>`;
-  if($("#nl"))$("#nl").scrollTop=sc;ellFit("#nl .nface");requestAnimationFrame(()=>ellFit("#nl .nface"))}
-/* ★v0.22.141 BUG-58：1行に入らない字は詰めて「…」（ブラウザの省略記号は小さい倍率で消えることがあるため字で足す）。元の文は title に */
-function ellFit(sel){document.querySelectorAll(sel).forEach(e=>{const t0=e.dataset.full||e.textContent;e.dataset.full=t0;e.title=t0;e.textContent=t0;if(e.scrollWidth<=e.clientWidth+1)return;let n=t0.length;while(n>1&&e.scrollWidth>e.clientWidth+1){n--;e.textContent=t0.slice(0,n).replace(/[・、：\s（「]+$/,"")+"…"}})}
-function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else flowToMode([])}
 /* ---- 3b. 走りかた（MT／AT）★v0.22.61。文は text（mode_mt_1 など）があればそれ ---- */
 FULL_SCREENS.push("modes");SCREEN_BG.modes="garage";
 const MODE_TXT={MT:["自分でシフトアップする。帯の中でシフトするとパーフェクト。","パーフェクトでガソリンがもどり、カードをつなげやすい。"],AT:["シフトは自動。回転が帯に入ると、ひとりでに上がる。","シフトを気にせず、カードを打つことに集中できる。"]};
@@ -95,7 +77,7 @@ function showModes(){setScreen("modes");setScene("dim");setBg("garage");closeMod
      <div class="small">${starHTML(clearedNight(ch,m,n),"NIGHT "+n)}　${starHTML(clearedAny(ch,m),m+" クリア")}</div></button>`).join("")+
    `<div class="small dim" ${at(40,290,560,14)}>${esc(TU("mode_note","えらぶと、確かめの画面に進みます。"))}</div>`}
 function modePick(m){SND.se("ui_ok");S.flow=S.flow||{};S.flow.mode=m;try{if(PRF().lastMode!==m){PRF().lastMode=m;SAVE.auto()}}catch(e){}runConfirm(S.flowBring||[])}
-function modeBack(){SND.se("ui_cancel");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else showNights()}
+function modeBack(){SND.se("ui_cancel");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else showReady()}
 /* ---- 4. 確認（★虎雪 11:35：ダイアログ。難易度・キャラ・デッキ〈はじめのカード〉・ミニカー → よろしいですか？ OK／もどる）---- */
 function runConfirm(bring){S.flowBring=(bring||[]).slice();S.flowFromMode=window.SCREEN==="modes";
   const ch=curChar(),mode=flowMode(),n=curNight(),C=CHARS[ch],dk0=loadDeck(ch),dk=treeDeckMap(dk0,ch),U=TEXT.ui,lab=n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",n);

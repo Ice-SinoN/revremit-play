@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.142（β2）";
+const VERSION="試作 v0.22.143（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -206,7 +206,7 @@ function showMinicarGarage(mode){SND.bgm("garage");if(!(S.flow&&!S.flow.mode))tr
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
   ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ${S.flow&&!S.flow.mode?"":"（"+esc(mode)+"）"}</div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="mcl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:S.mcSel.includes(m.id)?"on":"",attrs:`onclick="toggleBring(${i})"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
-  ${backBtn("もどる","S.mcSel=[];S.flowReady?showReady():S.flow?showNights():showTitle()")}
+  ${backBtn("もどる","S.mcSel=[];S.flowReady||S.flow?showReady():showTitle()")}
   <div class="sign mcdet" ${at(312,58,320,226)}><div class="scroll" id="mcd">${sel.length?sel.map(mcDetail).join(""):`<div class="small dim">${esc(TU("mc_detail_none","ミニカーを選ぶと、中身（上がるステータス・カード・パーツ）がここに出ます。"))}</div>`}</div></div>
   <div class="sign side" ${at(312,292,132,58)}><div class="small">持ちこみ <b class="gold">${sel.length}/${BRING_MAX}</b> 台</div><div class="small dim">${BRING_MAX}台まで選ぶ</div></div>
   <div class="col" ${at(452,290,180)}><button class="main u9" onclick="startWithMinicars()">${sel.length?"この"+sel.length+"台で出発":"出発"}</button>
@@ -432,8 +432,8 @@ function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const 
 /* ★v0.22.142 C6（残りの宿題）：手札に「弱点のギアで打てる」印。弱点を見つけたボスだけ（見つける前は出さない）。今のギアで打つと弱点＝「弱」、MT でシフトして打つと弱点＝「弱▲」、AT は自動シフトのあとのギアで見る。印だけ（強さは変わらない） */
 function weakHit(c){if(!B||!B.e||window.TUTORIAL_ON||typeof weakOf!=="function")return null;const w=weakOf(B.e);if(!w||!weakKnown(B.e))return null;const d=CD(c);if(d.t!=="atk")return null;const p=preview(c);if(!p.ok)return null;
   const [a,b]=weakRange(w),inR=g=>g>=a&&g<=b,g0=B.gear+1;if(G.mode==="AT")return inR(p.auto?g0+1:g0)?"now":null;if(inR(g0))return"now";if(p.canShift&&inR(g0+1))return"shift";return null}
-function weakTabs(stepX){const L=RES;let h="";B.hand.forEach((c,i)=>{const k=weakHit(c);if(!k)return;const sel=S.sel===i,x=L.hand.x+i*stepX+26,y=L.hand.y-(sel?L.hand.selUp:0)+26;
-  h+=`<div class="wktab${k==="shift"?" sh":""}" ${at(x,y,k==="shift"?20:13,11)}>${k==="shift"?"弱▲":"弱"}</div>`});return h}
+function weakTabs(stepX){const L=RES;let h="";B.hand.forEach((c,i)=>{const k=weakHit(c);if(!k)return;const sel=S.sel===i,sh=k==="shift",mt="×"+(RULES.weakMul||1.5),w=sh?27:21,x=L.hand.x+i*stepX+Math.min(L.hand.cw,Math.floor(stepX))-w-3,y=L.hand.y-(sel?L.hand.selUp:0)+10;/* ★v0.22.143 BUG-60：右上（2段目の右・種類の札と数字の札の上）。字は「弱」がつぶれるので倍率「×1.3」（数字はドットの字で読める）。絵の印が来たら差しかえ */
+  h+=`<div class="wktab${sh?" sh":""}" ${at(x,y,w,11)}>${sh?"▲":""}${mt}</div>`});return h}
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
   B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok||!p.canShift)return;const g=p.grade,sel=S.sel===i,x=L.hand.x+i*stepX;
     if(sel)h+=`<button class="stab sel g-${g}" ${at(x,L.hand.y-L.hand.selUp+L.hand.ch+2,L.hand.cw,15)} onclick="tabShift(${i})">${esc((TEXT.ui||{}).stab_play||"シフトで打つ")}</button>`;
@@ -789,13 +789,7 @@ function nightMaxAvail(){return Math.min(typeof BETA_NIGHTS==="number"?BETA_NIGH
 function curNight(){const n=+PRF().night||nightMaxAvail();return Math.max(1,Math.min(n,nightMaxAvail()))}
 function labOpen(){return(PRF().unlock.nightMax||0)>=1||PRF().log>0}
 function runOpts(){const p=PRF();let gh=null;try{gh=window.runlog&&runlog.pickGhost?runlog.pickGhost(curChar()):null}catch(e){}/* ★v0.22.137 ゴーストのもと */return{ghost:gh,wxFirst:!((p.stats&&p.stats.runs)||0),/* ★v0.22.126 初めのラン＝エリア1 の最初の3段はドライ */night:curNight(),ul:{cards:unlockedCards(p),parts:unlockedParts(p)},hidden:(p.unlock.nightMax||0)>=1}}
-function pickNight(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length;
-  modal(`<div class="h">夜をえらぶ</div><div class="small dim">決まりは前の夜のぶんに足されていく。クリアすると次の夜が開く</div><div class="scroll nlist" style="height:190px">`+
-    NIGHTS.map(x=>{const lab=x.n===NIGHTS.length?U.night_last:U.night_label.replace("{n}",x.n),bl=nightRules(x.n).noBlow||x.n<3||/ブロー/.test(x.add)?"":`<span class="nblow">${esc(U.night_blow)}</span>`;
-      if(x.n>last)return`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">🔒 ${esc(typeof BETA_TXT!=="undefined"?BETA_TXT.nightLock:"正式版で")}</span></button>`;
-      return x.n<=mx?`<button class="${x.n===cur?"main":""} nrow" onclick="PRF().night=${x.n};SAVE.auto();closeModal();SND.jingle('night_select',{lv:${x.n}});showTitle()"><b>${esc(lab)}</b>${bl}　<span class="small">${esc(x.add)}</span></button>`
-        :`<button class="nrow" disabled><b>${esc(lab)}</b>　<span class="small dim">${esc(U.night_lock)}</span></button>`}).join("")+
-    `</div><div class="row"><button onclick="closeModal()">とじる</button></div>`)}
+/* ★v0.22.143 E13：pickNight（前の夜の小窓）は消した */
 /* ★v0.22 ブローが入る夜に初めて入るとき（design 8-6・text 12-1）。どのキャラでも1回だけ。4行目は走るキャラ */
 function blowIntro(done){if(!G||G.night<3||noBlow()||seenGet().night3_first){done();return}
   const sc=TEXT.scenes.night3_first;sc.lines=sc.lines.slice(0,3).concat([TEXT.night3Last[G.char]||TEXT.night3Last.YUKI]);showScene("night3_first",done)}
