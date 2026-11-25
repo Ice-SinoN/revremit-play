@@ -11,7 +11,7 @@ const UNLOCK={
   startParts:["turbo","nitro","lsd","closs","clutch","oilcool","boost","cat","hook","grip","cage","jack","launch","pacenote","widebody"],
   areaParts:{a1:["flywheel","icool","carbon"],a2:["limiter","hicam","pipe"],clear:["seq","slick","emblem"]},
   // ログ（ラン後のマネー・名前は案 A）
-  log:{a1:20,a2:30,clear:50,elite:5,hidden:10,rank:{E:0,D:2,C:5,B:8,A:12,S:20,SS:30,SSS:40},nightBonus:0.05,nightBonusMax:1.5}/* ★v0.22.65 LD 11-39：min(1.5, 1+0.05×(夜−1)) */,
+  log:{a1:20,a2:30,clear:50,elite:5,hidden:10,rank:{E:0,D:2,C:5,B:8,A:12,S:20,SS:30,SSS:40},nightBonus:0.2,nightBonusMax:3}/* ★v0.22.149 A4（design 24-4・12-4）：1+0.2×(夜−1)＝N2 ×1.2・N4 ×1.6・N6 ×2・N11 ×3（前は ★v0.22.65 LD 11-39 の min(1.5, 1+0.05×(夜−1))） */,
   hiddenRate:0.35,hiddenRows:[3,8],hiddenTurns:5,hiddenMul:1.1,hiddenGold:30,hiddenAllGold:50,
 };
 /* ★v0.22 仲間3人の解放（design 9-10-5 の形。数がそろわないので、プログラム班のおすすめで割りふった＝tech-notes 1-16）

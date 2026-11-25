@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.148（β2）";
+const VERSION="試作 v0.22.149（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -820,7 +820,7 @@ function runEnd(clear,rank){if(S.runEndG===G)return S.runEndLog;S.runEndG=G;try{
   unlockedCards(p).filter(id=>!beforeC.has(id)).forEach(id=>got.push(CARDS[id].r==="OG"?(TEXT.ui.og_got||"奥義「{名前}」を手に入れた").replace("{名前}",CARDS[id].n):"カード："+CARDS[id].n));
   unlockedParts(p).filter(id=>!beforeP.has(id)).forEach(id=>got.push("パーツ："+PARTS[id].n));
   {/* ★v0.22.48 型のポイント（design 11-3-2）：そのキャラで。エリア1・2 突破で1ずつ・全クリア2・NIGHT 3 以上 +1・NIGHT 6 以上 +2（全クリアのとき） */
-   const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?(G.night>=6?2:G.night>=3?1:0):0);if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
+   const tp=(G.st.bosses>=1?1:0)+(G.st.bosses>=2?1:0)+(clear?2:0)+(clear?Math.ceil((G.night||1)/2):0)/* ★v0.22.149 A4：全クリアで夜の数の半分（切り上げ）＝N1 +1・N2 +1・N3 +2・N4 +2（前は N3 以上 +1・N6 以上 +2） */;if(tp&&TREE[G.char]){const t=treeData(G.char);t.pts=(t.pts||0)+tp;got.push(`型のポイント +${tp}（${TEXT.names[G.char]||G.char}）`)}}
   S.runDeliv=G.fullAuto?0:(G.deliv||0);/* ★v0.22.146 B5 */const lg=runLog(clear,rank);p.log=(p.log||0)+lg.total;S.runEndLog=lg.total;S.runGot=got;S.runLogParts=lg;SAVE.auto();rrHook("runEnd",{clear,rank,log:lg.total,logParts:lg,got,G});return lg.total}
 /* ミニカーを作ったあと：S 以上なら次のカード。このランで開いたものをまとめて見せてからタイトルへ */
 function afterCar(m){const p=PRF(),got=(S.runGot||[]).slice();
