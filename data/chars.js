@@ -3,7 +3,7 @@
    車の type："mt"＝段つきのギア（今はこれだけ）。MIO の CVT・KURO の心拍は、あとで type を足してシフトの処理を分ける。
    数値はすべて仮。正本は revremit-concept.md・revremit-cards.md */
 const CHARS={
-  YUKI:{
+  YUKI:{wxFav:"snow",/* ★v0.22.126 得意な天候（design 10-16-1） */
     name:"YUKI",carName:"スイフトスポーツ ZC33S",weapon:"スノークロウ",type:"凍結・守り",join:0,
     car:{type:"mt",gears:6,mult:[1.0,1.2,1.4,1.6,1.8,2.0],
       red:7000,limit:8000,band:[5500,6500],core:[5800,6200],
@@ -17,7 +17,7 @@ const CHARS={
   /* ===== ★v0.22 β の仲間3人（design v0.8 9-10。数値は全部仮・名前は仮）=====
      rule：キャラの決まり。firstGas＝戦闘の最初のターンのガソリン +n／chainStep＝チェイン1つの伸び／shiftCap＝1ターンのシフトアップの回数
      join：その夜を初めてクリアしたら加わる（NIGHTS の open.chars）。絵はまだないので YUKI の絵で出す（仮） */
-  HINA:{
+  HINA:{wxFav:"dawn",/* ★v0.22.126 得意な天候（design 10-16-1） */
     name:"HINA",carName:"モンキー125",weapon:"ピストンハンマー",type:"速攻",join:1,
     car:{type:"mt",gears:5,mult:[1,1.35,1.7,2.05,2.4],/* ★v0.22.7 design 10-3・★v0.22.8 10-6（仮）5速 2.4 */
       red:7500,limit:8500,band:[4500,5500],core:[4800,5200],
@@ -27,7 +27,7 @@ const CHARS={
     deck:[["h_youda",4],["h_gouda",2],["h_kagerou",2],["h_saitenka",2],["braking",1],["h_kneegrip",2],["h_hidamari",1],["h_sunrise",1],["h_kickstart",2],["qshift",2],["slip",1]],/* ★v0.22.83 design 10-12-3・LD 案 A（★虎雪 16:10）：アタック 7→10 */
     pool:null,skill:"h_sunrise",rule:{firstGas:2,halfDmg:2,sportMult:0.9/* ★v0.22.110 LD balance 11-65：スポーツ ×1.0→×0.9（HINA だけ） */,areaBossHp:0.75/* ★v0.22.90 LD balance 11-47 A：NIGHT 2 からエリアのボスの体力 ×0.75 */},ruleTxt:"戦闘の最初のターンはガソリン +2・最初の2ターンは受けるダメージ半分",
   },
-  MOMO:{
+  MOMO:{wxFav:"rain",/* ★v0.22.126 得意な天候（design 10-16-1） */
     name:"MOMO",carName:"ロードスター ND",weapon:"ロードスピナー",type:"チェイン",join:2,
     car:{type:"mt",gears:6,mult:[1.0,1.15,1.3,1.45,1.6,1.75],
       red:6800,limit:8000,band:[4000,5000],core:[4300,4700],/* ★v0.22.7 design 10-3 */
@@ -37,7 +37,7 @@ const CHARS={
     deck:[["m_touka",4],["m_rinjin",2],["m_hanawa",2],["m_softtop",1],["m_hanaakari",1],["m_kinen",2],["m_hougou",1],["braking",2],["qshift",2],["slip",2],["blip",1]],/* ★v0.22.8 10-6 ブリッピング1枚をスリップに */
     pool:null,skill:"m_hougou",rule:{chainStep:0.15,rescue:3,rescueN:1,ecoGas:0/* ★v0.22.110 ★虎雪 11-24 17:15・LD 11-65①：エコのガソリン +1 なし（×0.85 はそのまま） */,atShiftAt:5500/* ★v0.22.93 LD balance 11-51：5000→5500（AT だけ） */},/* ★v0.22.25 10-12-4c：AT の自動シフトは帯の上のはし *//* ★v0.22.23 design v0.11.11 10-12-4c：チェインの守りをなくした（花の便りは残す） */ruleTxt:"チェインのボーナスが1つ +15%（ほかは +10%）・花の便り：チェイン3以上で、打てる攻撃が手札にないとき1枚引く（1ターン1回）",atRuleTxt:"AT：自動シフトは、5500回転まで引っぱってから上がる"/* ★v0.22.94 text v0.22.22 27-2 rule_momo_at *//* text v0.22.7 27-2：AT を選んでいるときだけ3つ目に */,
   },
-  NANA:{
+  NANA:{wxFav:"fog",/* ★v0.22.126 得意な天候（design 10-16-1） */
     name:"NANA",carName:"GR スープラ",weapon:"ストレートシックス",type:"シフト連打",join:3,
     car:{type:"mt",gears:8,mult:[1.0,1.12,1.24,1.36,1.48,1.6,1.72,1.84],
       red:6500,limit:7000,band:[4500,5500],core:[4800,5200],

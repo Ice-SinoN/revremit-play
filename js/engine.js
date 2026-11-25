@@ -154,8 +154,15 @@ function genMap(){
     // ★裏道（design 9-6）：NIGHT 1 を初めてクリアしたあと。エリアに入ったとき 35% で、4〜9段目のどこかに1つ
     if(G&&G.hiddenOn&&Math.random()<UNLOCK.hiddenRate){const base=map.length-a.rows,r=rnd(UNLOCK.hiddenRows[0],Math.min(UNLOCK.hiddenRows[1],a.rows-2)),row=map[base+r];
       const j=row.length<4?row.length:rnd(0,row.length-1),n={k:"hidden",a:ai,r};if(j<row.length&&(row[j].k==="shop"||row[j].k==="sim")&&r===a.mid)row.push(n);else row[j]=n}
-    map.push([{k:"boss",a:ai,r:a.rows}]);
+    {const base=map.length-a.rows;for(let r=0;r<a.rows;r++)wxRow(map[base+r],a.key,ai===0&&r<3&&G&&G.wxFirst)}/* ★v0.22.126 天候 */
+    map.push([{k:"boss",a:ai,r:a.rows,wx:"dry"}]);
   });return map}
+/* ★v0.22.126 天候（design 10-16-1）：戦闘・エリート・裏道のマスごとに1つ。同じ段はなるべくちがう天候。初めのランのエリア1 最初の3段はドライ */
+function wxPick(ak){const W=(typeof WX_W!=="undefined"&&WX_W[ak])||{dry:1};let t=0;const ls=(typeof WX_ON!=="undefined"?WX_ON:["dry"]).map(k=>{const w=k==="dry"?Object.keys(W).filter(x=>!WX_ON.includes(x)).reduce((s,x)=>s+W[x],W.dry||0):(W[k]||0);t+=w;return[k,w]});let q=Math.random()*t;for(const[k,w]of ls){q-=w;if(q<0)return k}return"dry"}
+function wxRow(row,ak,dry){const used={};row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}let w=wxPick(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick(ak);if(!used[alt])w=alt}used[w]=(used[w]||0)+1;n.wx=w})}
+function wxNow(){return(B&&!B.over&&B.wx)||"dry"}
+function wxDef(){return(typeof WEATHER!=="undefined"&&WEATHER[wxNow()])||{}}
+function wxMinus(){const w=wxNow();return w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w}
 function newRunState(mode,charId,bring,dk,opt){
   charId=charId||"YUKI";const ch=CHARS[charId];opt=opt||{};G=null;
   if(!dk||deckErrors(dk,charId).length)dk=defaultDeck(charId);
@@ -168,7 +175,7 @@ function newRunState(mode,charId,bring,dk,opt){
      night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
      st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0,mcParts:[],soldParts:[]};/* ★v0.22.37 持ちこみのパーツ・売ったパーツ（10-14・10-19） */
   G.mods=JSON.parse(JSON.stringify(opt.mods||(typeof PRF==="function"&&SAVE&&SAVE.cur&&PRF().mods)||{}));/* ★v0.22.47 改造 */
-  G.map=genMap();
+  G.wxFirst=!!opt.wxFirst;G.map=genMap();
   bring.forEach(m=>{const b=mcBonus(m);G.maxhp+=b.hp;G.hp+=b.hp;G.atkBonus+=b.atk/100;
     m.cards.forEach(c=>{const x=inst(c.id,c.up);x.mc=1;deck.push(x)});
     if(m.part&&!G.parts.includes(m.part)&&G.parts.length<RULES.partsMax){addPart(m.part);G.mcParts.push(m.part)}});
@@ -241,7 +248,8 @@ function startBattleState(key){
   const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
   const abm=RULE().areaBossHp&&(G.night||0)>=2&&AREAS.some(a=>a.boss===key)?RULE().areaBossHp:1;/* ★v0.22.90 LD 11-47 A：HINA・NANA は NIGHT 2 からエリアのボス（残光・白夜・零号）×0.75 */
   const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm*abm);
-  B={key,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
+  const wx=(node&&node.wx)||"dry";
+  B={key,wx,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?2500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
      curAdd:0,curDouble:false,wideAdd:0,cards:0,atks:0,atkDown:0,atShiftDraw:0,gas:0,charge:0,chain5:false,chain:0,chainBefore:0,turnDmg:0,
@@ -264,7 +272,11 @@ function drawN(n){let k=0;for(let i=0;i<n;i++){if(B.hand.length>=RULES.handMax)b
 function canDraw(){return B.hand.length<RULES.handMax&&(B.draw.length+B.disc.length)>0}
 function limit(){return car().limit+(has("limiter")?500:0)}
 function bandExt(){return 150*G.tune.shift+(has("closs")?200:0)}
-function bandRange(){const C=car(),x=bandExt();return{lo:C.band[0]-x,hi:C.band[1]+x,clo:C.core[0]-x/2,chi:C.core[1]+x/2}}
+function bandRange(){const C=car(),x=bandExt();let r={lo:C.band[0]-x,hi:C.band[1]+x,clo:C.core[0]-x/2,chi:C.core[1]+x/2};
+  if(wxMinus()){const D=wxDef();/* ★v0.22.126 雪＝帯（芯も）×0.7・雨＝芯が半分（得意なキャラは効かない） */
+    if(D.bandMul){const k=D.bandMul,bc=(r.lo+r.hi)/2,bh=(r.hi-r.lo)/2*k,cc=(r.clo+r.chi)/2,ch=(r.chi-r.clo)/2*k;r={lo:Math.round(bc-bh),hi:Math.round(bc+bh),clo:Math.round(cc-ch),chi:Math.round(cc+ch)}}
+    if(D.coreMul){const cc=(r.clo+r.chi)/2,ch=(r.chi-r.clo)/2*D.coreMul;r.clo=Math.round(cc-ch);r.chi=Math.round(cc+ch)}}
+  return r}
 /* ★v0.22.96 design 14-3② パーフェクト連続：今の連続の数（B.perfChain）での上乗せ。+0.1 ずつ・最大 +0.2（パーフェクトの +0.3 と合わせて +0.5） */
 function perfBreak(){const n=B.perfChain||0;B.perfChain=0;if(n>=2&&G.mode==="MT")ev({k:"pbreak",n})}/* ★v0.22.100 連続が切れた（2以上のときだけ・番の終わりの0は数えない）→ anim で perfect_break */
 function perfChainAdd(n){n=n==null?B.perfChain||0:n;const R=RULES.perfChain||{step:0.1,max:0.5};return G&&G.mode==="MT"&&n>1?Math.round(Math.min(R.max-0.3,R.step*(n-1))*100)/100:0}
@@ -296,7 +308,7 @@ function bandRangeOf(c){const d=CD(c);if(!d.band)return null;if(d.band==="R")ret
 function inBand(c){const r=bandRangeOf(c);if(!r)return false;if(CD(c).bandAny)return true;return B.rpm>=r[0]&&(CD(c).band==="R"?B.rpm<=r[1]:B.rpm<r[1])}
 function inRed(){return B.rpm>=redLo()&&B.rpm<=limit()}
 /* ★チェイン（design 0-2） */
-function chainStep(){return(RULE().chainStep||RULES.chainStep)+(has("slick")?0.05:0)}
+function chainStep(){return(RULE().chainStep||RULES.chainStep)+(has("slick")?0.05:0)+(wxDef().chainAdd||0)/* ★v0.22.126 雨 */}
 function chainMul(n){return 1+chainStep()*Math.min(n==null?B.chain:n,RULES.chainMax)}
 function isTopGear(){return B.gear>=car().gears-1}
 function shiftLeft(){return B.shiftsT<shiftCapNow()}
@@ -369,7 +381,7 @@ function mkCtx(m){return{m,
     if(B.e.five){const k=Math.floor((B.cards-1)/5);if(k>0)d*=Math.pow(0.7,k)}d=Math.max(0,Math.round(d));hitEnemy(d)},
   block(v){const x=Math.round(v*m)+(has("grip")?3:0);B.block+=x;addLog(`防御 +${x}`);ev({k:"pblk",v:x})},
   blockRaw(v){B.block+=v;addLog(`防御 +${v}`);ev({k:"pblk",v})},
-  freeze(v){const x=Math.round(v*m)*(has("emblem")?2:1);B.frozeTotal+=x;B.frzAll=(B.frzAll||0)+x;{/* ★v0.22.1 凍結の上限（design 0-8・5-1b）：敵が動いてから足した遅れは 敵の1回ぶん×frzDelayCap まで */const e=B.e,add=x*1.5*(e.halfFrz?0.5:1),cap=B.frzNoCapNow?0:RULES.frzDelayCap,room=cap?Math.max(0,cap*100/(e.spd+(e.spdUp||0))-(e.frzD||0)):add,a=Math.min(add,room);e.next+=a;if(!B.frzNoCapNow)e.frzD=(e.frzD||0)+a;B.frzNoCapNow=false}addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x});
+  freeze(v){const x=Math.round(v*m*(wxDef().frzMul||1))*(has("emblem")?2:1);/* ★v0.22.126 雪＝凍結 ×1.5 */B.frozeTotal+=x;B.frzAll=(B.frzAll||0)+x;{/* ★v0.22.1 凍結の上限（design 0-8・5-1b）：敵が動いてから足した遅れは 敵の1回ぶん×frzDelayCap まで */const e=B.e,add=x*1.5*(e.halfFrz?0.5:1),cap=B.frzNoCapNow?0:RULES.frzDelayCap,room=cap?Math.max(0,cap*100/(e.spd+(e.spdUp||0))-(e.frzD||0)):add,a=Math.min(add,room);e.next+=a;if(!B.frzNoCapNow)e.frzD=(e.frzD||0)+a;B.frzNoCapNow=false}addLog(`凍結 ${x}：敵の番が遅れる`);ev({k:"frz",v:x});
     if(x>0&&has("studless")&&B.studUid!==B.playUid){B.studUid=B.playUid;B.block+=4;addLog("スタッドレスタイヤ：防御 +4");ev({k:"pblk",v:4})}
     if(has("spike")&&!B.spikeUsed&&B.frzAll>=20){B.spikeUsed=true;addLog("スパイクタイヤ：30ダメージ");hitEnemy(30)}},
   burn(v){const x=Math.round(v*m);B.e.burn+=x;addLog(`炎上 +${x}`);ev({k:"burn",v:x})},

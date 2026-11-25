@@ -32,3 +32,7 @@ const MC_BONUS={hp:[2,3,4,6,8,10,12,15],atk:[0,0,2,3,4,6,8,10]};
 const MINICAR_MAX=60,BRING_MAX=2,MC_CARDS=2,MC_DRAW=10;
 /* マップ：[種類,重み,出はじめる段(0始まり)]（design 付録） */
 const NODE_W=[["battle",50,1],["elite",12,3],["shop",10,2],["sim",10,2],["lucky",8,2],["garage",10,4]];
+/* ★v0.22.126 路面コンディション（天候・design 10-16-1）。今は雨・雪だけ出す（霧・夜明けは背景が届いてから＝WX_ON に足す）。数は仮・LD と確かめる */
+const WEATHER={dry:{n:"ドライ"},rain:{n:"雨",chainAdd:0.05,coreMul:0.5},snow:{n:"雪",frzMul:1.5,bandMul:0.7},fog:{n:"霧",shiftBlk:2,hideIntent:1},dawn:{n:"夜明け",gas1:1,redDown:500,eAtk:1.1}};
+const WX_W={street:{dry:50,rain:25,snow:0,fog:15,dawn:10},touge:{dry:30,rain:10,snow:30,fog:20,dawn:10},circuit:{dry:45,rain:25,snow:5,fog:5,dawn:20}};
+const WX_ON=["dry","rain","snow"];
