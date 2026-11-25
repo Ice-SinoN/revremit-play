@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.155（β2）";
+const VERSION="試作 v0.22.156（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -795,10 +795,10 @@ function blowIntro(done){if(!G||G.night<3||noBlow()||seenGet().night3_first){don
 /* ===== ★v0.22 キャラ選び（design 9-10・text 12-2）。加わる話を見たら選べる。スロットごと ===== */
 function charsOpen(){const u=PRF().unlock;return CHAR_ORDER.filter(c=>c==="YUKI"||(u.chars||[]).includes(c))}
 function curChar(){const c=PRF().char;return charsOpen().includes(c)?c:"YUKI"}
-function showChars(){setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");S.chSel=S.chSel||curChar();renderChars()}
+/* ★v0.22.156 showChars（前のキャラ画面）は外した */
 /* ★v0.22.25 キャラの決まりの文（AT を選んでいるとき＝最後に選んだ走り方が AT なら atRuleTxt を3つ目に） */
 function ruleTxtOf(ch){const C=CHARS[ch]||{},at=(PRF().lastMode||"MT")==="AT"&&C.atRuleTxt;return C.ruleTxt?(at?C.ruleTxt+"・"+C.atRuleTxt:C.ruleTxt):""}
-/* renderChars は js/flow.js（v0.22.28 キャラ選びの画面を作り直した） */
+/* キャラ選択は js/charsel.js（v0.22.108） */
 /* ランの終わり：解放・夜・ログをスロットに書く（1ランに1回）。戻り値＝このランのログ */
 /* ★v0.22.63 ②へのつなぎ目：RR_HOOKS.runEnd に関数を足すと、ランの終わり（ログを足したあと・1ランに1回）に呼ばれる。{clear,rank,log,logParts,got,G}。G.fullAuto はフルオート周回のラン。夜なし（テスト）のランでは呼ばない */
 const RR_HOOKS=window.RR_HOOKS=window.RR_HOOKS||{};

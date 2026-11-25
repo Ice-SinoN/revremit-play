@@ -9,10 +9,10 @@ with sync_playwright() as p:
     o.nana_area1=TEXT.scenes.area1_nana.lines[0][1];
     o.hidden3=['YUKI','HINA','MOMO','NANA'].map(c=>(TEXT.hiddenLast[c]||[])[1]);o.night3=Object.keys(TEXT.night3Last);
     PRF().char='HINA';showTitle();o.title=txt().match(/キャラ：\\S+|・ひな・3エリア/g);
-    showChars();o.chars=(document.querySelector('#ui .main.u9')||{}).innerText;document.querySelector('#ui .main.u9').click();o.charToast=T.pop();
+    S.farmChoiceMode=null;farmChoiceSelf();/* ★v0.22.156 今のキャラ選択 */o.chars=(document.querySelector('.csgo')||{}).innerText;document.querySelector('.csgo').click();o.charToast=T.pop();
     showData();o.data=txt().match(/あそぶと自動でセーブ。|いまのデータ/g);dataUse(1);o.dataToast=T.pop();
     showLab();o.lab=!!document.querySelector('.nmtag')&&!document.querySelector('#ui .commk');PRF().log=0;labBuy('drift');o.labNo=T.pop();PRF().log=500;labBuy('drift');o.labOk=T.pop();
     o.ally=TEXT.ui.ally_join.replace('{name}',TEXT.names.MOMO);o.lose=TEXT.ui.hidden_lose;
-    newRunState('MT','YUKI',[]);G.map[G.row][0]={k:'hidden',a:0,r:G.row};G.path[G.row]=0;startBattleState('wraith');o.lost=B.e.n;o.chBtn=(showChars(),[...document.querySelectorAll('#ui button')].map(x=>x.innerText).find(x=>/で走る/.test(x)));return o}""")
+    newRunState('MT','YUKI',[]);G.map[G.row][0]={k:'hidden',a:0,r:G.row};G.path[G.row]=0;startBattleState('wraith');o.lost=B.e.n;o.chBtn=(S.farmChoiceMode=null,farmChoiceSelf(),[...document.querySelectorAll('#ui button')].map(x=>x.innerText).find(x=>/で走る/.test(x)));return o}""")
   b.close()
 R["errors"]=errs;print(json.dumps(R,ensure_ascii=False,indent=1))

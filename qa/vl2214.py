@@ -12,7 +12,7 @@ with sync_playwright() as p:
     pg=b.new_page(viewport={"width":vw,"height":vh});pg.on("pageerror",lambda e:errs.append(str(e)))
     pg.goto(html);pg.wait_for_function("window.SCREEN==='data'||window.SCREEN==='title'",timeout=120000)
     # BUG-33
-    pg.evaluate("()=>{qaSetProgress({chars:['HINA','MOMO','NANA']});showChars()}");pg.wait_for_timeout(300)
+    pg.evaluate("()=>{qaSetProgress({chars:['HINA','MOMO','NANA']});S.farmChoiceMode=null;farmChoiceSelf()}");pg.wait_for_timeout(300)
     R[f"{vw}_chars"]=pg.evaluate("""(()=>{const st=document.querySelector('#stage').getBoundingClientRect();return [...document.querySelectorAll('#ui *')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>st.right+1||r.bottom>st.bottom+1||r.left<st.left-1)}).length})()""")
     pg.screenshot(path=f"/tmp/vl_chars_{vw}.png")
     # BUG-34・35

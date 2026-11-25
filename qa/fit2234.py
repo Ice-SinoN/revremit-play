@@ -3,7 +3,7 @@ import sys,json,pathlib
 from playwright.sync_api import sync_playwright
 html=pathlib.Path(sys.argv[1]).resolve().as_uri();R={"ng":[]};errs=[]
 DEV=[("iPhone17ProMax",956,440,3,{"l":62,"r":62,"t":0,"b":21}),("iPhoneSE",667,375,2,{"l":0,"r":0,"t":0,"b":0}),("Android",915,412,2.625,{"l":0,"r":0,"t":0,"b":0}),("iPad",1180,820,2,{"l":0,"r":0,"t":24,"b":20}),("PC",1920,1080,1,{"l":0,"r":0,"t":0,"b":0}),("PCwin",1366,768,1,{"l":0,"r":0,"t":0,"b":0})]
-SCREENS=[("title","()=>{showTitle()}"),("chars","()=>{startFlow('MT');renderChars()}"),("battle","()=>{newRunState('MT','YUKI',[],null,{night:1});startBattleState('kei');enterBattle()}"),("map","()=>{newRunState('MT','HINA',[],null,{night:1});showMap&&showMap()}"),("data","()=>{G=null;showData()}")]
+SCREENS=[("title","()=>{showTitle()}"),("chars","()=>{startFlow('MT');S.farmChoiceMode=null;farmChoiceSelf()}"),("battle","()=>{newRunState('MT','YUKI',[],null,{night:1});startBattleState('kei');enterBattle()}"),("map","()=>{newRunState('MT','HINA',[],null,{night:1});showMap&&showMap()}"),("data","()=>{G=null;showData()}")]
 with sync_playwright() as p:
   b=p.chromium.launch()
   for name,w,h,dpr,sa in DEV:
