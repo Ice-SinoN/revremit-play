@@ -622,3 +622,16 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 /* ★v0.22.133 */
 .bmode.two.off{opacity:1;color:#8a8fa8}.bmode.two.off b{color:#5d6a8a}
 .drvnote{background:#0b0d18;border:1px solid #5cc8ff;color:#fff;font:10px 'PM12B';line-height:14px;padding:0 4px;white-space:nowrap;text-shadow:0 1px 0 #000;z-index:31;pointer-events:none}
+
+/* ★v0.22.136 走りかたの札の絵（44×18・AT は 44×36 の2段＝下の段に字） */
+.bmode i{font-style:normal}
+.bmode.pic{background-color:transparent;background-repeat:no-repeat;background-size:100% 100%;image-rendering:pixelated;border:0}
+.bmode.pic i{visibility:hidden}
+.bmode.pic.mt b{position:absolute;right:3px;top:0}
+.bmode.pic.two{line-height:18px}.bmode.pic.two b{position:absolute;left:0;right:0;top:18px;text-align:center}
+
+.bmode .dimg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.bmode.pic b{z-index:1}
+.duo.win{padding:1px 4px;line-height:11px}.duo.win .dl.al{margin-top:1px;padding-top:1px}.duo.win .dl.al img{width:20px;height:20px;flex-basis:20px}
+.bmadd{font:10px "PM12B";line-height:11px;color:#b6ff3a;text-align:center;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;pointer-events:none}
+.bmode *{pointer-events:none}

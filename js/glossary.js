@@ -48,7 +48,7 @@ const GLOSS={
   re(){if(this._re)return this._re;const ws=Object.keys(this.map()).sort((a,b)=>b.length-a.length).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));return this._re=new RegExp(ws.join("|"),"g")},
   /* 下線をつける所（①の画面の class）。[data-gloss] をつければどこでも */
   SCOPE:".dtx,.bd,.dkdet,.pt .small,.psl .small,.pdiff,.chdet,[data-gloss]",
-  SKIP:".gl,.dn,.cn,.bn,button.main,button.warn,.glpop",
+  SKIP:".gl,.dn,.cn,.bn,button.main,button.warn,.glpop,.duo",/* v0.5.13 仲間の掛け合いの吹き出し（.duo）はセリフなので下線を引かない */
   /* el の中の文字に下線（同じ用語は1つの窓で1回） */
   mark(el){if(!el||el.__gl)return;el.__gl=1;const re=this.re(),done=new Set(),skip=this.SKIP;
     const tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&n.parentElement.closest(skip)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
@@ -57,7 +57,7 @@ const GLOSS={
       while((m=re.exec(s))){if(done.has(m[0]))continue;done.add(m[0]);frag=frag||document.createDocumentFragment();
         frag.appendChild(document.createTextNode(s.slice(last,m.index)));const u=document.createElement("u");u.className="gl";u.dataset.t=m[0];u.textContent=m[0];frag.appendChild(u);last=m.index+m[0].length}
       if(frag){frag.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(frag,n)}})},
-  scan(root){if(!root||!this.on())return;root.querySelectorAll(this.SCOPE).forEach(e=>this.mark(e))},
+  scan(root){if(!root||!this.on())return;root.querySelectorAll(this.SCOPE).forEach(e=>{if(!e.closest(".duo"))this.mark(e)})},
   on(){return!window.TUTORIAL_ON},
   /* 小窓 */
   show(w,cx,cy){const d=this.map()[w];if(!d)return;this.close();const st=$("#stage");if(!st)return;

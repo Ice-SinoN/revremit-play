@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.135（β2）";
+const VERSION="試作 v0.22.136（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -942,10 +942,11 @@ function bandRes(){const out=[],R=RULE();
   return out}
 function bandHtml(locked){if(!bandMine())return"";const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
   let h=`<div class="band${two?" two":""}" ${at(4,y0,res.length?174:44,250-y0)}></div>`;/* ★v0.22.133 AD：資源のない子は札の幅だけ */
-  if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt" ${at(4,233,44,18)} onclick="modeHelp()">MT${a>0?`<b>+${a}</b>`:""}</button>`}
-  else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}" ${at(4,214,44,36)} onclick="atTag()">AT<br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}
-    else h+=`<button class="bmode at" ${at(4,233,44,18)} onclick="modeHelp()">AT</button>`}
-  else if(md==="CVT")h+=`<button class="bmode cvt" ${at(4,233,44,18)} onclick="modeHelp()">CVT</button>`;
+  const DIf=n=>`assets/c2/ui/c2/revremit_ui_drive_${n}.png`,img=n=>artHave(DIf(n)),DI=n=>"",DM=n=>img(n)?`<img class="px dimg" src="${artURL(DIf(n))}" alt="">`:"";/* ★v0.22.136 走りかたの札の絵（AD v1.13・字は絵がないとき） */
+  if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt${img("mt")?" pic":""}" ${at(4,233,44,18)} ${DI("mt")} onclick="modeHelp()">${DM("mt")}<i>MT</i>${a>0&&!img("mt")?`<b>+${a}</b>`:""}</button>`+(a>0&&img("mt")?`<div class="bmadd" ${at(4,222,44,11)}>+${a}</div>`:"")}/* ★v0.22.136 絵の札は字が真ん中なので、上乗せは札のすぐ上に */
+  else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}${img("at_2row")?" pic":""}" ${at(4,214,44,36)} ${DI("at_2row")} onclick="atTag()">${DM("at_2row")}<i>AT</i><br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}
+    else h+=`<button class="bmode at${img("at")?" pic":""}" ${at(4,233,44,18)} ${DI("at")} onclick="modeHelp()">${DM("at")}<i>AT</i></button>`}
+  else if(md==="CVT")h+=`<button class="bmode cvt${img("cvt")?" pic":""}" ${at(4,233,44,18)} ${DI("cvt")} onclick="modeHelp()">${DM("cvt")}<i>CVT</i></button>`;
   res.slice(0,4).forEach((r,i)=>{h+=`<span class="bres${r.used?" used":""}" ${at(52+i*31,235,30,14)} title="${esc(r.t)}">${artHave(r.ic)?`<img class="px" src="${artURL(r.ic)}" alt="">`:"<i></i>"}<b>${r.n}</b></span>`});
   return h}
 /* AT の札：番のはじめならドライブモードを切りかえ（今のまま1番に1回）。切りかえられないときは説明の小窓 */
@@ -975,5 +976,5 @@ function duoShow(sc){try{if((typeof OPTS!=="undefined"&&OPTS.banter===false)||wi
   const [a,b]=(bn?TB:T)[key],nm=c=>(TEXT.names&&TEXT.names[c])||c,face=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${ak}.png`,bt=window.SCREEN==="battle",y=bt?186:window.SCREEN==="win"?20:282;/* ★v0.22.134 QA：報酬の画面は上（お金の行にかけない） */
   document.querySelectorAll("#ui .duo").forEach(e=>e.remove());const d=document.createElement("div");d.className="duo";Object.assign(d.style,{left:"184px",top:y+"px",width:"272px",position:"absolute"});
   d.innerHTML=`<div class="dl me"><b>${esc(nm(G.char))}</b>${esc(a).replace(/\n/g,"<br>")}</div><div class="dl al">${artHave(face)?`<img class="px" src="${artURL(face)}" alt="">`:""}<div><span class="commk">通信</span><b>${esc(nm(al))}</b><br>${esc(b).replace(/\n/g,"<br>")}</div></div>`;
-  d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";
+  d.onclick=ev=>{ev.stopPropagation();d.remove()};const u=ui();if(!u)return;u.appendChild(d);if(bt&&d.offsetTop+d.offsetHeight>246)d.style.top=Math.max(40,246-d.offsetHeight)+"px";if(window.SCREEN==="win"){d.classList.add("win");d.style.top=Math.max(286,359-d.offsetHeight)+"px"}/* ★v0.22.136 QA：報酬の画面は下のはし（見出しにも、お金の行にもなるべくかけない） */
   try{SND.se("comm_blip")}catch(e){}const ms=(typeof OPTS!=="undefined"&&OPTS.bspd===2)?2000:3500;setTimeout(()=>d.remove(),ms)}catch(e){}}
