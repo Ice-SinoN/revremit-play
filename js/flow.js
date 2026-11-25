@@ -80,7 +80,9 @@ function renderNights(){const mx=nightMaxAvail(),cur=curNight(),U=TEXT.ui,last=t
    <div class="sign side" ${at(472,70,160,120)}><div class="h">NIGHT ${cur}</div><div class="small">${starHTML(clearedNight(ch,mode,cur),mode+" クリア")}</div><div class="small dim">${starHTML(clearedNight(ch,o,cur),o+" クリア")}</div>
     <div class="small dim">${nightRules(cur).noBlow||cur<3?"ブローなし":"ブローあり"}</div><div class="small dim">${esc((NIGHTS[cur-1]||{}).add||"")}</div></div>
    <div class="col" ${at(472,250,160)}><button class="main u9" onclick="flowAfterNight()">この夜で走る<br><span class="small">つぎ：${loadMinicars().length?"ミニカー":"走りかた"}</span></button></div>`;
-  if($("#nl"))$("#nl").scrollTop=sc}
+  if($("#nl"))$("#nl").scrollTop=sc;ellFit("#nl .nface");requestAnimationFrame(()=>ellFit("#nl .nface"))}
+/* ★v0.22.141 BUG-58：1行に入らない字は詰めて「…」（ブラウザの省略記号は小さい倍率で消えることがあるため字で足す）。元の文は title に */
+function ellFit(sel){document.querySelectorAll(sel).forEach(e=>{const t0=e.dataset.full||e.textContent;e.dataset.full=t0;e.title=t0;e.textContent=t0;if(e.scrollWidth<=e.clientWidth+1)return;let n=t0.length;while(n>1&&e.scrollWidth>e.clientWidth+1){n--;e.textContent=t0.slice(0,n).replace(/[・、：\s（「]+$/,"")+"…"}})}
 function flowAfterNight(){SND.se("ui_ok");if(loadMinicars().length){S.mcSel=[];showMinicarGarage(flowMode())}else flowToMode([])}
 /* ---- 3b. 走りかた（MT／AT）★v0.22.61。文は text（mode_mt_1 など）があればそれ ---- */
 FULL_SCREENS.push("modes");SCREEN_BG.modes="garage";
