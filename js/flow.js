@@ -192,7 +192,7 @@ function showHub(){S.hubOpen=true;setScreen("hub");setScene("dim");setBg("garage
    B(222,62,196,66,"デッキを組む",`${esc(TEXT.names[ch]||ch)}・${deckCount(loadDeck(ch))}枚`,"showDeck()")+
    B(428,62,196,66,"みおのラボ",`ログ ${p.log||0}・カードを開く／改造`,"showLab()")+
    `<div class="hubsec" ${at(20,138,600,30)}><b>型（スキルツリー）</b><span class="small dim">　キャラごとに型のメモ3つ。ランの前の「型をえらぶ」と同じもの</span></div>`+
-   op.map((c,i)=>B(16+i*152,170,146,52,`${esc(TEXT.names[c]||c)}の型`,`「${esc(treeName(c))}」・ポイント ${(treeData(c).pts||0)-treeSpent(treeData(c).presets[treeData(c).cur||0].lv)}`,`S.treeHub=true;S.treeCh='${c}';showTree()`,"hubt")).join("")+
+   op.map((c,i)=>B(16+i*152,170,146,52,`${esc(TEXT.names[c]||c)}の型`,`「${esc(treeName(c))}」<br>ポイント ${(treeData(c).pts||0)-treeSpent(treeData(c).presets[treeData(c).cur||0].lv)}`/* ★v0.22.154 QA：文字「大」ではみ出すので2行 */,`S.treeHub=true;S.treeCh='${c}';showTree()`,"hubt")).join("")+
    B(222,240,196,56,esc(BETA_TXT.noticeHead),"","showBetaEnd(()=>showHub(),true)")+(typeof showCodex==="function"?B(16,240,196,56,"図鑑",typeof cdxPct==="function"&&typeof cdxAll==="function"?`${cdxPct(cdxAll())}%`:"","showCodex('card','title')"):"");
   ui().innerHTML=h}
 /* ミニカーの保管庫：一覧（新しい順）・右に中身（mcDetail）・処分（確認あり） */

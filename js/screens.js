@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.153（β2）";
+const VERSION="試作 v0.22.154（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -624,7 +624,7 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   /* ★v0.16：背景 result。ショーケース（6列×4段）の上2段に候補のカード10枚、3段目にパーツ、下の床に説明と「ミニカーを作る」 */
   let h=`<div class="hdr" ${at(100,4,380,18)}>${clear?"全エリア クリア！":"エンジン停止……現実に戻った"}</div><div class="sign rk" ${at(486,4,54,40)}><div class="rank">${res.rank}</div></div>${res.lossCap?`<div class="small sh lossc" ${at(550,10,86,36)}>${(TEXT.ui&&TEXT.ui.rank_loss_cap||"負けたので<br>{r} まで").replace("{r}",res.lossCap)}</div>`:""}
   <div class="small sh" ${at(100,24,380)}>${Object.entries(res.pts).map(([k,v])=>`${k}${v}`).join("・")}　合計${res.total}</div>
-  <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}　<span class="gold">ログ +${lg}</span></div>`;
+  <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}</div><div class="small sh gold" ${at(546,48,92,12)}>ログ +${lg}</div>`;/* ★v0.22.154 QA：「ログ +n」は2行目の後ろから、ランクの札の下へ（長い行でランクの札にかかっていた） */
   h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,50)} onclick="togglePick(${i})"`})}).join("");
   if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn${[...PARTS[p].n].length>6?" lng":""}">${esc(PARTS[p].n)}</span></button>`}).join("");
     const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`;
@@ -956,7 +956,7 @@ function atTag(){if(S.bmLong){S.bmLong=0;return}if(!B||B.over)return;if(busy())u
 /* ★v0.22.133 AD：札の長押し（0.45秒）ならいつでも説明 */
 document.addEventListener("pointerdown",ev=>{const b=ev.target&&ev.target.closest&&ev.target.closest(".bmode");if(!b)return;S.bmLong=0;clearTimeout(S.bmT);S.bmT=setTimeout(()=>{S.bmLong=1;modeHelp()},500)/* ★v0.22.134 design 23-3：0.5秒（③とそろえた） */},true);
 ["pointerup","pointercancel","pointerleave"].forEach(t=>document.addEventListener(t,()=>clearTimeout(S.bmT),true));
-function modeHelp(auto){if(!auto&&S.bmLong===1&&document.querySelector(".glpop.mhelp")){S.bmLong=0;return}const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
+function modeHelp(auto){if(auto&&$("#modal")&&$("#modal").innerHTML)return;/* ★v0.22.154 QA：設定などの窓が開いていたら自動の小窓は出さない（窓の上に出ていた） */if(!auto&&S.bmLong===1&&document.querySelector(".glpop.mhelp")){S.bmLong=0;return}const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
   const lines=modeBanner(),p=document.createElement("div");p.className="glpop mhelp";p.innerHTML=`<b>${esc(md)}</b><div>${lines.map(esc).join("<br>")}</div>`;
   st.appendChild(p);const H=p.offsetHeight;p.style.left="4px";p.style.top=Math.max(4,(md==="AT"&&driveOn()?214:233)-H-4)+"px";
   if(window.GLOSS)GLOSS.pop=p;if(!auto)try{SND.se("ui_ok")}catch(e){}
