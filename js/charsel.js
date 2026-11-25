@@ -44,7 +44,7 @@ function csSilFace(cv,g,set){const t=set.tags.idle||set.tags.stand||[0,0],fr=set
 function S_silCv(){return S.csSilCv||(S.csSilCv=document.createElement("canvas"))}
 /* ---- ① えらぶ ---- */
 function showCharSel(){try{termPrep()}catch(e){}S.flow=S.flow||{mode:null};S.flowReady=false;setScreen("chars");setScene("dim");setBg("garage");closeModal();SND.bgm("select");
-  if(!S.csSel||!CS_ALL.includes(S.csSel))S.csSel=curChar();{const p=PRF();p.csSeen=p.csSeen||{};p.csSeen[S.csSel]=1}ensureSpr(CS_ALL.filter(c=>ART_SRC[c])).then(()=>{if(window.SCREEN==="chars")renderCharSel()}).catch(()=>{});renderCharSel()}
+  if(!S.csSel||!CS_ALL.includes(S.csSel))S.csSel=curChar();{const p=PRF();p.csSeen=p.csSeen||{};p.csSeen[S.csSel]=1}ensureSpr(CS_ALL.filter(c=>ART_SRC[c]&&csOpen(c))).then(()=>Promise.all(CS_ALL.filter(c=>ART_SRC[c]&&!csOpen(c)).map(silFrame))).then(()=>{if(window.SCREEN==="chars")renderCharSel()}).catch(()=>{});/* ★v0.22.125 まだの子は1コマだけ */renderCharSel()}
 function renderCharSel(){const c=S.csSel,open=csOpen(c),I=CS_INFO[c]||{},C=CHARS[c],p=PRF();
   let h=`<div class="cshead" ${at(0,0,640,24)}></div><button class="csback" ${at(4,1,72,22)} onclick="csBack()">◀ ${esc(CST("cs_back","もどる"))}</button>
    <div class="hdr" ${at(78,4,300,18)}>${esc(CST("cs_head","キャラをえらぶ"))}</div><div class="small dim" ${at(470,6,164,14)} style="text-align:right">ミニカー ${loadMinicars().length}/60</div>

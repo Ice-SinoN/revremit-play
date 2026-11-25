@@ -26,8 +26,8 @@ function starHTML(on,lab){return`<span class="cst${on?" on":""}">${on?"★":"☆
 function charStars(ch,mode){return["MT","AT"].map(m=>`<span class="${m===mode?"":"dim"}">${starHTML(clearedAny(ch,m),m)}</span>`).join(" ")}
 /* ---- 待機の絵（戦闘の idle）を小さな canvas に。未解放はシルエット ---- */
 function chavStart(){if(S.chavOn)return;S.chavOn=true;const loop=()=>{if(!["chars","runok","nights","garage","tree"].includes(window.SCREEN)){S.chavOn=false;return}
-  document.querySelectorAll("canvas.chav").forEach(cv=>{const set=SPR[cv.dataset.ch];const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
-    if(!set||set.proc){g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
+  document.querySelectorAll("canvas.chav").forEach(cv=>{const set=(cv.dataset.sil||cv.dataset.face)&&!(SPR[cv.dataset.ch]&&!SPR[cv.dataset.ch].proc)?(window.SILFR||{})[cv.dataset.ch]:SPR[cv.dataset.ch];/* ★v0.22.125 シルエットは1コマだけの軽い絵 */const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);
+    if(!set||set.proc){{const k=cv.dataset.ch;S.chavLoad=S.chavLoad||{};if(!cv.dataset.sil&&!cv.dataset.face&&ART_SRC[k]&&!S.chavLoad[k]){S.chavLoad[k]=1;ensureSpr([k]).then(()=>{S.chavLoad[k]=0})}}/* ★v0.22.125 手放した絵はここで読みなおす */g.fillStyle="#3a3550";g.font="24px PM12";g.textAlign="center";g.fillText("？",cv.width/2,cv.height*0.65);return}
     if(cv.dataset.face){csSilFace(cv,g,set);return}
     const t=set.tags.idle||set.tags.stand||[0,0],n=t[1]-t[0]+1,ms=(set.dur&&set.dur[t[0]])||120,fr=set.frames[t[0]+Math.floor(performance.now()/ms)%n];if(!fr)return;
     const sc=cv.dataset.int?+cv.dataset.int:Math.min(cv.width/fr.width,cv.height/fr.height)*(+cv.dataset.z||1),/* ★v0.22.113 AD v0.85：data-int＝整数倍（ふちがギザギザにならない） */w=fr.width*sc,h=fr.height*sc,fx=(set.foot?set.foot[0]:fr.width/2)*sc,fy=(set.foot?set.foot[1]:fr.height)*sc;
@@ -247,8 +247,8 @@ function betaRender(){const n=S.betaPg,hub=S.betaHub,T=BETA_TXT,last=hub||n>=T.p
   if(hub||n===1)betaSil()}
 function betaTap(){if(S.betaHub||S.betaPg>=BETA_TXT.pages.length-1)return;S.betaPg++;SND.se("text_next");betaRender()}
 function betaEndGo(){const d=S.betaDone;S.betaDone=null;SND.se("ui_ok");if(d)d();else showTitle()}
-async function betaSil(){try{await ensureSpr(BETA_NEXT)}catch(e){}if(window.SCREEN!=="betaend")return;
-  BETA_NEXT.forEach((c,i)=>{const cv=$("#bes"+i);if(!cv)return;const g=cv.getContext("2d"),set=SPR[c];g.clearRect(0,0,cv.width,cv.height);
+async function betaSil(){try{await Promise.all(BETA_NEXT.map(silFrame))}catch(e){}/* ★v0.22.125 1コマだけ */if(window.SCREEN!=="betaend")return;
+  BETA_NEXT.forEach((c,i)=>{const cv=$("#bes"+i);if(!cv)return;const g=cv.getContext("2d"),set=(SPR[c]&&!SPR[c].proc)?SPR[c]:SILFR[c];g.clearRect(0,0,cv.width,cv.height);
     if(!set||set.proc||!set.frames){g.fillStyle="#0b0d16";g.font="40px PM12";g.textAlign="center";g.fillText("？",44,70);return}
     const t=set.tags.idle||set.tags.stand||[0,0],fr=set.frames[t[0]],tmp=document.createElement("canvas");tmp.width=fr.width;tmp.height=fr.height;const q=tmp.getContext("2d");
     q.drawImage(fr,0,0);q.globalCompositeOperation="source-in";q.fillStyle=i?"#05060c":"#2a3350";q.fillRect(0,0,tmp.width,tmp.height);

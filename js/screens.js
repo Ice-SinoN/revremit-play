@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.124（β2）";
+const VERSION="試作 v0.22.125（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -101,7 +101,7 @@ function clearRecRepair(p){p=p||PRF();if(!p||!p.unlock)return 0;let n=0;const L=
 function nightOpenRepair(p){p=p||PRF();const u=p&&p.unlock;if(!u||typeof NIGHTS==="undefined")return[];u.chars=u.chars||["YUKI"];u.story=u.story||[];const add=[];const fixed=clearRecRepair(p);
   for(let n=1;n<=Math.min(u.nightMax||0,NIGHTS.length);n++){const o=NIGHTS[n-1].open||{};(o.chars||[]).forEach(c=>{if(!u.chars.includes(c)){u.chars.push(c);add.push(c)}});(o.story||[]).forEach(s=>{if(!u.story.includes(s))u.story.push(s)})}
   if(add.length||fixed)try{SAVE.auto()}catch(e){}return add}
-function showTitle(){
+function showTitle(){try{if(typeof ensureSpr==="function")ensureSpr(["YUKI",curChar()])}catch(e){}/* ★v0.22.125 今のキャラの戦闘シートを先に */
   {const add=nightOpenRepair();if(add.length&&typeof playJoins==="function"){playJoins(add.slice(),showTitle);return}}
   setScreen("title");setScene("dim");closeModal();SND.bgm("title");
   const ch=curChar(),mc=loadMinicars(),dk=loadDeck(ch);
@@ -284,7 +284,7 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
   showMap()}
 
 /* ---- 戦闘 ---- */
-function enterBattle(){if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
+function enterBattle(){if(typeof sprTrim==='function'&&G)sprTrim(['YUKI',G.char]);/* ★v0.22.125 今のキャラ以外の仲間の戦闘シートを手放す（スマホのメモリ） */if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
   A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";

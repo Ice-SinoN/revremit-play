@@ -223,7 +223,17 @@ async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||ne
 /* ★v0.22.40 あとで使う絵（SORA〜MIO 編のキャラ・話のボス）は起動では読まない（lazy）。使う所で await ensureSpr([キー…]) */
 function a_lazy(k){return ART_SRC[k]&&ART_SRC[k].lazy&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":"仮"}
 /* ★v0.22.78 虎雪 13:19「キャラが仮絵」：起動で読めなかった（メモリ・通信）ときは、戦闘に入るときにもう一度読む */
-function charArtRetry(){const ks=["YUKI"].concat(typeof G!=="undefined"&&G&&G.char&&G.char!=="YUKI"?[G.char]:[]).filter(k=>ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc));if(ks.length)ensureSpr(ks).then(()=>{window.ART_STATE&&ks.forEach(k=>ART_STATE[k]=SPR[k]&&!SPR[k].proc?"絵":"仮")})}
+function charArtRetry(n){n=n||0;const ks=["YUKI"].concat(typeof G!=="undefined"&&G&&G.char&&G.char!=="YUKI"?[G.char]:[]).filter(k=>ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc));if(!ks.length)return;
+  ensureSpr(ks).then(()=>{const ng=ks.filter(k=>!(SPR[k]&&!SPR[k].proc));window.ART_STATE&&ks.forEach(k=>ART_STATE[k]=ng.includes(k)?"仮":"絵");if(ng.length&&n<2){if(PRE.img)ng.forEach(k=>delete PRE.img[ART_SRC[k].sheet]);setTimeout(()=>charArtRetry(n+1),800*(n+1))}})}/* ★v0.22.125 読めなければ2回まで読みなおす */
+/* ★v0.22.125 虎雪 11-25 09:57「また戦闘のキャラが仮」：キャラ選択（v0.22.108〜）が、まだ加わっていない6人の戦闘シートを丸ごと読んでいた（1人 約7MB×6＝約43MB を常に持つ）→ スマホのメモリで読みこみが落ちる。
+   ①シルエットだけの子は、待機の1コマ目だけを切り出して持つ（SILFR・1人 0.2MB）②戦闘に入るとき、今のキャラ以外の仲間の戦闘シートは手放す（sprTrim）③今のキャラの絵がなければ読み終わるまで待ち、2回まで読みなおす（enterBattle） */
+window.SILFR=window.SILFR||{};
+async function silFrame(k){if(SILFR[k]||(SPR[k]&&!SPR[k].proc))return;const a=ART_SRC[k];if(!a||!a.sheet||!a.json)return;const have=window.ART_HAVE||new Set();if(!have.has(a.sheet)||!have.has(a.json))return;
+  try{const[js,im]=await Promise.all([loadJSON(a.json),loadImg(a.sheet)]);if(!js||!im)return;const fl=Array.isArray(js.frames)?js.frames:Object.values(js.frames),tg=((js.meta&&js.meta.frameTags)||[]).find(t=>t.name==="idle"||t.name==="stand"),f=fl[tg?tg.from:0];if(!f)return;
+    const r=f.frame,cv=mkCanvas(r.w,r.h);cv.getContext("2d").drawImage(im,r.x,r.y,r.w,r.h,0,0,r.w,r.h);SILFR[k]={frames:[cv],dur:[1000],tags:{stand:[0,0],idle:[0,0]},foot:a.foot};if(PRE.img)delete PRE.img[a.sheet]}catch(e){}}
+const CHAR_KEYS=["YUKI","HINA","MOMO","NANA","SORA","KAEDE","RIN","LUNA","MIO","KURO"];
+function sprTrim(keep){keep=new Set(keep||[]);CHAR_KEYS.forEach(k=>{if(!keep.has(k)&&SPR[k]&&!SPR[k].proc&&ART_SRC[k]){delete SPR[k];if(window.ART_STATE)ART_STATE[k]="あとで"}});
+  Object.keys(SPR).forEach(k=>{if(/^og_/.test(k)&&!keep.has(k))delete SPR[k]})}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
 const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|\/ougi\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
 /* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
@@ -247,8 +257,8 @@ async function loadArt(){
   makeProcSprites();
   const have=await artList();window.ART_HAVE=have;
   await preloadAll(have,(d,n)=>{if(window.loadingProg)loadingProg(d,n)});
-  for(const[k,a]of Object.entries(ART_SRC)){if(a.lazy)continue;await loadSpr(k,have)}
-  window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":a_lazy(k)]));
+  for(const[k,a]of Object.entries(ART_SRC)){if(a.lazy||(CHAR_KEYS.includes(k)&&k!=="YUKI"))continue;await loadSpr(k,have)}/* ★v0.22.125 仲間の戦闘シートは使うとき（タイトルで今のキャラ・キャラ選択・戦闘）に読む */
+  window.ART_STATE=Object.fromEntries(Object.keys(ART_SRC).map(k=>[k,SPR[k]&&!SPR[k].proc?"絵":CHAR_KEYS.includes(k)&&window.ART_HAVE&&ART_HAVE.has(ART_SRC[k].sheet)?"あとで":a_lazy(k)]));
   await buildStages(have);await buildStagesC2(have);await buildMeter(have);await buildTutParts(have);applyUi640(have);
   await loadPackSheets(have);/* ★v0.22.112 */await loadFusedArt(have);/* ★v0.22.49 */await loadCardSheet(have);
   // 絵ファイル（背景・アイコン・カード）を名前で引けるように
