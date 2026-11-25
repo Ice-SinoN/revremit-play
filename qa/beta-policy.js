@@ -17,7 +17,11 @@ const BETA={
   /* ★v0.22.133 LD：道の選び方 ROUTE=hot（★v0.22.137）／fight（戦闘・エリート・裏道を先に＝熱い道）／garage（ボスの前の段にガレージがあれば必ず選ぶ＝冷ます道）／なし＝今のまま */
   route:null,
   /* ★v0.22.151 E14（design 24-4）：ボットも合成する（遊ぶ人に近い測りに）。FUSE=0 で前の形（合成しない）。合成できる組が複数なら、エピックになる組 → 先の組（★v0.22.155 から強化ずみ同士の組だけ） */
-  fuse:true,cnt:{fuse:0,rot:0},
+  fuse:true,cnt:{fuse:0,rot:0,pair:0,sim:0,both:0},
+  /* ★v0.22.159 design 24-9 のつづき：合成が 0 回に近いので、強化は「合成の組の2枚」から先に（相手がもう強化ずみの組 → エピックになる組 → 先の組）。PAIRUP=0 で前の形 */
+  pairFirst:true,
+  pairUp(){const t=upgradeTargets();if(!t.length||typeof FUSE==="undefined")return -1;const D=G.deck,has=id=>D.some(c=>c.id===id&&!c.gen),upHas=id=>D.some(c=>c.id===id&&c.up);let best=-1,bv=-1;
+    FUSE.forEach(f=>{if(!CARDS[f.id]||!has(f.a)||!has(f.b))return;[[f.a,f.b],[f.b,f.a]].forEach(([x,y])=>{const i=t.find(k=>D[k].id===x&&!D[k].up);if(i==null)return;const v=(upHas(y)?4:0)+(rarityOf(f.id)==="E"?2:0)+1;if(v>bv){bv=v;best=i}})});return best},
   fusePick(){const noUp=!upgradeTargets().length,fo=fuseOptions().filter(o=>o.up||noUp);/* ★v0.22.157 design 24-9（C＋B）：材料が2枚とも強化ずみか、強化する候補がもうないときだけ合成（強化を捨てる合成はしない）。★v0.22.155 は C だけ */if(!fo.length)return null;const rk=o=>(rarityOf(o.id)==="E"?2:0)+(o.up?1:0);return fo.slice().sort((x,y)=>rk(y)-rk(x))[0]},
   node(){const r=G.map[G.row];if(BETA.route==="fight"){const P=["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}
     if(BETA.route==="hot"){const lo=G.hp<G.maxhp*0.5,P=lo?["garage","shop","lucky","sim","battle","hidden","elite","boss"]:["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}/* ★v0.22.137 ROUTE=hot：戦闘を先に・体力が半分より下ならガレージ */
@@ -44,7 +48,7 @@ const BETA={
             if(w.rank==="elite"||w.rank==="boss"){const op=partOptions(3);if(op.length)addPart(op[0],0)}}}}
         else if(n.k==="shop"){for(const k of BOT.TUNE_PREF){const pr=tunePrice(k,n,false);if(pr!=null&&G.money>=pr+10)buyTune(k,pr,false)}
           if(n.feat){const pool=partPool();n.featPart=pool.length?pick(pool):null;if(n.featPart)buyFeat(n,shopPrice(featCost(),n,false),false,G.parts.length>=RULES.partsMax?0:-1)}}
-        else if(n.k==="sim"){const fo=BETA.fuse&&kind!=="random"?BETA.fusePick():null;if(fo){fuseCards(fo);BETA.cnt.fuse++}else{const i=BOT.upgrade(kind);if(i>=0)G.deck[i].up=true}}/* ★v0.22.151 E14：合成できるならシムで合成（強化1回ぶん） */
+        else if(n.k==="sim"){BETA.cnt.sim++;if(typeof FUSE!=="undefined"&&FUSE.some(f=>CARDS[f.id]&&G.deck.some(c=>c.id===f.a)&&G.deck.some(c=>c.id===f.b)))BETA.cnt.both++;const fo=BETA.fuse&&kind!=="random"?BETA.fusePick():null;if(fo){fuseCards(fo);BETA.cnt.fuse++}else{let i=BETA.fuse&&BETA.pairFirst&&kind!=="random"?BETA.pairUp():-1;if(i>=0)BETA.cnt.pair++;if(i<0)i=BOT.upgrade(kind);if(i>=0)G.deck[i].up=true}}/* ★v0.22.151 E14：合成できるならシムで合成（強化1回ぶん） */
         else if(n.k==="lucky"){const op=partOptions(3);if(op.length)addPart(op[0],0)}
         else if(n.k==="garage"){G.hp=Math.min(G.maxhp,G.hp+restAmount())}
         advanceRow()}

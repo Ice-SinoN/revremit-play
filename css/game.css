@@ -661,7 +661,7 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 #ui .yogiri.art{background-size:cover;background-position:left center;border:0;box-shadow:none}
 #ui .yogiri .ygl{position:absolute;left:10px;top:6px;right:6px;color:#d0d8e8;white-space:nowrap;overflow:hidden;text-shadow:0 1px 0 #000}
 #ui .yogiri .ygn{position:absolute;left:0;right:0;top:92px;text-align:center;font:16px/20px 'PM12B','PM12';color:rgba(208,216,232,.55);letter-spacing:4px}
-#ui .drvnote.wxn{color:#e6ebf5;border-color:#b8c2d6}
+#ui .drvnote.wxn{color:#e6ebf5;border-color:#b8c2d6;font-size:10px!important;line-height:14px!important}/* ★v0.22.159 QA：文字「大」でも MOMO の AT の帯にかからない（字は大きくしない・2px 上へ） */
 /* ★v0.22.157 AD：奥義の名前を左上に置くカットイン（腕が左下にかかる絵） */
 #ogcut.ttop .nm{top:98px}#ogcut.ttop .ln{top:122px}
 #ui .yogiri .ygn rt{font:9px/10px "PM10";letter-spacing:2px;color:rgba(208,216,232,.7)}

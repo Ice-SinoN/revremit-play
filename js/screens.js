@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.158（β2）";
+const VERSION="試作 v0.22.159（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -401,7 +401,7 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
     return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),wk:weakHit(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" onpointerdown="cardLP(${i})" onpointerup="cardLPx()" onpointerleave="cardLPx()" onpointercancel="cardLPx()" ${locked?"disabled":""}`})}).join("");
-  if(S.wxNote&&Date.now()<S.wxNote.until)h+=`<div class="drvnote wxn" style="left:4px;top:198px;width:174px;position:absolute">${esc(S.wxNote.t)}</div>`;/* ★v0.22.157 描きなおしても1秒は残す */
+  if(S.wxNote&&Date.now()<S.wxNote.until)h+=`<div class="drvnote wxn" style="left:4px;top:194px;width:174px;position:absolute">${esc(S.wxNote.t)}</div>`;/* ★v0.22.157 描きなおしても1秒は残す */
   h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
@@ -453,7 +453,7 @@ function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
 /* ★v0.22.158 text 34-2b：「夜霧《よぎり》」の《》はルビ／夜霧をタップで説明 */
 function rubyTxt(t){return esc(t).replace(/([^\s《》]+)《([^》]+)》/g,"<ruby>$1<rt>$2</rt></ruby>")}
 function yogiriHelp(){const U=TEXT.ui||{};SND.se("ui_ok");toast2(U.fog_map_help||"霧の夜は、マップの先が見えない。",80,3500)}
-function wxBlkNote(v){const T=TEXT.ui||{},t=(T.fog_buff||T.wx_fog_blk||"霧 防御 +{v}").replace("{v}",v);S.wxNote={t,until:Date.now()+1000};document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote wxn";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>{document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove())},1000)}}
+function wxBlkNote(v){const T=TEXT.ui||{},t=(T.fog_buff||T.wx_fog_blk||"霧 防御 +{v}").replace("{v}",v);S.wxNote={t,until:Date.now()+1000};document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote wxn";d.textContent=t;Object.assign(d.style,{left:"4px",top:"194px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>{document.querySelectorAll("#ui .drvnote.wxn").forEach(e=>e.remove())},1000)}}
 function driveNote(k){const T=TEXT.ui||{},D=RULES.drive[k]||{},m0=atMultNow?atMultNow():D.mult,m=Number.isInteger(m0)?m0.toFixed(1):String(m0),g=driveGas(k);
   const t=T["drive_note_"+k]||(k==="eco"?`エコ：${g?`ガソリン +${g}・`:""}×${m}`:`スポーツ：×${m}・高回転まで`);
   document.querySelectorAll("#ui .drvnote").forEach(e=>e.remove());const d=document.createElement("div");d.className="drvnote";d.textContent=t;Object.assign(d.style,{left:"4px",top:"198px",width:"174px",position:"absolute"});const u=ui();if(u){u.appendChild(d);setTimeout(()=>d.remove(),1000)}}

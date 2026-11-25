@@ -303,3 +303,5 @@ TEXT.wk={hint:{boss1:"盾が大きいです……下から、行けないかな�
 /* ★v0.22.158 text v0.22.52 34-2b（シナリオ班）：霧の文。強化・回転の予告の文はシナリオ班待ち（それまでは①の仮「強化？」「回転？」） */
 Object.assign(TEXT.ui,{fog_map_name:"夜霧《よぎり》",fog_map_help:"霧の夜は、マップが3段先までしか見えない。その先は夜霧の中。",fog_map_cloud:"霧の夜：3段先まで見える",
   fog_intent_atk:"攻撃？",fog_intent_grd:"守り？",fog_intent_debuff:"ジャマ？",fog_intent_other:"？？？",fog_buff:"霧 防御 +{v}"});
+/* ★v0.22.159 text v0.22.53 34-2b：強化・回転の予告（キー名は fog_intent_buff・fog_intent_rot） */
+Object.assign(TEXT.ui,{fog_intent_buff:"強化？",fog_intent_rot:"回転？"});
