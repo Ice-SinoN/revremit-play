@@ -235,7 +235,7 @@ const CHAR_KEYS=["YUKI","HINA","MOMO","NANA","SORA","KAEDE","RIN","LUNA","MIO","
 function sprTrim(keep){keep=new Set(keep||[]);CHAR_KEYS.forEach(k=>{if(!keep.has(k)&&SPR[k]&&!SPR[k].proc&&ART_SRC[k]){delete SPR[k];if(window.ART_STATE)ART_STATE[k]="あとで"}});
   Object.keys(SPR).forEach(k=>{if(/^og_/.test(k)&&!keep.has(k))delete SPR[k]})}
 async function ensureSpr(keys){for(const k of keys)if(ART_SRC[k]&&!(SPR[k]&&!SPR[k].proc))await loadSpr(k)}
-const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain)_base\.png$|fx_weather_|\/cutin\/|\/ougi\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
+const LAZY_ART=()=>Object.values(ART_SRC).filter(a=>a.lazy).flatMap(a=>[a.sheet,a.json]).concat(window.ART_HAVE?[...ART_HAVE].filter(f=>/_(snow|rain|fog|dawn)_base\.png$|fx_weather_|\/cutin\/|\/ougi\/|_og_[a-z]+_sheet\./.test(f)):[]);/* ★v0.22.64・65 天候の背景・演出、奥義のカットイン・モーションは、その仕組みを入れるまで起動で読まない */
 /* ★v0.22.49 合成カードの絵（グラフィック班のシート 6列×4段・1枚 50×38・AD OK art-direction v0.32）。json の名前に合成カードの id があればそれ、なければ FUSE の順（左上から横へ） */
 const FUSED_SHEET="assets/c2/cards/c2/revremit_card_art_c2_fused_sheet";
 async function loadFusedArt(have){window.FUSED_ART={};const P=FUSED_SHEET+".png",J=FUSED_SHEET+".json";if(!have.has(P)||typeof FUSE==="undefined")return;

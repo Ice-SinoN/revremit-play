@@ -337,7 +337,7 @@ function drawStage(g,dt){
 
 /* ===== ★C2 の背景を描く（順：base → 窓 → 車 → ネオン → 映りこみ → 雪。強さは BG_FX＝キャラより目立たない）===== */
 function drawStageC2(g,dt,st){try{drawStageC2_(g,dt,st)}catch(e){if(!A.bgErr){A.bgErr=1;console.error(e)}g.globalAlpha=1}}// BUG-21：背景の層で何が起きても、キャラ・メーターは描く
-function drawStageC2_(g,dt,st){const t=A.now,S=BG_FX.strength;g.drawImage(A.wxBase||st.base,0,0);/* ★v0.22.126 天候の背景 */
+function drawStageC2_(g,dt,st){const t=A.now,S=BG_FX.strength;g.drawImage(A.wxBase||st.base,0,0);/* ★v0.22.126 天候の背景 */if(A.wxBase&&A.wxOn==="fog"){drawWxLayers(g,dt);return}/* ★v0.22.129 霧の背景はぼかした別の構図なので、ドライの部品（ネオン・映りこみ・車）は重ねない */
   if(st.pixels){g.fillStyle=st.pixels.col;st.pixels.pts.forEach(p=>{p.next-=dt;if(p.next<=0){if(p.off>0){p.off=0;p.next=st.pixels.per[0]+Math.random()*(st.pixels.per[1]-st.pixels.per[0])}else{p.off=1;p.next=500+Math.random()*1500}}if(p.off)g.fillRect(p.x,p.y,1,1)})}
   if(st.cars){const c=st.cars,[[x0,y0],[x1,y1]]=c.path;c.next-=dt;if(c.next<=0&&c.list.length<3){c.next=c.spawn[0]+Math.random()*(c.spawn[1]-c.spawn[0]);c.list.push({k:0,dir:Math.random()<0.5?1:-1,v:c.sp[0]+Math.random()*(c.sp[1]-c.sp[0])})}
     const len=Math.hypot(x1-x0,y1-y0);g.globalAlpha=c.alpha*S;c.list=c.list.filter(o=>{o.k+=o.v*S*dt/1000/len;if(o.k>1)return false;const q=o.dir>0?o.k:1-o.k,im=o.dir>0?c.r:c.l;if(im)g.drawImage(im,Math.round(x0+(x1-x0)*q-im.width/2),Math.round(y0+(y1-y0)*q-im.height/2));return true});g.globalAlpha=1}
@@ -346,10 +346,13 @@ function drawStageC2_(g,dt,st){const t=A.now,S=BG_FX.strength;g.drawImage(A.wxBa
     else k=(ph>0.9&&Math.floor(ph*60)%2)?0:1;// flicker：周期の終わりに2〜3回ちらつく
     const a=lo+(hi-lo)*k;g.globalAlpha=1-(1-a)*S;g.drawImage(n.im,n.x,n.y);g.globalAlpha=1});
   st.sheets.forEach(s0=>{const i=Math.floor(t/s0.ms)%s0.fr.length;g.globalAlpha=0.5+0.5*S;g.drawImage(s0.fr[i],s0.x,s0.y);g.globalAlpha=1});
-  if(A.wxFx){const f=A.wxFx;let q=t%f.total,i=0;while(i<f.fr.length-1&&q>=f.dur[i]){q-=f.dur[i];i++}g.drawImage(f.fr[i],0,0)}/* ★v0.22.126 降る雨・雪（背景の上・キャラの下） */
-  if(A.wxProc)wxProcDraw(g,dt);/* ★v0.22.128 霧・黒い霧・花吹雪・夜明け（絵が来るまでコードで描く幕） */
+  drawWxLayers(g,dt);
   if(st.snow){const sn=st.snow,[ax,ay,aw,ah]=sn.area;sn.p.forEach(p=>{p.y+=p.v*S*dt/1000;p.ph+=dt/700;if(p.y>ay+ah){p.y=ay;p.x=Math.random()*aw}
     g.globalAlpha=sn.alpha[p.k]*S/0.6>1?sn.alpha[p.k]:sn.alpha[p.k]*S/0.6;if(sn.ims[p.k])g.drawImage(sn.ims[p.k],Math.round(ax+p.x+Math.sin(p.ph)*p.sw),Math.round(p.y))});g.globalAlpha=1}
+}
+function drawWxLayers(g,dt){const t=A.now;
+  if(A.wxFx){const f=A.wxFx;let q=t%f.total,i=0;while(i<f.fr.length-1&&q>=f.dur[i]){q-=f.dur[i];i++}g.drawImage(f.fr[i],0,0)}/* ★v0.22.126 降る雨・雪（背景の上・キャラの下） */
+  if(A.wxProc)wxProcDraw(g,dt);/* ★v0.22.128 霧・黒い霧・花吹雪・夜明け（絵が来るまでコードで描く幕） */
 }
 /* ===== ★メーター（ui\c2）：下地＋LED の弧（打ちごろの帯は水色・レッドは赤・触ったカードの帯は光る）＋ギア・回転・燃料のコマ ===== */
 const MCOL={gold:[255,211,77],goldD:[110,84,20],lime:[197,255,69],limeD:[40,56,14],cyan:[70,230,255],cyanD:[20,80,100],red:[255,52,64],redD:[170,24,40],hi:[244,246,240]};// ★meter_c2_frame.json の colors
