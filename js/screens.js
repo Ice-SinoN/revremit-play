@@ -6,13 +6,13 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.130（β2）";
+const VERSION="試作 v0.22.131（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
 const SCREEN_BG={title:"title",deck:"garage",garage:"garage",release:"result",win:"reward",parts:"reward",shop:"shop",sim:"sim",rest:"garage",result:"result"};
 function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_base.png`]||IMG[`assets/c2/fx/c2/revremit_fx_bg_${k}.png`]||null:null}
-function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();try{SND.gear()}catch(e){}if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;A.wxProc=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
+function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();document.querySelectorAll(".glpop.mhelp").forEach(e=>e.remove());try{SND.gear()}catch(e){}if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;A.wxProc=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
 const FULL_SCREENS=["remitfx","battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
@@ -253,9 +253,10 @@ function showMap(){
       const st=i<G.row?"done":i===G.row?"now":"later",hidQ=n.k==="hidden"&&i>G.row+1,lab=hidQ?"？":NODE_JP[n.k]+(n.feat?"★":"");
       const icSt=i<G.row?"done":i===G.row?"on":"off",icK=hidQ?"unknown":n.k==="shop"&&n.feat?"shopF":n.k,ic0=MAP_ICON(icK,icSt),ic=artHave(ic0)?ic0:MAP_ICON(n.k==="hidden"?"elite":icK==="unknown"?"elite":icK,icSt);/* ★v0.22.2 裏道・「？」のアイコン（なければエリートの絵） */
       const chain=n.k==="boss"&&!G.allyBossDone&&typeof allyBossOf==="function"&&allyBossOf(n),lab2=chain?"連戦":lab;/* ★v0.22.64 design 10-4b：その子のボス → 零号（2つ重ねのアイコンはグラフィック班の絵が来るまで同じアイコンをずらして重ねる） */
-      const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const inner=wxt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
+      const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
       h+=i===G.row?`<button class="node k-${n.k} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
+  h+=heatBar(476,22);/* ★v0.22.131 */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
   <div class="small dim" ${at(150,326,420)}>${G.bring.length?"ミニカー："+G.bring.map(m=>esc(m.rank)).join("・")+`（攻撃 +${Math.round((G.atkBonus||0)*100)}%）`:""}</div>
@@ -288,7 +289,7 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
 function enterBattle(){if(typeof sprTrim==='function'&&G)sprTrim(['YUKI',G.char]);/* ★v0.22.125 今のキャラ以外の仲間の戦闘シートを手放す（スマホのメモリ） */if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
-  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();
+  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();
   const E=Object.assign({},ENEMIES[B.key]);if(B.e&&B.e.phased&&E.phase&&E.phase.art&&SPR[E.phase.art]&&!SPR[E.phase.art].proc){E.art=E.phase.art;E.pal=null}/* ★v0.22.9 */if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
   const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
   Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
@@ -389,7 +390,7 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${(()=>{const R=RULE(),rs=R.rescue?(()=>{const used=(B.rescueT||0)>=(R.rescueN||1),ic=`assets/c2/ui/c2/revremit_ui_rescue_${used?"used":"ready"}.png`;/* ★v0.22.36 花の便りの印（text 27-2 rescue_icon） */
       return `<span class="rsc${used?" used":""}" title="${used?"花の便り（このターンはもう届いた）":"花の便り（まだ届く）"}">${artHave(ic)?`<img class="px" src="${artURL(ic)}" alt="">`:""}花の便り</span>`})():"";
-    return st.length||rs?`<div class="stt small" ${at(...L.stt)}>${rs}${rs&&st.length?"<br>":""}${st.map(esc).join("<br>")}</div>`:""})()}
+    return st.length?`<div class="stt small" ${at(...L.stt)}>${st.map(esc).join("<br>")}</div>`:""})()}/* ★v0.22.131 花の便りの印は帯へ（bandHtml） */
   ${B.onUp.length?`<div class="onup small" ${at(...L.onup)}>${onUpIcons()}</div>`:""}
   ${toastNow()}`;
   // 手札
@@ -416,8 +417,8 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   ${METER.blank?"":`<div class="tachn ${red?"ngc":""}" ${at(...L.tachn)}>${B.rpm}<span class="dim">rpm</span></div><div class="gasn" ${at(...L.gasn)}>${B.gas}/${maxGas()}</div>`}
   <div class="tachm" ${at(...L.tachm)}>×${gearMult()}</div>
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
-  if(!window.TUTORIAL_ON&&driveOn())h+=driveCtl(locked);/* ★v0.22.98 design 14-3③ ドライブモード */
-  if(!window.TUTORIAL_ON)h+=`<div class="modeban ${G.mode==="AT"?"at":"mt"} small" ${at(4,226,172,28)}>${modeBanner().map(esc).join("<br>")}</div>`;/* ★v0.22.95 design 14-3①（文は仮・シナリオ班へ） */
+  if(!window.TUTORIAL_ON)h+=bandHtml(locked);/* ★v0.22.131 design 23-1：メーター枠の上の帯（走りかたの札・資源の行）。ドライブモードは AT の札に */
+  if(!window.TUTORIAL_ON&&!G.practice)h+=heatBar(4,110);/* ★v0.22.131 */
   if(B.wx&&B.wx!=="dry"){const w=B.wx;h+=`<button class="wxb wx-${w}" ${at(4,74,96,14)} onclick="wxHelp()">${esc(wxNameB(w))}${wxFav(w)?"★得意":""}</button>`}/* ★v0.22.126 天候の札 */
   {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
@@ -531,10 +532,10 @@ function showShop(n){{const T=G.ticket;if(T&&T.k==="discount"&&!T.shop){T.shop=n
   Object.keys(TUNE).forEach((k,i)=>{const pr=tunePrice(k,n,ut);
     h+=`<div class="shoprow two" ${at(104,48+i*32,432,30)}><div class="tx"><b>${TUNE[k][0]}</b> <span class="lv">${"■".repeat(G.tune[k])}${"□".repeat(5-G.tune[k])}</span><br><span class="small dim">${esc(TUNE[k][1])}</span></div>
     ${pr!=null?`${priceTag(pr,TUNE_PRICE[G.tune[k]],G.money>=pr)}<button class="u9" ${G.money>=pr?"":"disabled"} onclick="uiBuyTune('${k}')">上げる</button>`:`<span class="dim">最大</span>`}</div>`});
-  if(n.feat&&n.featPart){const pr=shopPrice(RULES.featPrice,n,ut);
+  if(n.feat&&n.featPart){const pr=shopPrice(featCost(),n,ut);
     h+=(n.featBought?"":`<div class="onctr" ${at(124,222,48,48)}>${partIcon(n.featPart,48)}</div>`)+
     `${n.featBought?"":`<i class="badge feature" ${at(100,290,30,12)}></i>`}<div class="shoprow feat" ${at(100,296,330,54)}><div class="tx"><span class="gold">★目玉商品</span> ${n.featBought?"売り切れ":`<b>${esc(partName(n.featPart))}</b><br><span class="small">${esc(PARTS[n.featPart].d)}</span>`}</div>
-    ${n.featBought?"":`${priceTag(pr,RULES.featPrice,G.money>=pr)}<button class="u9" ${G.money>=pr?"":"disabled"} onclick="uiBuyFeat()">買う</button>`}</div>`}
+    ${n.featBought?"":`${priceTag(pr,featCost(),G.money>=pr)}<button class="u9" ${G.money>=pr?"":"disabled"} onclick="uiBuyFeat()">買う</button>`}</div>`}
   h+=`<button class="u9 sellbtn" ${at(440,252,180,30)} ${G.parts.length?"":"disabled"} onclick="showSellParts()">パーツを売る（${G.parts.length}）</button>`;/* ★v0.22.37 design 10-19 */
   if(G.tickets)h+=`<label class="small sign tick" ${at(440,296,180,22)}><input type="checkbox" ${ut?"checked":""} onchange="S.useTicket=this.checked;showShop(S.shop)"> 割引券を使う（−50%）</label>`;
   // ★v0.18.1：「店を出る」は右上（どの端末でも下の端が隠れても見える所）
@@ -552,7 +553,7 @@ function sellAsk(i){const q=G.parts[i];if(!q)return;const v=sellPrice(q),mc=isMc
 /* 値段の札（ui640 price・セールや割引は price_sale で元の値段に線）。足りないときは赤 */
 function priceTag(pr,base,ok){const sale=base!=null&&base>pr;return `<span class="price${sale?" sale":""}${ok?"":" lack"}">${sale?`<s>${base}</s>`:""}${pr}</span>`}
 function uiBuyTune(k){const ut=!!S.useTicket&&G.tickets>0;const pr=tunePrice(k,S.shop,ut);if(pr!=null&&buyTune(k,pr,ut)){S.useTicket=false;SND.se("shop_buy");SND.se("tune_up",{lv:G.tune[k]})}else SND.se("card_cant");showShop(S.shop)}
-function uiBuyFeat(){const n=S.shop,ut=!!S.useTicket&&G.tickets>0,pr=shopPrice(RULES.featPrice,n,ut);if(G.money<pr)return;
+function uiBuyFeat(){const n=S.shop,ut=!!S.useTicket&&G.tickets>0,pr=shopPrice(featCost(),n,ut);if(G.money<pr)return;
   choosePartSlot(n.featPart,idx=>{if(buyFeat(n,pr,ut,idx)){S.useTicket=false;SND.se("shop_buy");SND.se(idx>=0?"part_swap":"part_get")}showShop(n)})}
 
 /* ---- シムトレーニング ---- */
@@ -915,3 +916,36 @@ function wxEnter(){wxApply();const w=(B&&B.wx)||"dry";if(w==="dry"||B.sim)return
 function wxPhase(){wxApply();const b=wxBoss2();if(!b||(G&&G.fullAuto)||(window.FARM&&FARM.on))return;const fav=wxFav(B.wx);
   const go=()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`${b.n}：${b.l}`+(fav?"（得意＝悪い所なし）":""),120,3500)};setTimeout(go,S.toastQ&&S.toastQ.length?5200:300)}
 function wxHelp(){const w=B&&B.wx;if(!w)return;toast2(wxNameB(w)+"："+(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w)),76,3000)}
+/* ★v0.22.131 ヒート（design 10-17-1）：炎5つ（今の段だけ燃える・1〜2 橙・3〜4 赤・5 青）。タップで1行 */
+function heatState(n){return n<=0?"off":n<=2?"orange":n<=4?"red":"blue"}
+function heatBar(x,y){if(!G)return"";const n=G.heat||0,st=heatState(n);let h="";for(let i=0;i<RULES.heat.max;i++){const s=i<n?st:"off",src="assets/c2/ui/c2/revremit_ui_heat_"+s+"_sheet.png";
+    h+=artHave(src)?`<span class="hf${i<n?" on":""}" style="background-image:url('${artURL(src)}')"></span>`:`<span class="hf txt ${s}">${i<n?"▲":"△"}</span>`}
+  return `<button class="heatb" ${at(x,y,96,18)} onclick="heatHelp()" aria-label="ヒート ${n}">${h}</button>`}
+function heatLine(){const n=G.heat||0,H=RULES.heat;return(TEXT.heat&&TEXT.heat.line||"ヒート {n}").replace("{n}",n).replace("{a}",Math.round(n*H.gold*100)).replace("{b}",Math.round(n*H.hpAtk*100))}
+function heatHelp(){toast2(heatLine()+"　"+((TEXT.heat&&TEXT.heat.help)||"")+((TEXT.heat&&TEXT.heat.badwx)?"\n"+TEXT.heat.badwx:""),window.SCREEN==="battle"?110:60,3500)}
+/* ★v0.22.131 design 23-1：メーター枠のすぐ上の帯（x4〜178・1段 y233〜250／2段 y214〜250）。
+   左はし＝走りかたの札（MT 44×18＝「MT」とパーフェクト連続の上乗せ／AT 44×36＝「AT」と「エコ／スポーツ」・タップでドライブモード／CVT 44×18）。その子の資源は x52 から（1つ＝アイコン12×12＋数・1段4つまで）。
+   MT／AT の説明の2行は帯に入れない：札をタップで小窓、その走りかたで初めて走るランの最初の戦闘だけ自動で3秒 */
+function bandMode(){if(G.char==="KURO")return null;if(G.char==="MIO"||G.mode==="CVT")return"CVT";return G.mode}
+function bandRes(){const out=[],R=RULE();
+  if(R.rescue){const n=R.rescueN||1,left=Math.max(0,n-(B.rescueT||0)),ic=`assets/c2/ui/c2/revremit_ui_rescue_${left?"ready":"used"}.png`;out.push({ic,n:left,used:!left,t:left?"花の便り（まだ届く）":"花の便り（このターンはもう届いた）"})}
+  return out}
+function bandHtml(locked){const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
+  let h=`<div class="band${two?" two":""}" ${at(4,y0,174,250-y0)}></div>`;
+  if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt" ${at(4,233,44,18)} onclick="modeHelp()">MT${a>0?`<b>+${a}</b>`:""}</button>`}
+  else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}" ${at(4,214,44,36)} onclick="atTag()">AT<br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}
+    else h+=`<button class="bmode at" ${at(4,233,44,18)} onclick="modeHelp()">AT</button>`}
+  else if(md==="CVT")h+=`<button class="bmode cvt" ${at(4,233,44,18)} onclick="modeHelp()">CVT</button>`;
+  res.slice(0,4).forEach((r,i)=>{h+=`<span class="bres${r.used?" used":""}" ${at(52+i*31,235,30,14)} title="${esc(r.t)}">${artHave(r.ic)?`<img class="px" src="${artURL(r.ic)}" alt="">`:"<i></i>"}<b>${r.n}</b></span>`});
+  return h}
+/* AT の札：番のはじめならドライブモードを切りかえ（今のまま1番に1回）。切りかえられないときは説明の小窓 */
+function atTag(){if(!B||B.over)return;if(busy())uiSkip();const cur=B.drive||"eco",nx=cur==="eco"?"sport":"eco";
+  if(canDrive()&&!B.driveT&&B.cards===0){drivePick(nx);return}modeHelp()}
+function modeHelp(auto){const md=bandMode();if(!md)return;const st=$("#stage");if(!st)return;if(window.GLOSS)GLOSS.close();
+  const lines=modeBanner(),p=document.createElement("div");p.className="glpop mhelp";p.innerHTML=`<b>${esc(md)}</b><div>${lines.map(esc).join("<br>")}</div>`;
+  st.appendChild(p);const H=p.offsetHeight;p.style.left="4px";p.style.top=Math.max(4,(md==="AT"&&driveOn()?214:233)-H-4)+"px";
+  if(window.GLOSS)GLOSS.pop=p;if(!auto)try{SND.se("ui_ok")}catch(e){}
+  if(auto)setTimeout(()=>{if(p.parentNode){p.remove();if(window.GLOSS&&GLOSS.pop===p)GLOSS.pop=null}},3000)}
+/* その走りかたで初めて走るランの最初の戦闘だけ、小窓を自動で3秒 */
+function modeHelpAuto(){try{if(window.TUTORIAL_ON||!G||G.fullAuto||(window.FARM&&FARM.on))return;const md=bandMode();if(!md)return;const p=PRF();p.modeHelp=p.modeHelp||{};
+  if(p.modeHelp[md]||G.modeHelpDone)return;G.modeHelpDone=1;p.modeHelp[md]=1;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)modeHelp(true)},900)}catch(e){}}

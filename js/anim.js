@@ -410,7 +410,7 @@ function redEdgeCanvas(){if(RED_EDGE)return RED_EDGE;const W=RES.W,H=RES.H,cv=mk
   g.fillStyle=lin(0,0,0,T);g.fillRect(0,0,W,T);g.fillStyle=lin(0,H,0,H-T);g.fillRect(0,H-T,W,T);
   g.globalCompositeOperation="lighter";g.fillStyle=lin(0,0,T,0);g.fillRect(0,0,T,H);g.fillStyle=lin(W,0,W-T,0);g.fillRect(W-T,0,T,H);
   RED_EDGE=cv;return cv}
-function redLevelNow(){if(!B||!G||typeof redLo!=="function")return 0;const r=A.mr!=null?A.mr:B.rpm,lo=redLo(),hi=car().limit;if(r<lo)return 0;return Math.max(0.15,Math.min(1,(r-lo)/Math.max(1,hi-lo)))}
+function redLevelNow(){if(!B||!G||typeof redLo!=="function")return 0;const r=A.mr!=null?A.mr:B.rpm,lo=redLo(),hi=car().limit;if(!isFinite(lo)||!(r>=lo))return 0;return Math.max(0.15,Math.min(1,(r-lo)/Math.max(1,hi-lo)))}
 function redEdge(g,dt){const md=(typeof OPTS!=="undefined"&&OPTS.redFx)||"full";const tgt=md==="off"||B.sim?0:redLevelNow()*(md==="weak"?0.5:1);
   A.redA=(A.redA||0)+(tgt-(A.redA||0))*Math.min(1,dt/180);if(A.redA<0.01)return;
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,pul=rm?1:0.85+0.15*Math.sin(A.now/1600*Math.PI*2);

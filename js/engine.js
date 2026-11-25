@@ -170,7 +170,7 @@ function newRunState(mode,charId,bring,dk,opt){
   bring=(Array.isArray(bring)?bring:[]).slice(0,BRING_MAX);
   const night=Math.max(0,+opt.night||0),nr=nightOf(night);
   nr.startJam.forEach(id=>deck.push(inst(id)));
-  G={char:charId,car:JSON.parse(JSON.stringify(ch.car)),mode,hp:ch.car.hp+nr.maxHp,maxhp:ch.car.hp+nr.maxHp,money:nr.money0!=null?nr.money0:RULES.money0,tickets:0,
+  G={char:charId,car:JSON.parse(JSON.stringify(ch.car)),mode,hp:ch.car.hp+nr.maxHp,maxhp:ch.car.hp+nr.maxHp,money:nr.money0!=null?nr.money0:RULES.money0,tickets:0,heat:0,heatMax:0,
      tune:{tire:0,shift:0,engine:0,light:0,ecu:0},parts:[],deck,map:null,row:0,path:[],cageUsed:false,seen:{},
      night,ul:opt.ul||null,hiddenOn:!!opt.hidden,hiddenWon:[],newUnlocks:[],
      st:{shiftTry:0,perfect:0,good:0,otk:0,battles:0,clear:false,rowsDone:0,maxTurnDmg:0,maxChain:0,area:0,elites:0,bosses:0,hidden:0},bring,atkBonus:0,mcParts:[],soldParts:[]};/* ★v0.22.37 持ちこみのパーツ・売ったパーツ（10-14・10-19） */
@@ -189,7 +189,7 @@ function curArea(){return AREAS[areaIdx()]}
 /* マスの敵：最初の3段はやさしい雑魚だけ */
 function nodeEnemy(n){const a=AREAS[n.a];if(n.k==="elite"||n.k==="hidden")return a.elite;if(n.k==="boss")return a.boss;return n.r<3?pick(a.easy):pick(a.pool)}
 /* 次の段へ。ボスのあとは耐久を 30% 回復（design 付録）。戻り値 "map"｜"area"（次のエリアに入った）｜"clear" */
-function advanceRow(){const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
+function advanceRow(){{const nd=G.map[G.row]&&G.map[G.row][G.path[G.row]];if(nd){const H=RULES.heat;if(nd.k==="garage")heatSet(H.garage,"ガレージで冷めた");else if(/^(shop|sim|lucky)$/.test(nd.k))heatSet((G.heat||0)+H.shop)}}/* ★v0.22.131 ヒートが冷める */const prev=G.map[G.row][0];G.row++;G.st.rowsDone=G.row;
   if(G.row>=G.map.length){G.st.clear=true;return"clear"}
   if(prev.k==="boss"){G.st.bosses++;const ah=NR().areaHeal,h=Math.round(G.maxhp*(ah!=null?ah:RULES.areaHeal));G.hp=Math.min(G.maxhp,G.hp+h);G.st.area=areaIdx();return"area"}
   return"map"}
@@ -214,8 +214,9 @@ function addPart(p,idx){let old=null;if(G.parts.length<RULES.partsMax)G.parts.pu
 function rewardOptions(rank,nn){nn=nn||3;
   const pool=[...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&!CARDS[id].gen&&rarityOf(id)!=="SK"&&rarityOf(id)!=="OG"&&cardOK(id));
   const out=[];
-  const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RULES.rarityW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
-    for(const q of rs){x-=RULES.rarityW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
+  const hh=G.heat||0,RW={C:RULES.rarityW.C+RULES.heat.rar[0]*hh,R:RULES.rarityW.R+RULES.heat.rar[1]*hh,E:RULES.rarityW.E+RULES.heat.rar[2]*hh};/* ★v0.22.131 ヒートでレア度アップ */
+  const draw=list=>{const rs=[...new Set(list.map(rarityOf))],t=rs.reduce((a,r)=>a+(RW[r]||10),0);let x=Math.random()*t,r=rs[rs.length-1];
+    for(const q of rs){x-=RW[q]||10;if(x<0){r=q;break}}return pick(list.filter(id=>rarityOf(id)===r))};
   if(rank==="elite"){const hi=pool.filter(id=>rarityOf(id)!=="C");if(hi.length)out.push(draw(hi))}
   if(rank==="boss"){const hi=pool.filter(id=>rarityOf(id)==="E");if(hi.length)out.push(pick(hi))}
   while(out.length<nn){const rest=pool.filter(id=>!out.includes(id));if(!rest.length)break;out.push(draw(rest))}
@@ -247,9 +248,9 @@ function startBattleState(key){
   const E=ENEMIES[key];const C=car();const AR=curArea(),nr=NR(),node=G.map&&G.map[G.row]&&G.map[G.row][G.path[G.row]]||null,hid=!!(node&&node.k==="hidden");
   const el=E.rank==="elite"?nr.eliteMul:1,hm=hid?UNLOCK.hiddenMul:1;
   const abm=RULE().areaBossHp&&(G.night||0)>=2&&AREAS.some(a=>a.boss===key)?RULE().areaBossHp:1;/* ★v0.22.90 LD 11-47 A：HINA・NANA は NIGHT 2 からエリアのボス（残光・白夜・零号）×0.75 */
-  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm*abm);
+  const hp=Math.round(E.hp*(AR.hpMul||1)*(E.rank==="boss"?(AR.bossMul||1)*nr.bossMul:1)*nr.hpMul*el*hm*abm*heatMul());/* ★v0.22.131 ヒート +3%／段 */
   const wx=(node&&node.wx)||"dry";
-  B={key,wx,am:(AR.atkMul||1)*nr.atkMul*el*hm,hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
+  B={key,wx,am:(AR.atkMul||1)*nr.atkMul*el*hm*heatMul(),hidden:hid,pTurns:0,perf0:G.st.perfect,/* ★v0.22.45 この戦闘のパーフェクトの数（誇りの紅突） */e:{...E,hp,maxhp:hp,block:0,burn:0,noise:0,atkUp:0,pi:0,mi:0,spdUp:0,mAdd:0,next:100/E.spd,phased:false,mirrorArm:false},
      rpm:C.idle+(has("boost")?2500:0),gear:0,hand:[],draw:shuffle(G.deck.slice()),disc:[],block:0,
      pNext:0,shifts:0,shiftsT:0,nextBonus:0,forcePerfect:false,nitroUsed:false,nextTurnAdd:0,nextTurnDouble:false,
      curAdd:0,curDouble:false,wideAdd:0,cards:0,atks:0,atkDown:0,atShiftDraw:0,gas:0,charge:0,chain5:false,chain:0,chainBefore:0,turnDmg:0,
@@ -695,6 +696,12 @@ function curDelay(){return(100/car().spd)*(1-RULES.gasSpeed*Math.min(5,Math.max(
 function timeline(){const out=[];let p=B.pNext,e=B.e.next;const pd=100/car().spd,ed=100/(B.e.spd+B.e.spdUp);let first=true;
   for(let i=0;i<7;i++){if(p<=e){out.push("p");p+=first?curDelay():pd;first=false}else{out.push("e");e+=ed}}return out}
 /* 勝ったあと：お金など。画面は結果だけ受け取る */
+/* ★v0.22.131 ヒート（design 10-17-1） */
+function heatSet(v,why){const H=RULES.heat;v=Math.max(0,Math.min(H.max,v|0));const was=G.heat||0;G.heat=v;G.heatMax=Math.max(G.heatMax||0,v);if(v!==was&&why)addLogSafe(why)}
+function addLogSafe(t){try{if(B&&!B.over)addLog(t)}catch(e){}}
+function heatMul(){return 1+(G&&G.heat||0)*RULES.heat.hpAtk}
+function heatGain(n){if(!n||n.k==="boss"||!/^(battle|elite|hidden)$/.test(n.k))return 0;const H=RULES.heat;let d=n.k==="battle"?H.win:H.elite;const w=n.wx||"dry";if(w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w)d+=H.badWx;return d}
+function featCost(){return Math.round(RULES.featPrice*(1+(G&&G.heat||0)*RULES.heat.gold))}
 function winRewards(){
   const key=B.key,E=ENEMIES[key],gd=RULES.gold;
   let gold=E.rank==="boss"?gd.boss:E.rank==="elite"?gd.elite:rnd(gd.battle[0],gd.battle[1]);gold=Math.round(gold*NR().goldMul);if(has("cat"))gold+=gd.cat;
@@ -703,7 +710,8 @@ function winRewards(){
     if(left.length){hidCard=pick(left);G.hiddenWon.push(hidCard);G.deck.push(inst(hidCard));if(G.ul)G.ul.cards.push(hidCard);gold+=UNLOCK.hiddenGold}else{gold+=UNLOCK.hiddenAllGold;G.st.hiddenAll=(G.st.hiddenAll||0)+1}}
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;
-  return{key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard};
+  const h0=G.heat||0;{const H=RULES.heat;let d=E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
+  return{key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard,heat:[h0,G.heat||0]};
 }
 /* ★v0.21 ログ（ラン後のマネー・design 9-7）。負けても突破したエリアのぶんは入る */
 function runLog(clear,rank){const L=UNLOCK.log,st=G.st,parts={};

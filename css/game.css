@@ -589,3 +589,26 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .wxleg{color:#cfe3ff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;white-space:nowrap;overflow:hidden}
 .wxleg b.wx-rain{color:#8cc4ff}.wxleg b.wx-snow{color:#fff}
 .wxb{background:#0d1530;color:#cfe3ff;border:1px solid #6fa8ff;font-size:10px;line-height:12px;padding:0;text-align:center;white-space:nowrap;overflow:hidden}
+
+/* ★v0.22.131 ヒートの炎（16×16・2コマ 200ms） */
+.heatb{display:flex;gap:2px;align-items:center;padding:0 1px;background:rgba(8,10,20,.55);border:1px solid rgba(255,255,255,.12);min-height:18px}
+.heatb .hf{width:16px;height:16px;flex:0 0 16px;background-repeat:no-repeat;background-size:32px 16px;image-rendering:pixelated;background-position:0 0}
+.heatb .hf.on{animation:hfl .4s steps(1) infinite}
+@keyframes hfl{0%{background-position:0 0}50%{background-position:-16px 0}}
+@media (prefers-reduced-motion:reduce){.heatb .hf.on{animation:none}}
+.heatb .hf.txt{background:none;font-size:10px;line-height:16px;text-align:center;color:#555}.heatb .hf.txt.orange{color:#ff9a3c}.heatb .hf.txt.red{color:#ff3c3c}.heatb .hf.txt.blue{color:#5cb8ff}
+.node .heatg{position:absolute;left:1px;bottom:12px;font-size:9px;line-height:10px;padding:0 2px;background:#2a0d08;border:1px solid #ff7a2a;color:#ffb36b;z-index:2;pointer-events:none;white-space:nowrap}
+.toast2{white-space:pre-line}
+
+/* ★v0.22.131 design 23-1：メーター枠の上の帯（下地はグラフィック班の部品が来るまで CSS。不透明・角の切り 9px） */
+.band{background:#0b0d18;border:1px solid #2b2f4a;box-sizing:border-box;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);pointer-events:none}
+.bmode{font:10px 'PM12B';line-height:16px;color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;background:#1a1e33;border:1px solid #6f7aa8;padding:0;text-align:center;white-space:nowrap;overflow:visible;position:absolute}
+.bmode::after{content:"";position:absolute;left:0;right:0;top:-10px;bottom:0}/* 押せる大きさ 28 */
+.bmode.two::after{top:0}
+.bmode b{color:#b6ff3a;margin-left:2px;font-weight:normal}
+.bmode.mt{border-color:#b6ff3a}.bmode.at{border-color:#5cc8ff}.bmode.cvt{border-color:#ffb84a}
+.bmode.two{line-height:16px}.bmode.two b{margin:0;color:#5cc8ff}.bmode.two b.sport{color:#ff8a3c}.bmode.two.off{opacity:.75}
+.bres{display:flex;align-items:center;gap:2px;font:10px 'PM12B';color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;pointer-events:auto}
+.bres img,.bres i{width:12px;height:12px;flex:0 0 12px;display:block}.bres i{background:#ff7ab8}
+.bres.used{opacity:.55}
+.glpop.mhelp{max-width:220px}
