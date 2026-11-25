@@ -305,3 +305,5 @@ Object.assign(TEXT.ui,{fog_map_name:"夜霧《よぎり》",fog_map_help:"霧の
   fog_intent_atk:"攻撃？",fog_intent_grd:"守り？",fog_intent_debuff:"ジャマ？",fog_intent_other:"？？？",fog_buff:"霧 防御 +{v}"});
 /* ★v0.22.159 text v0.22.53 34-2b：強化・回転の予告（キー名は fog_intent_buff・fog_intent_rot） */
 Object.assign(TEXT.ui,{fog_intent_buff:"強化？",fog_intent_rot:"回転？"});
+/* ★v0.22.161 text v0.22.54 37-3：図鑑の手に入れ方の1行（②の図鑑で使う） */
+Object.assign(TEXT.ui,{dex_how_start:"はじめから（報酬・ショップに出る）"});
