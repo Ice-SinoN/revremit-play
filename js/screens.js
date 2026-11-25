@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.147（β2）";
+const VERSION="試作 v0.22.148（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -53,7 +53,7 @@ const costK=v=>v>=1000?(Math.round(v/100)/10)+"k":String(v);
 function cardSmall(c,o){const d=CD(c),r=rarityOf(c),nm=o.num,art=cardArtTag(c.id);
   // ★ui\c2\revremit_ui_card_c2.json：絵の窓 (6,15) 50×38、数字の板は右下（右 56・下 53・高さ 14）に種類の色のアイコン＋数字
   let plate="";if(nm){const ic=CARD_ICON(nm.kind==="blk"?"grd":"atk"),icon=artHave(ic)?`<i class="pi" style="-webkit-mask-image:url(${artURL(ic)});mask-image:url(${artURL(ic)})"></i>`:"";
-    plate=`<span class="cv ${nm.cls}">${icon}${esc(nm.txt)}</span>`}
+    plate=`<span class="cv ${nm.cls}${o.wk?" wkv"+(o.wk==="shift"?" sh":""):""}">${icon}${esc(nm.txt)}</span>`}/* ★v0.22.148 BUG-60：弱点の印は数字の板の金の縁 */
   /* ★BUG-34：手札が重なる（見える幅 o.vis が 62 より狭い）ときは、ガソリン・数字・名前を左に寄せる。★BUG-35：長い名前は字の間をつめる */
   const tight=o.vis&&o.vis<60,nl=[...d.n].length+(c.up?0.5:0);
   return `<button class="cs t-${d.t} r-${r}${o.band?" inb":""}${d.charge?" chg":""}${tight?" tight":""}${nl>10?" lng":""}${o.cls?" "+o.cls:""}" ${tight?(o.attrs||"").replace('style="',`style="--vis:${o.vis}px;`):o.attrs||""}>`+
@@ -396,14 +396,14 @@ function renderBattle(){if(G&&B&&!B.over&&!B.sim&&!G.duoLow&&G.hp>0&&G.hp<=G.max
   ${toastNow()}`;
   // 手札
   h+=B.hand.map((c,i)=>{const p=preview(c);const sel=S.sel===i;
-    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
+    return cardSmall(c,{num:faceNumber(i,false),cost:costOf(c),gas:gasOf(c),gasNow:B.gas,band:inBand(c),modeMk:modeMark(c),wk:weakHit(c),cls:(p.ok?"":"no ")+(sel?"sel":""),vis:i<n-1&&!sel?stepX:0,
       attrs:`${at(L.hand.x+i*stepX,L.hand.y-(sel?L.hand.selUp:0))} onclick="clickCard(${i})" onpointerdown="cardLP(${i})" onpointerup="cardLPx()" onpointerleave="cardLPx()" onpointercancel="cardLPx()" ${locked?"disabled":""}`})}).join("");
-  h+=shiftTabs(n,stepX,locked);h+=weakTabs(stepX);/* ★v0.22.142 C6 *//* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
+  h+=shiftTabs(n,stepX,locked);/* ★v0.22.95 design 14-3①：手札に「シフトできる」印 */
   // 選んだカードの説明と打ち方
   /* ★BUG-46（v0.22.23）：説明の窓の上の端は体力のバー・数字（y 82〜98）の下まで。入りきらない分はスクロール */
   if(S.sel>=0&&B.hand[S.sel]){const c=B.hand[S.sel],d=CD(c),p=preview(c),acts=cardActions(S.sel);
     h+=`<div class="detail" style="left:${L.detail[0]}px;bottom:${360-(L.hand.y-L.hand.selUp-2)}px;width:${L.detail[2]}px;max-height:${L.hand.y-L.hand.selUp-2-(L.bars.y+18)}px;overflow:hidden"><div class="dn">${esc(d.n)}${c.up?"+":""}${[...d.n].length>9?"<br>":""}<span class="small dim"> ${typeRar(d.t,rarityOf(c))}${d.band?`・帯 ${d.band}（${BAND_JP[d.band]}）`:""}</span></div>
-      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx${G.mode==="AT"&&modeMark(c)?" atv":""}">${esc(descOf(c,c.up,B.gear))}${lpOf(c)?` <button class="mini lpbtn" onclick="event.stopPropagation();lpShow(B.hand[S.sel])">くわしく</button>`:""}</div>${detailNumbers(S.sel)}
+      <div class="small">回転 ${costOf(c)}・ガソリン ${gasOf(c)}${d.charge?`（元 ${gasBase(c)}・条件 ${B.charge}回）`:""}</div>${(()=>{const k=weakHit(c);return k?`<div class="small wkd">弱点 ×${RULES.weakMul||1.5}${k==="shift"?"（シフトして打つと）":""}</div>`:""})()}${d.dMod?`<div class="dmod small">${esc(d.dMod)}</div>`:""}<div class="dtx${G.mode==="AT"&&modeMark(c)?" atv":""}">${esc(descOf(c,c.up,B.gear))}${lpOf(c)?` <button class="mini lpbtn" onclick="event.stopPropagation();lpShow(B.hand[S.sel])">くわしく</button>`:""}</div>${detailNumbers(S.sel)}
       <div class="small ${p.danger||!p.ok?"ngc":"dim"}">${nwrap(p.ok?p.txt.replace(/^→ /,"→"):p.txt)}</div>
       ${(()=>{const ab=acts.filter(a=>tutAllow("play",{i:S.sel,shift:a[1]})).map(a=>`<button class="${a[2]}" onclick="doPlay(${S.sel},${a[1]})">${esc(a[0])}</button>`);return ab.length>1?`<div class="acts2">${ab.join("")}</div>`:ab.join("")})()}</div>`}/* ★v0.22.24：打つボタンが2つなら横に並べる（窓の高さを使いすぎない） */
   // 右下：ボタン
@@ -432,8 +432,7 @@ function modeBanner(){const T=TEXT.ui||{};if(G.mode==="AT"){if(driveOn()){const 
 /* ★v0.22.142 C6（残りの宿題）：手札に「弱点のギアで打てる」印。弱点を見つけたボスだけ（見つける前は出さない）。今のギアで打つと弱点＝「弱」、MT でシフトして打つと弱点＝「弱▲」、AT は自動シフトのあとのギアで見る。印だけ（強さは変わらない） */
 function weakHit(c){if(!B||!B.e||window.TUTORIAL_ON||typeof weakOf!=="function")return null;const w=weakOf(B.e);if(!w||!weakKnown(B.e))return null;const d=CD(c);if(d.t!=="atk")return null;const p=preview(c);if(!p.ok)return null;
   const [a,b]=weakRange(w),inR=g=>g>=a&&g<=b,g0=B.gear+1;if(G.mode==="AT")return inR(p.auto?g0+1:g0)?"now":null;if(inR(g0))return"now";if(p.canShift&&inR(g0+1))return"shift";return null}
-function weakTabs(stepX){const L=RES;let h="";B.hand.forEach((c,i)=>{const k=weakHit(c);if(!k)return;const sel=S.sel===i,sh=k==="shift",mt="×"+(RULES.weakMul||1.5),w=sh?27:21,x=L.hand.x+i*stepX+Math.min(L.hand.cw,Math.floor(stepX))-w-3,y=L.hand.y-(sel?L.hand.selUp:0)+10;/* ★v0.22.143 BUG-60：右上（2段目の右・種類の札と数字の札の上）。字は「弱」がつぶれるので倍率「×1.3」（数字はドットの字で読める）。絵の印が来たら差しかえ */
-  h+=`<div class="wktab${sh?" sh":""}" ${at(x,y,w,11)}>${sh?"▲":""}${mt}</div>`});return h}
+/* ★v0.22.148 BUG-60：手札の上の別の箱（weakTabs）はやめた＝手札が7枚以上だと見えている幅に入らないため。印は数字の板（.cv.wkv）・中身は説明の窓 */
 function shiftTabs(n,stepX,locked){if(G.mode!=="MT"||locked||window.TUTORIAL_ON)return"";const L=RES;let h="";
   B.hand.forEach((c,i)=>{const p=preview(c);if(!p.ok||!p.canShift)return;const g=p.grade,sel=S.sel===i,x=L.hand.x+i*stepX;
     if(sel)h+=`<button class="stab sel g-${g}" ${at(x,L.hand.y-L.hand.selUp+L.hand.ch+2,L.hand.cw,15)} onclick="tabShift(${i})">${esc((TEXT.ui||{}).stab_play||"シフトで打つ")}</button>`;

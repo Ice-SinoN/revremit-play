@@ -157,7 +157,7 @@ function genMap(){
         const n={k,a:ai,r,fork:1};if(k==="shop"){n.feat=Math.random()<RULES.featRate;n.sale=Math.random()<RULES.saleRate}map[base+r].push(n)}}
     // ★裏道（design 9-6）：NIGHT 1 を初めてクリアしたあと。エリアに入ったとき 35% で、4〜9段目のどこかに1つ
     if(G&&G.hiddenOn&&Math.random()<UNLOCK.hiddenRate){const base=map.length-a.rows,r=rnd(UNLOCK.hiddenRows[0],Math.min(UNLOCK.hiddenRows[1],a.rows-2)),row=map[base+r];
-      const j=row.length<4?row.length:rnd(0,row.length-1),n={k:"hidden",a:ai,r};if(j<row.length&&(row[j].k==="shop"||row[j].k==="sim")&&r===a.mid)row.push(n);else row[j]=n}
+      const n={k:"hidden",a:ai,r};if(row.length<4)row.push(n);else{const js=row.map((x,j)=>j).filter(j=>!(r===a.mid&&(row[j].k==="shop"||row[j].k==="sim"))&&!row[j].fork);row[js.length?js[rnd(0,js.length-1)]:rnd(0,row.length-1)]=n}}/* ★v0.22.148 BUG-61：1段は4つまで（4つの段では、真ん中の段のショップ・シムと分かれ道のマス以外と入れかえる。前は5つめに足すことがあった） */
     {const base=map.length-a.rows;for(let r=0;r<a.rows;r++)wxRow(map[base+r],a.key,ai===0&&r<3&&G&&G.wxFirst)}/* ★v0.22.126 天候 */
     map.push([{k:"boss",a:ai,r:a.rows,wx:"dry"}]);
   });return map}

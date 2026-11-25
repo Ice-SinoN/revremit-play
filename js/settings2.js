@@ -80,10 +80,13 @@ if(typeof optsApply==="function"){const f=optsApply;window.optsApply=function(){
 /* 天候の音：audio.js v0.24 の amb のつまみに①が OPTS.weather を渡す（v0.22.65）。②の仮のつなぎ（ambient を包む・setVolume("weather")）は外した（二重にしぼって小さくなるため） */
 
 /* ---------- 設定の画面に行を足す ---------- */
-RRHOOK.on("screen",o=>{if(o.n!=="opts")return;const b=$("#modal .opts");if(!b||b.querySelector(".rr2opt"))return;const row=b.querySelector(".row");
+RRHOOK.on("screen",o=>{if(o.n!=="opts")return;const b=$("#modal .opts");if(!b||b.querySelector(".rr2opt"))return;
+  /* v0.5.14 design 24-4 C10：「掛け合い」「撃破演出」は②の行に移した。①の行（auto.js の「掛け合い・撃破演出」）がまだあれば消す（①が外したら何もしない） */
+  b.querySelectorAll(".oprow").forEach(r=>{const t=(r.querySelector("span")||{}).textContent||"";if(!r.classList.contains("rr2opt")&&/掛け合い/.test(t)&&/撃破/.test(t))r.remove()});const row=b.querySelector(".row");
   const h=`<div class="oprow rr2opt"><span>文字の大きさ</span><span class="opbtns">${["s","m","l"].map(v=>`<button class="${OPTS.fsz===v?"main":""}" onclick="fszSet('${v}')">${FSZ_JP[v]}</button>`).join("")}</span></div>
    <div class="oprow rr2opt"><span>戦闘の速さ</span><span class="opbtns">${[1,2].map(v=>`<button class="${OPTS.bspd===v?"main":""}" onclick="OPTS.bspd=${v};optsSave();renderOpts()">×${v}</button>`).join("")}</span></div>
    <div class="oprow rr2opt"><span>奥義の演出</span><span class="opbtns">${[["full","ふつう"],["short","短く"]].map(([v,n])=>`<button class="${(OPTS.ogFx==="short"?"short":"full")===v?"main":""}" onclick="OPTS.ogFx='${v}';optsSave();renderOpts()">${n}</button>`).join("")}</span></div>
+   ${[["banter","掛け合い"],["remitFx","撃破演出"]].map(([k,n])=>`<div class="oprow rr2opt"><span>${n}</span><span class="opbtns">${[[true,"入"],[false,"切"]].map(([v,t])=>`<button class="${(OPTS[k]!==false)===v?"main":""}" onclick="OPTS.${k}=${v};optsSave();renderOpts()">${t}</button>`).join("")}</span></div>`).join("")}
    <div class="small dim rr2opt">敵の番は、画面をタップで飛ばせます。奥義の「短く」はカットインだけ（2回目からはいつも短く）。</div>`;/* v0.5.7 OPTS.ogFx（①v0.22.102 の anim.js が見る） */
   if(row)row.insertAdjacentHTML("beforebegin",h);else b.insertAdjacentHTML("beforeend",h);
   /* 音量：効果音のつまみのすぐ下に「エンジン音」「天候の音」（auto.js の sl() と同じ形） */

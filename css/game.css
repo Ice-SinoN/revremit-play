@@ -642,9 +642,11 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 .ghr b{display:block;margin:60px 0 8px;font-size:14px;color:#d8c4ff}.ghr .small{display:block;padding:0 8px}
 .nface{color:#8cc4ff}
 .main .nface{color:inherit}
-/* ★v0.22.142 C6 手札の弱点の印 */
-#ui .wktab{font:10px/11px 'PM10';text-align:center;color:#0A0812;background:#FFD34D;box-shadow:0 0 0 1px #000;border-radius:2px;z-index:3;pointer-events:none;white-space:nowrap;letter-spacing:0}
-#ui .wktab.sh{background:#F7F9F5}
+/* ★v0.22.148 BUG-60 手札の弱点の印＝数字の板の金の縁（今のギアで弱点）・白の点線（シフトして打つと弱点） */
+.cs .cv.wkv{box-shadow:inset 0 0 0 1px #FFD34D,0 0 0 1px #FFD34D;background:#3a2a00;color:#FFE27A}
+.cs .cv.wkv .pi{background:#FFD34D}
+.cs .cv.wkv.sh{box-shadow:inset 0 0 0 1px #F7F9F5;outline:1px dashed #FFD34D;background:rgb(10,8,18);color:#F7F9F5}
+.detail .wkd{color:#FFD34D}
 /* ★v0.22.147 A2 霧・夜明けのマップの札 */
 .wx-fog.wxt,.wxb.wx-fog{border-color:#b8c2d6;color:#e6ebf5}.wx-dawn.wxt,.wxb.wx-dawn{border-color:#ffb46a;color:#ffd9a8}
 .wxleg b.wx-fog{color:#d0d8e8}.wxleg b.wx-dawn{color:#ffc68a}
