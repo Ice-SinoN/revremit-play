@@ -6,13 +6,13 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.127（β2）";
+const VERSION="試作 v0.22.128（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
 const SCREEN_BG={title:"title",deck:"garage",garage:"garage",release:"result",win:"reward",parts:"reward",shop:"shop",sim:"sim",rest:"garage",result:"result"};
 function setBg(k){A.bgImg=k&&window.IMG?IMG[`assets/c2/bg/c2/revremit_bg_${k}_base.png`]||IMG[`assets/c2/fx/c2/revremit_fx_bg_${k}.png`]||null:null}
-function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();try{SND.gear()}catch(e){}if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
+function setScreen(n){window.SCREEN=n;placeUI(n);if(n!=="battle"){SND.engineStop();try{SND.gear()}catch(e){}if(A.wxOn){A.wxOn=null;A.wxBase=null;A.wxFx=null;A.wxProc=null;try{window.AUDIO&&AUDIO.weather&&AUDIO.weather("dry")}catch(e){}}}setBg(SCREEN_BG[n])}
 const ui=()=>$("#ui");
 /* 戦闘は画面いっぱい、それ以外は 480×270 の箱を真ん中に（640 のとき） */
 const FULL_SCREENS=["remitfx","battle","map","scene","title","data","lab","chars","shop","sim","win","parts","deck","garage","rest","result","release","tree"];// ★v0.15：ショップ・シム・報酬・パーツは背景の絵に合わせて 640 いっぱい
@@ -303,7 +303,7 @@ function onIdle(){if(S.pending&&!busy()){const f=S.pending;S.pending=null;f()}}
 setInterval(onIdle,50);
 /* 押したら、モーションの残りを飛ばす */
 function uiSkip(){flushAnim();onIdle()}
-function afterAct(r,rpm0){A.pv=null;const phK=B.key==="boss3"?sceneKey("boss3_phase"):ENEMIES[B.key]&&ENEMIES[B.key].ally?G.char.toLowerCase()+"_boss_phase":null;if(B.ev.some(e=>e.k==="phase")&&phK){S.toastQ=(TEXT.scenes[phK]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
+function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="wx2"))wxPhase();/* ★v0.22.128 */const phK=B.key==="boss3"?sceneKey("boss3_phase"):ENEMIES[B.key]&&ENEMIES[B.key].ally?G.char.toLowerCase()+"_boss_phase":null;if(B.ev.some(e=>e.k==="phase")&&phK){S.toastQ=(TEXT.scenes[phK]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
   // エンジン音：回転数が変わったら約2秒だけ（★08:20）。ブローは SND.blow が鳴らす
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
@@ -385,7 +385,7 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   ${G.mode==="MT"&&B.perfChain>0?`<button class="pchain" ${at(6,55,96,14)} onclick="toast2(TU('perfect_chain_help','パーフェクトが続いた数。'),56,3000)">${esc(TU("perfect_chain","PERFECT ×{n}").replace("{n}",B.perfChain))}</button>`:""}
   <div class="ename${isBoss?" boss":""}" ${at(...(isBoss?LB.ename:L.ename))}>${esc(e.n)}${form?`<span class="small">・${form}</span>`:""}${tag?`<span class="tg">${tag}</span>`:""}</div>
   ${isBoss&&e.weakGear?`<div class="weakt${weakKnown(e)?" on":""}" ${at(340,44+12*(e.gimTxt?gimLines(e).length:0),296,12)}>${esc(weakLabel(e))}</div>`:""}
-  <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
+  <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${wxDef().hideIntent&&wxMinus()?"？"/* ★v0.22.128 霧：予告が見えない（大きな攻撃の音は鳴る） */:esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${(()=>{const R=RULE(),rs=R.rescue?(()=>{const used=(B.rescueT||0)>=(R.rescueN||1),ic=`assets/c2/ui/c2/revremit_ui_rescue_${used?"used":"ready"}.png`;/* ★v0.22.36 花の便りの印（text 27-2 rescue_icon） */
       return `<span class="rsc${used?" used":""}" title="${used?"花の便り（このターンはもう届いた）":"花の便り（まだ届く）"}">${artHave(ic)?`<img class="px" src="${artURL(ic)}" alt="">`:""}花の便り</span>`})():"";
@@ -418,7 +418,7 @@ function renderBattle(){try{SND.gear()}catch(e){}/* ★v0.22.127 */
   <div class="small dim ra" ${at(...L.counts)}>手札${n} 山${B.draw.length} 捨${B.disc.length}　カード${B.cards}/${RULES.cardCap}</div>`;
   if(!window.TUTORIAL_ON&&driveOn())h+=driveCtl(locked);/* ★v0.22.98 design 14-3③ ドライブモード */
   if(!window.TUTORIAL_ON)h+=`<div class="modeban ${G.mode==="AT"?"at":"mt"} small" ${at(4,226,172,28)}>${modeBanner().map(esc).join("<br>")}</div>`;/* ★v0.22.95 design 14-3①（文は仮・シナリオ班へ） */
-  if(B.wx&&B.wx!=="dry"){const w=B.wx;h+=`<button class="wxb wx-${w}" ${at(4,74,96,14)} onclick="wxHelp()">${esc(wxName(w))}${wxFav(w)?"★得意":""}</button>`}/* ★v0.22.126 天候の札 */
+  if(B.wx&&B.wx!=="dry"){const w=B.wx;h+=`<button class="wxb wx-${w}" ${at(4,74,96,14)} onclick="wxHelp()">${esc(wxNameB(w))}${wxFav(w)?"★得意":""}</button>`}/* ★v0.22.126 天候の札 */
   {const E0=ENEMIES[B.key]||{},c1=E0.ally,c2=!c1&&G.allyBossDone&&E0.rank==="boss"&&B.key===AREAS[areaIdx()].boss&&G.char!=="YUKI";if(c1||c2)h+=`<div class="chaintag" ${at(4,92,70,14)}>連戦 ${c1?1:2}／2</div>`}/* ★v0.22.64 design 10-4b */
   ui().innerHTML=h;fitHandNames();if(window.TUTORIAL_ON)tutRender();
 }
@@ -752,7 +752,13 @@ function toggleFS(){const d=document.documentElement;
   if(isFS()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
   const p=(d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:"hide"});
   Promise.resolve(p).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{toast2("全画面にできませんでした")})}
-function toast2(t,y,ms){const u=ui();if(!u)return;const d=document.createElement("div");d.className="toast2";d.textContent=t;Object.assign(d.style,{left:"200px",top:(y||300)+"px",width:"240px",position:"absolute"});u.appendChild(d);setTimeout(()=>d.remove(),ms||2000)}
+function toast2(t,y,ms){const u=ui();if(!u)return;const d=document.createElement("div");d.className="toast2";d.textContent=t;Object.assign(d.style,{left:"200px",top:(y||300)+"px",width:"240px",position:"absolute"});u.appendChild(d);
+  /* ★v0.22.128 QA：戦闘では手札（y 246 から）にかけない・前の窓と重ねない（空いている所へ上にずらす） */
+  if(window.SCREEN==="battle"){const H=d.offsetHeight||20,others=[...u.querySelectorAll(".toast2")].filter(e=>e!==d).map(e=>[e.offsetTop,e.offsetTop+e.offsetHeight]);
+    let top=Math.min(y||300,246-H);const hit=tp=>others.some(([a,b])=>tp<b+2&&tp+H>a-2);
+    if(hit(top)){let c=top;while(c>34&&hit(c))c-=4;if(!hit(c))top=c;else{c=top;while(c+H<=246&&hit(c))c+=4;if(!hit(c)&&c+H<=246)top=c}}
+    d.style.top=top+"px"}
+  setTimeout(()=>d.remove(),ms||2000)}
 /* ★v0.20.1：タッチ画面の長押しで右クリックのメニューを出さない・絵を長押ししてもドラッグを始めない（Windows のタッチ） */
 document.addEventListener("contextmenu",e=>e.preventDefault());document.addEventListener("dragstart",e=>e.preventDefault());
 document.addEventListener("selectstart",e=>{if(!(e.target&&e.target.closest&&e.target.closest("input,textarea")))e.preventDefault()});
@@ -895,9 +901,17 @@ async function wxLoad(w,bgk){const dir="assets/c2/bg/c2/",bp=dir+`revremit_bg_${
   try{if(artHave(fs)&&artHave(fj)){const[js,im]=await Promise.all([loadJSON(fj),loadImg(fs)]);if(js&&im){const fl=Array.isArray(js.frames)?js.frames:Object.values(js.frames);o.fx={fr:fl.map(f=>{const r=f.frame,cv=mkCanvas(r.w,r.h);cv.getContext("2d").drawImage(im,r.x,r.y,r.w,r.h,0,0,r.w,r.h);return cv}),dur:fl.map(f=>f.duration||100)};o.fx.total=o.fx.dur.reduce((a,b)=>a+b,0);if(PRE.img)delete PRE.img[fs]}}}catch(e){}
   Object.keys(WXA).forEach(x=>{if(x.split("|")[0]!==w)delete WXA[x]});/* 別の天候の絵は手放す（スマホのメモリ） */
   WXA[k]=o;return o}
-function wxEnter(){const w=(B&&B.wx)||"dry";A.wxOn=w!=="dry"?w:null;A.wxBase=null;A.wxFx=null;
-  try{window.AUDIO&&AUDIO.weather&&AUDIO.weather(w)}catch(e){}
+function wxBoss2(){return B&&B.wx2On&&TEXT.wx&&TEXT.wx.boss2&&TEXT.wx.boss2[B.key]||null}
+function wxNameB(w){const b=wxBoss2();return b?b.n:wxName(w)}
+/* 天候の見た目と音を今の B.wx に合わせる（背景の絵・降る層・コードで描く幕・環境音） */
+function wxApply(){const w=(B&&B.wx)||"dry",b2=B&&B.wx2On;A.wxOn=w!=="dry"?w:null;A.wxBase=null;A.wxFx=null;
+  A.wxProc=w==="fog"?(B.key==="boss3"&&b2?"blackfog":B.key==="sanka"&&b2?"petals":"fog"):w==="dawn"?"dawn":null;A.wxP=null;
+  try{window.AUDIO&&AUDIO.weather&&AUDIO.weather(w,b2?{boss:B.key}:undefined)}catch(e){}
   if(w==="dry"||B.sim)return;const bgk=A.bgKey==="hidden"?null:A.bgKey;
-  wxLoad(w,bgk||"none").then(o=>{if(!B||B.wx!==w||window.SCREEN!=="battle")return;A.wxBase=o.base;A.wxFx=o.fx});
+  wxLoad(w,bgk||"none").then(o=>{if(!B||B.wx!==w||window.SCREEN!=="battle")return;A.wxBase=o.base;A.wxFx=o.fx})}
+function wxEnter(){wxApply();const w=(B&&B.wx)||"dry";if(w==="dry"||B.sim)return;
   if(!(G&&G.fullAuto)&&!(window.FARM&&FARM.on)){const T=wxT(w).enter;if(T&&T.length){const t=T[Math.floor(Math.random()*T.length)];setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2((G.char==="MIO"?"こゆき：":"みお：")+t,150,3200)},600)}}}
-function wxHelp(){const w=B&&B.wx;if(!w)return;toast2(wxName(w)+"："+(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w)),76,3000)}
+/* ★v0.22.128 第2形態の天候：変わった瞬間に背景・音、名前と1行（ボスの一言のあと） */
+function wxPhase(){wxApply();const b=wxBoss2();if(!b||(G&&G.fullAuto)||(window.FARM&&FARM.on))return;const fav=wxFav(B.wx);
+  const go=()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`${b.n}：${b.l}`+(fav?"（得意＝悪い所なし）":""),120,3500)};setTimeout(go,S.toastQ&&S.toastQ.length?5200:300)}
+function wxHelp(){const w=B&&B.wx;if(!w)return;toast2(wxNameB(w)+"："+(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w)),76,3000)}

@@ -303,7 +303,7 @@ function gasOf(c){const d=CD(c);let a=gasBase(c);if(d.charge)a=Math.max(0,a-B.ch
 function addGas(n){B.gas=Math.min(maxGas(),B.gas+n)}
 function addCharge(why){B.charge++;ev({k:"charge",n:B.charge,why});if(B.hand.concat(B.draw,B.disc).some(c=>CD(c).charge))addLog(`大技の条件（${why}）：ガソリン −1`)}
 /* ★回転数の帯（design 0-3）：打つ前の回転で判定 */
-function redLo(){return RULES.red[G.mode]-(has("hicam")?1000:0)}
+function redLo(){return RULES.red[G.mode]-(has("hicam")?1000:0)-(B&&!B.over&&wxDef().redDown||0)/* ★v0.22.128 夜明け：レッドが 500 下から */}
 function bandRangeOf(c){const d=CD(c);if(!d.band)return null;if(d.band==="R")return[redLo(),limit()];return car().bands[d.band]}
 function inBand(c){const r=bandRangeOf(c);if(!r)return false;if(CD(c).bandAny)return true;return B.rpm>=r[0]&&(CD(c).band==="R"?B.rpm<=r[1]:B.rpm<r[1])}
 function inRed(){return B.rpm>=redLo()&&B.rpm<=limit()}
@@ -320,6 +320,7 @@ function startPlayerTurn(first){
   B.curAdd=B.nextTurnAdd;B.nextTurnAdd=0;B.curDouble=B.nextTurnDouble;B.nextTurnDouble=false;
   if(B.nextGas){B.gas+=B.nextGas;addLog(`人馬一体：ガソリン +${B.nextGas}`);B.nextGas=0}
   if(first&&RULE().firstGas){B.gas+=RULE().firstGas;addLog(`最初のターン：ガソリン +${RULE().firstGas}`)}
+  if(first&&wxDef().gas1){B.gas+=wxDef().gas1;addLog(`${wxName0()}：最初のターン ガソリン +${wxDef().gas1}`)}/* ★v0.22.128 夜明け（design 10-16-1） */
   if(has("h_wheelie")&&B.gear===0){B.gas*=2;addLog("ウィリー：ガソリン2倍")}
   if(first)drawN(RULES.hand0+(has("hook")?1:0)+(has("h_12inch")?2:0)+(has("boost")?1:0));
   else if(B.hand.length===0&&drawN(1))addLog("手札がないので1枚引いた（救済）");
@@ -478,7 +479,10 @@ const OPS={
 };
 function hitEnemy(d){const e=B.e;const blk=Math.min(e.block,d);e.block-=blk;e.hp-=d-blk;B.turnDmg+=d;B.lastHitRaw=d;B.lastHitThru=d-blk;
   addLog(`${d}ダメージ${blk?`（防御で −${blk}）`:""}`);ev({k:"ehit",v:d-blk,blk});checkPhase()}
-function checkPhase(){const e=B.e;if(e.phase&&!e.phased&&e.hp>0&&e.hp<=e.maxhp*e.phase.at){e.phased=true;e.spd=e.phase.spd;
+function wxName0(){const w=wxNow();return(typeof TEXT!=="undefined"&&TEXT.wx&&TEXT.wx[w]&&TEXT.wx[w].n)||(WEATHER[w]&&WEATHER[w].n)||w}
+/* ★v0.22.128 ボスの第2形態の天候（design 10-18-1）：体力 50% で天候が変わる（残光 雨・白夜 雪・零号 霧・空転 雨・散花 霧・未決 夜明け）。形のないボス（残光・白夜）も天候だけ変わる */
+function checkWx2(){const e=B.e;if(!e.wx2||B.wx2On||e.hp<=0||e.hp>e.maxhp*(e.phase?e.phase.at:0.5))return;B.wx2On=true;B.wx=e.wx2;addLog(`天候が変わった：${wxName0()}`);ev({k:"wx2",wx:e.wx2,boss:B.key})}
+function checkPhase(){checkWx2();const e=B.e;if(e.phase&&!e.phased&&e.hp>0&&e.hp<=e.maxhp*e.phase.at){e.phased=true;e.spd=e.phase.spd;
   if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}addLog(`${e.n} の形がくずれていく……`);ev({k:"phase",pal:e.phase.pal||null,glitch:!!e.phase.glitch,art:e.phase.art||null})}}
 function overRev(){const dmg=has("oilcool")?RULES.overDmgCool:RULES.overDmg;G.hp-=dmg;B.rpm=limit();addLog(`オーバーレブ！エンジン耐久 −${dmg}`);ev({k:"over",v:dmg});return dead()}
 /* ロールケージ：ランに1回、1で耐える */
@@ -486,6 +490,7 @@ function dead(){if(G.hp<=0&&B&&B.phoenix&&!B.phoenixUsed){B.phoenixUsed=true;G.h
   if(G.hp<=0&&has("cage")&&!G.cageUsed){G.cageUsed=true;G.hp=1;addLog("ロールケージ：耐久1で耐えた");ev({k:"cage"})}return G.hp<=0}
 /* ★シフトアップで起きること（1ターン shiftCap 回まで・design 0-1・0-4） */
 function onShiftUp(g){
+  if(wxDef().shiftBlk){B.block+=wxDef().shiftBlk;addLog(`${wxName0()}：シフトで防御 +${wxDef().shiftBlk}`);ev({k:"pblk",v:wxDef().shiftBlk})}/* ★v0.22.128 霧 */
   const h0=B.hand.length,lfirst=has("launch")&&!B.launchDrawn;
   B.shiftsT++;
   // ★v0.22.1 ローンチコントロール：戦闘で最初のシフトアップで1枚多く引く／AT の詰まりの救済（atLowDraw）：1ターン最初の自動シフトで、手札が2枚以下なら1枚引く
@@ -647,7 +652,7 @@ function turnEnd(gasout){
 function curPat(e){return e.morph?e.morph[e.mi%e.morph.length]:e.pat}
 function curAct(e){const p=curPat(e);return p[e.pi%p.length]}
 function formOf(e){return e.morph&&e.forms?e.forms[e.mi%e.forms.length]:""}
-function eAtk(e,v){return Math.max(0,Math.round(v*B.am)+e.atkUp-e.noise)}
+function eAtk(e,v){return Math.max(0,Math.round(v*B.am*(wxMinus()&&wxDef().eAtk||1))+e.atkUp-e.noise)}/* ★v0.22.128 夜明け：敵の攻撃 +10%（得意は効かない） */
 /* ★v0.22.8 design 10-7：大きな攻撃の予告（攻撃・連撃・貫通の合計がエンジン耐久の最大の 1/3 以上、貫通はいつでも） */
 function bigIntent(e){const p=curAct(e);if(!p)return false;if(p[0]==="prc")return true;
   const t=p[0]==="atk"?eAtk(e,p[1]):p[0]==="multi"?eAtk(e,p[1])*p[2]:0;return t>0&&t>=G.maxhp*(B&&B.e&&B.e.rank==="boss"?1/3:1/2)}/* ★design 10-7：ボス 1/3・ほか 1/2・貫通はいつでも */

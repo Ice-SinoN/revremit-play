@@ -347,6 +347,7 @@ function drawStageC2_(g,dt,st){const t=A.now,S=BG_FX.strength;g.drawImage(A.wxBa
     const a=lo+(hi-lo)*k;g.globalAlpha=1-(1-a)*S;g.drawImage(n.im,n.x,n.y);g.globalAlpha=1});
   st.sheets.forEach(s0=>{const i=Math.floor(t/s0.ms)%s0.fr.length;g.globalAlpha=0.5+0.5*S;g.drawImage(s0.fr[i],s0.x,s0.y);g.globalAlpha=1});
   if(A.wxFx){const f=A.wxFx;let q=t%f.total,i=0;while(i<f.fr.length-1&&q>=f.dur[i]){q-=f.dur[i];i++}g.drawImage(f.fr[i],0,0)}/* ★v0.22.126 降る雨・雪（背景の上・キャラの下） */
+  if(A.wxProc)wxProcDraw(g,dt);/* ★v0.22.128 霧・黒い霧・花吹雪・夜明け（絵が来るまでコードで描く幕） */
   if(st.snow){const sn=st.snow,[ax,ay,aw,ah]=sn.area;sn.p.forEach(p=>{p.y+=p.v*S*dt/1000;p.ph+=dt/700;if(p.y>ay+ah){p.y=ay;p.x=Math.random()*aw}
     g.globalAlpha=sn.alpha[p.k]*S/0.6>1?sn.alpha[p.k]:sn.alpha[p.k]*S/0.6;if(sn.ims[p.k])g.drawImage(sn.ims[p.k],Math.round(ax+p.x+Math.sin(p.ph)*p.sw),Math.round(p.y))});g.globalAlpha=1}
 }
@@ -411,3 +412,12 @@ function redEdge(g,dt){const md=(typeof OPTS!=="undefined"&&OPTS.redFx)||"full";
   A.redA=(A.redA||0)+(tgt-(A.redA||0))*Math.min(1,dt/180);if(A.redA<0.01)return;
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,pul=rm?1:0.85+0.15*Math.sin(A.now/1600*Math.PI*2);
   g.globalAlpha=Math.min(0.75,A.redA*0.7*pul);g.drawImage(redEdgeCanvas(),0,0);g.globalAlpha=1}
+
+/* ★v0.22.128 天候の幕（コード）：fog＝薄い白い帯がゆっくり流れる／blackfog＝零号の黒い霧／petals＝花びら／dawn＝下から明るい朝の色。明るさは変えない（点滅なし） */
+function wxProcDraw(g,dt){const k=A.wxProc,t=A.now,W=RES.W,H=RES.H;
+  if(k==="fog"||k==="blackfog"){const col=k==="fog"?"200,210,235":"18,8,28",a=k==="fog"?0.10:0.22;for(let i=0;i<6;i++){const y=40+i*48+Math.sin(t/4000+i)*10,x=((t/60*(i%2?1:-1)+i*137)%(W*2))-W/2;g.fillStyle=`rgba(${col},${a})`;g.fillRect(Math.round(x),Math.round(y),W,22);g.fillRect(Math.round(x-W),Math.round(y+6),W,14)}
+    g.fillStyle=`rgba(${col},${k==="fog"?0.08:0.16})`;g.fillRect(0,0,W,H);return}
+  if(k==="dawn"){const gr=g.createLinearGradient(0,H,0,H*0.3);gr.addColorStop(0,"rgba(255,170,90,.22)");gr.addColorStop(1,"rgba(255,170,90,0)");g.fillStyle=gr;g.fillRect(0,0,W,H);return}
+  if(k==="petals"){if(!A.wxP){A.wxP=[];for(let i=0;i<70;i++)A.wxP.push({x:Math.random()*W,y:Math.random()*H,v:18+Math.random()*30,ph:Math.random()*6.28,c:Math.random()<0.5?"#ff9ec8":"#ffd0e4"})}
+    g.fillStyle="rgba(255,190,220,.07)";g.fillRect(0,0,W,H);
+    A.wxP.forEach(p=>{p.y+=p.v*dt/1000;p.x+=Math.sin(p.ph+t/700)*0.4-0.3;if(p.y>H){p.y=-4;p.x=Math.random()*W}if(p.x<-4)p.x=W;g.fillStyle=p.c;g.fillRect(Math.round(p.x),Math.round(p.y),2,2)})}}
