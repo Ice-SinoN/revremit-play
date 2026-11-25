@@ -134,7 +134,7 @@ function deckErrors(dk,charId){const e=[],pool=deckPool(charId);
   if(deckOgCount(dk)>(RULES.ogDeckMax||1))e.push(`奥義は${RULES.ogDeckMax||1}枚まで`);/* ★v0.22.102 */
   const t=deckCount(dk);if(t!==RULES.deckSize)e.push(`デッキは${RULES.deckSize}枚（今 ${t}枚）`);return e}
 /* ★v0.22.102 デバッグ（QA）：?dbg=ogall か DBG.ogAll=true。DBG.og＝入れる奥義の id（なければその子の1枚目） */
-var DBG=(typeof window!=="undefined"&&window.DBG)||{};try{if(typeof location!=="undefined"&&/[?&]dbg=ogall/.test(location.search))DBG.ogAll=true}catch(e){}
+var DBG=(typeof window!=="undefined"&&window.DBG)||{};try{if(typeof location!=="undefined"&&/[?&]dbg=ogall/.test(location.search)&&!/github\.io$/.test(location.hostname))DBG.ogAll=true/* ★v0.22.122 公開β（revremit-play）では効かない（design 10-15-4） */}catch(e){}
 function dbgOgApply(ch){const ids=Object.keys(CARDS).filter(id=>CARDS[id].r==="OG"&&CARDS[id].own===ch);if(!ids.length)return;if(G.ul)ids.forEach(id=>{if(!G.ul.cards.includes(id))G.ul.cards.push(id)});
   const want=DBG.og&&ids.includes(DBG.og)?DBG.og:ids[0];G.deck=G.deck.filter(c=>rarityOf(c)!=="OG");const i=G.deck.findIndex(c=>rarityOf(c)==="C"&&CD(c).own==="N");if(i>=0)G.deck.splice(i,1);G.deck.push(inst(want))}
 function deckOgCount(dk){return Object.entries(dk).reduce((a,[id,n])=>a+(CARDS[id]&&CARDS[id].r==="OG"?n:0),0)}
