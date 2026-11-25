@@ -19,7 +19,8 @@ with sync_playwright() as p:
       if e["n2"].get("rain",0)<45:ng(f"雨の夜 {e['n2']}")
       if e["n3"].get("fog",0)<35:ng(f"霧の夜 {e['n3']}")
       if e["n4"].get("snow",0)<45:ng(f"雪の夜 {e['n4']}")
-      if e["n1"].get("fog",0) or e["n1"].get("rain",0)>40:ng(f"N1 {e['n1']}")
+      if e["n1"].get("fog",0)>25 or e["n1"].get("rain",0)>40:  # ★v0.22.147 A2：N1 にもふつうの霧（〜20%）が出る
+       ng(f"N1 {e['n1']}")
       if not e["spE"] or e["spE"][0]!="スプラッシュ" or not e["spE"][1] or e["n1el"].startswith("splash"):ng(f"スプラッシュ {e}")
       if not e["f4"]>e["f3"]*1.15:ng(f"雪の夜の凍結 {e['f3']} {e['f4']}")
     # 霧の夜のマップ

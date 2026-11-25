@@ -15,7 +15,7 @@ with sync_playwright() as p:
     if not r[0] or any(x!="dry" for x in r[1]):ng(f"{w}: 初めのラン {r}")
     st=pg.evaluate("()=>{const c={};let boss=0;for(let i=0;i<60;i++){newRunState('MT','YUKI',[],null,{});G.map.flat().forEach(n=>{if(n.k==='boss'){if(n.wx!=='dry')boss++;return}if(n.wx)c[n.wx]=(c[n.wx]||0)+1})}return {c,boss}}")
     if st["boss"]:ng(f"{w}: ボスがドライでない")
-    if set(st["c"])-{"dry","rain","snow"}:ng(f"{w}: 霧・夜明けが出た {st}")
+    if set(st["c"])-{"dry","rain","snow","fog","dawn"} or not {"fog","dawn"}<=set(st["c"]):ng(f"{w}: 天候の種類 {st}")  # ★v0.22.147 A2：ふつうのマスにも霧・夜明け
     # 同じ段に同じ天候（ドライ以外）が3つ並ばない
     tri=pg.evaluate("()=>{let n=0;for(let i=0;i<60;i++){newRunState('MT','YUKI',[],null,{});G.map.forEach(r=>{const c={};r.forEach(x=>{if(x.wx&&x.wx!=='dry')c[x.wx]=(c[x.wx]||0)+1});if(Object.values(c).some(v=>v>=3))n++})}return n}")
     if tri:ng(f"{w}: 同じ段に3つ {tri}")

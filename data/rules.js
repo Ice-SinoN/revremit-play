@@ -35,6 +35,6 @@ const NODE_W=[["battle",50,1],["elite",12,3],["shop",10,2],["sim",10,2],["lucky"
 /* ★v0.22.130 LD 11-87：雨のチェイン +5% → +3%。★v0.22.126 路面コンディション（天候・design 10-16-1）。今は雨・雪だけ出す（霧・夜明けは背景が届いてから＝WX_ON に足す）。数は仮・LD と確かめる */
 const WEATHER={dry:{n:"ドライ"},rain:{n:"雨",chainAdd:0.03,coreMul:0.5},snow:{n:"雪",frzMul:1.5,bandMul:0.7},fog:{n:"霧",shiftBlk:2,hideIntent:1},dawn:{n:"夜明け",gas1:1,redDown:500,eAtk:1.1}};
 const WX_W={street:{dry:50,rain:25,snow:0,fog:15,dawn:10},touge:{dry:30,rain:10,snow:30,fog:20,dawn:10},circuit:{dry:45,rain:25,snow:5,fog:5,dawn:20}};
-const WX_ON=["dry","rain","snow"];
+const WX_ON=["dry","rain","snow","fog","dawn"];/* ★v0.22.147 A2（design 24-4）：ふつうのマスにも霧・夜明け（WX_W の表どおり） */
 /* ★v0.22.131 ヒート（design 10-17-1）：0〜5。勝つ +1・エリート（裏道も）+2・悪い所が効く天候で勝つ +1。ガレージで 0・ショップ／シム／ラッキー −1・ボスに勝つ −2。1段につき パーツ代 +10%・レア度 C −6／R +4／E +2・敵の体力と攻撃 +3%（ボスにも） */
 RULES.heat={max:5,win:1,elite:2,badWx:1,garage:0,shop:-1,boss:-2,gold:0.1,hpAtk:0.015/* ★v0.22.133 LD 11-93：+3% → +1.5%／段 */,rar:[-9,6,3]/* ★v0.22.145 design 24-5：5段で R 60%・E 25%（前は R 50%・E 20%＝[-6,4,2]）。途中の段も同じ割合（1段 C −9・R +6・E +3） */};
