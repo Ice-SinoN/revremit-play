@@ -186,6 +186,6 @@ T("10-18-1 第2形態の天候：体力 50% で変わる（残光 雨・白夜 �
   go("YUKI","boss3");B.wx="fog";const b0=B.block;onShiftUp("good");R.fogBlk=B.block-b0;
   go("YUKI","miketsu");const r0=redLo(),a0=eAtk(B.e,20);B.wx="dawn";R.red=r0-redLo();R.atk=[a0,eAtk(B.e,20)];
   go("HINA","miketsu");const h0=eAtk(B.e,20);B.wx="dawn";R.hina=[h0,eAtk(B.e,20)];return R`,r=>r.w.join()==="dry>rain,dry>snow,dry>fog,dry>rain,dry>fog,dry>dawn"&&r.early==="dry"&&r.fogBlk>=2&&r.red===500&&r.atk[1]===Math.round(r.atk[0]*1.1)&&r.hina[0]===r.hina[1]);
-T("10-17 ヒートのレア度（design 24-5）：0段 C60・R30・E10／2段 C42・R42・E16／5段 C15・R60・E25",`const H=RULES.heat,W=RULES.rarityW,f=h=>[W.C+H.rar[0]*h,W.R+H.rar[1]*h,W.E+H.rar[2]*h];return [f(0),f(2),f(5)]`,r=>JSON.stringify(r)==="[[60,30,10],[42,42,16],[15,60,25]]");
+T("10-17 ヒートのレア度（design 24-6 で前の形）：0段 C60・R30・E10／2段 C48・R38・E14／5段 C30・R50・E20",`const H=RULES.heat,W=RULES.rarityW,f=h=>[W.C+H.rar[0]*h,W.R+H.rar[1]*h,W.E+H.rar[2]*h];return [f(0),f(2),f(5)]`,r=>JSON.stringify(r)==="[[60,30,10],[48,38,14],[30,50,20]]");
 T("12-4 上の夜の得（design 24-4）：ログの夜のボーナス 1+0.2×(夜−1)（N1 ×1・N4 ×1.6・N11 ×3）",`const L=UNLOCK.log,f=n=>Math.round(Math.min(L.nightBonusMax,1+L.nightBonus*(n-1))*100)/100;return [f(1),f(2),f(4),f(6),f(11)]`,r=>JSON.stringify(r)==="[1,1.2,1.6,2,3]");
 out.forEach(l=>console.log(l));console.log(`合計 ${out.length}・NG ${ng}`);
