@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.122（β2）";
+const VERSION="試作 v0.22.123（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -284,7 +284,7 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
   showMap()}
 
 /* ---- 戦闘 ---- */
-function enterBattle(){if(typeof charArtRetry==='function')charArtRetry();{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
+function enterBattle(){if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
   A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";
@@ -383,6 +383,7 @@ function renderBattle(){
   ${B.chain?`<div class="chain" ${at(...L.chain)}>CHAIN <b>${B.chain}</b> <span>+${chainPct}%</span></div>`:""}
   ${G.mode==="MT"&&B.perfChain>0?`<button class="pchain" ${at(6,55,96,14)} onclick="toast2(TU('perfect_chain_help','パーフェクトが続いた数。'),56,3000)">${esc(TU("perfect_chain","PERFECT ×{n}").replace("{n}",B.perfChain))}</button>`:""}
   <div class="ename${isBoss?" boss":""}" ${at(...(isBoss?LB.ename:L.ename))}>${esc(e.n)}${form?`<span class="small">・${form}</span>`:""}${tag?`<span class="tg">${tag}</span>`:""}</div>
+  ${isBoss&&e.weakGear?`<div class="weakt${weakKnown(e)?" on":""}" ${at(340,44+12*(e.gimTxt?gimLines(e).length:0),296,12)}>${esc(weakLabel(e))}</div>`:""}
   <div class="intent" ${at(...(isBoss?LB.intent:L.intent))}>次：${esc(intent(e))}${e.burn?` 炎上${e.burn}`:""}${e.noise?` ノイズ${e.noise}`:""}</div>
   ${e.gimTxt?(isBoss?`<div class="small gim boss" ${at(...LB.gim)}>${gimLines(e).map(esc).join("<br>")}</div>`:`<div class="small gim" ${at(...L.gim)}>${esc(e.gimTxt)}${e.five?`（今 ${B.cards}枚）`:""}${e.cap?`（今 ${B.atks}/${e.cap}）`:""}</div>`):""}
   ${(()=>{const R=RULE(),rs=R.rescue?(()=>{const used=(B.rescueT||0)>=(R.rescueN||1),ic=`assets/c2/ui/c2/revremit_ui_rescue_${used?"used":"ready"}.png`;/* ★v0.22.36 花の便りの印（text 27-2 rescue_icon） */
@@ -438,6 +439,8 @@ function drivePick(k){const T=TEXT.ui||{};if(B.over)return;if(busy())uiSkip();
 function tabShift(i){if(B.over)return;if(busy())uiSkip();const c=B.hand[i];if(!c)return;const p=preview(c);
   if(S.sel===i&&p.ok&&p.canShift&&tutAllow("play",{i,shift:true})){doPlay(i,true);return}clickCard(i)}
 /* ★BUG-24：ボスの特徴は「・」で区切って1行ずつ（折り返さない）。数えるものは、その行のうしろに */
+/* ★v0.22.123 弱点ギアの札（ボスの帯・text 34-3） */
+function weakLabel(e){const W=TEXT.wk||{};if(!weakKnown(e))return W.unknown||"弱点：？";const w=weakOf(e),[a,b]=weakRange(w),lv=(W.lv||{})[w]||w;return(a===b?(W.one||"弱点：{lv}ギア（{n}速）"):(W.known||"弱点：{lv}ギア（{n}〜{m}速）")).replace("{lv}",lv).replace("{n}",a).replace("{m}",b)}
 function gimLines(e){return e.gimTxt.split("・").map((t,i)=>t+(i===0&&e.five?`（今 ${B.cards}枚）`:"")+(i===0&&e.cap?`（今 ${B.atks}/${e.cap}）`:""))}
 /* BUG-22：予告の文は「　」で区切った語ごとに折り返さない（「ガソリ／ン −2」にならない） */
 const nwrap=t=>String(t).split("　").map(x=>`<span class="nw">${esc(x)}</span>`).join("　");

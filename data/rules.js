@@ -7,7 +7,7 @@ const RULES={
   // ★つながり（虎雪 11-06 07:26）
   chainStep:0.10,chainMax:10,bandMul:1.5,
   // 止め（design 0-6）
-  shiftCap:3,cardCap:12,multCap:5,frzCap:40,
+  shiftCap:3,cardCap:12,multCap:5,weakMul:1.5,/* ★v0.22.123 弱点ギアのダメージ ×1.5（最終倍率の上限の中） */frzCap:40,
   red:{MT:7000,AT:6000},areaHeal:0.3,
   atMult:0.9,atLimiter:0.5,atAutoDown:3500,atFirstGas:0,/* ★v0.22.46 AT の1ターン最初の自動シフトも +1（LD 11-30・チーフ 21:40） */
   overDmg:8,overDmgCool:4,money0:30,partsMax:5,

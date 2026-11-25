@@ -167,6 +167,8 @@ function playEvents(evs){
         if(x.k==="phase")push({d:300,on(){phaseArt(x);A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
         if(x.k==="rotate")push({d:1,on(){for(let k=0;k<x.n;k++){setTimeout(()=>SND.se("card_toss"),k*120)}const dn=x.drawn!=null?x.drawn:x.n;for(let k=0;k<dn;k++)setTimeout(()=>SND.se("card_draw"),x.n*120+80+k*120)}});/* ★audio-check 2：引く音は引けた枚数だけ *//* ★audio-list 11-2：捨てる 0.12秒ずつ → 同じ枚数引く */
         if(x.k==="rescue")push({d:1,on(){fxWord(PC().x-20,PC().y-74,"花の便り","#FF9FC8");fxParts(PC().x,PC().y-30,8,["#FF9FC8","#F7F9F5"],{v:22,g:-8});SND.se("card_draw");if(x.first&&typeof toast2==="function")toast2("MOMO：ふふ、お届けものよ。",226)}});/* ★design 10-10・text 27-2 */
+        if(x.k==="weakFound")push({d:1,on(){const W=(typeof TEXT!=="undefined"&&TEXT.wk)||{};fxText(A.E?A.E.x:466,RES.bars.y-46,W.pop||"弱点！","big",900);SND.se("weak_hit");try{const p=PRF();p.weakSeen=Object.assign({},p.weakSeen,{[x.key]:1});SAVE.auto()}catch(e){}const t=W.found&&W.found[x.boss];if(t)setTimeout(()=>toast2("みお："+t,250,3200),500)}});/* ★v0.22.123 弱点ギア */
+        if(x.k==="weakHit")push({d:1,on(){fxText(A.E?A.E.x:466,RES.bars.y-40,"弱点 ×"+(RULES.weakMul||1.5),"",500)}});
         if(x.k==="pbreak")push({d:1,on(){const T=(typeof TEXT!=="undefined"&&TEXT.ui)||{};fxText(A.P.x,RES.bars.y-46,(T.perfect_chain||"PERFECT ×{n}").replace("{n}",x.n),"brk",700);SND.se("perfect_break",{n:x.n})}});/* ★v0.22.100 audio v0.27：連続が切れた（字が小さく消える） */
         if(x.k==="cage")push({d:1,on(){fxWord(PC().x,PC().y-60,"CAGE","#FFD34D")}});
       });

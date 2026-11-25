@@ -494,6 +494,17 @@ function onShiftUp(g){
    今そのカードを打ったらどうなるかを「写しの上でためしに打つ」で出す（計算は playCard そのもの）。
    だから、カードの面の数字＝予告＝実際の結果が必ずそろう（チェイン・帯・シフト効果・大技も入る）。
    戻り値：{hits:[1発ごとのダメージ（敵の防御で減る前）], block, win, dead, rpm, gear, gas, ehp:打ったあとの敵の体力, eblk, chain} */
+/* ★v0.22.123 弱点ギア（design 10-16-2）：ボスの e.weakGear＝"low"|"mid"|"high"（形が変わるボスは形ごとの配列）。ギアの帯はキャラの段の数で決める。
+   見つける前は予告（simulateCard）にふくめない。見つけたら G.weakSeen と（画面側で）profile.weakSeen に残る＝次のランからはじめから見える */
+const WEAK_TAB={5:[2,4],6:[2,5],8:[3,7]};
+function weakRange(k,n){n=n||car().gears;const r=Math.max(1,Math.round(n/3)),t=WEAK_TAB[n]||[r,n-r+1];return k==="low"?[1,t[0]]:k==="high"?[t[1],n]:[t[0]+1,t[1]-1]}
+function weakOf(e){e=e||(B&&B.e);if(!e||!e.weakGear)return null;const w=e.weakGear;return Array.isArray(w)?w[(e.mi||0)%w.length]:w}
+function weakKey(e){e=e||(B&&B.e);return(B&&B.key||e.n)+(Array.isArray(e.weakGear)?":"+((e.mi||0)%e.weakGear.length):"")}
+function weakKnown(e){const k=weakKey(e);if(G.weakSeen&&G.weakSeen[k])return true;try{return typeof PRF==="function"&&!!(PRF().weakSeen||{})[k]}catch(x){return false}}
+function weakMul(){const e=B&&B.e,w=weakOf(e);if(!w)return 1;const g=B.gear+1,[a,b]=weakRange(w);if(g<a||g>b)return 1;
+  const k=weakKey(e);if(B.sim&&!weakKnown(e))return 1;
+  if(!B.sim){const first=!weakKnown(e);G.weakSeen=G.weakSeen||{};G.weakSeen[k]=1;if(first){addLog("弱点！");ev({k:"weakFound",key:k,boss:B.key})}else ev({k:"weakHit"})}
+  return RULES.weakMul||1.5}
 function simulateCard(i,shift){
   if(!B||B.over||!B.hand[i]||!preview(B.hand[i]).ok)return null;
   const og=G,ob=B,su=uidN;G=structuredClone(og);B=structuredClone(ob);let r=null;
@@ -552,6 +563,7 @@ function playCard(i,shift){
     else if(overRev())return finish("dead");
   }
   m*=chainMul();// ★チェイン
+  if(d.t==="atk")m*=weakMul();/* ★v0.22.123 弱点ギア（design 10-16-2） */
   m=Math.min(m,d.r==="OG"&&RULES.ogMultCap?RULES.ogMultCap:RULES.multCap);// ★最終倍率の上限（★v0.22.102 奥義は ×3 まで）
   B.chain++;if(B.chainNext2&&!d.fx.some(f=>f[0]==="chainDouble")){const n=B.chainNext2===true?2:B.chainNext2;B.chainNext2=false;B.chain+=n-1;addLog(`結び目：チェイン +${n}`)}G.st.maxChain=Math.max(G.st.maxChain,B.chain);
   if(B.chain>=5&&!B.chain5){B.chain5=true;addCharge("チェイン5")}
