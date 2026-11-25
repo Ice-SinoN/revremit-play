@@ -7,7 +7,7 @@
    ゲームの engine.js・data/*.js をそのまま使う（数字はゲームと同じ）。 */
 const BETA={
   PREF:{v14:null,
-    beta:["nadare","eikyu","rinkai","senbon","kyokkou","whiteout","rikka","renpou","rikkamai","setsuka","tsurara","hakunetsu","hyouen","saihyou","hakusen","muhyou","fubuki","kazahana","shimo","hyouheki","slip","drift","counter","clutchk","dblclutch","hyoujin","heeltoe","backfire","sasame","pitin","cooldown","ebrake","oilchange","fuelcut","pitboard","qshift","braking","blip","hyouga"]},
+    beta:["nadare","eikyu","rinkai","senbon","kyokkou","whiteout","rikka","renpou","rikkamai","setsuka","tsurara","hakunetsu","hyouen","saihyou","hakusen","muhyou","fubuki","kazahana","shimo","hyouheki","slip","drift","pitsign"/* ★v0.22.151 E14 */,"counter","clutchk","dblclutch","hyoujin","heeltoe","backfire","sasame","pitin","cooldown","ebrake","oilchange","fuelcut","pitboard","qshift","braking","blip","hyouga"]},
   NODE_PREF:{hi:["shop","lucky","hidden","elite","battle","sim","garage","boss"],lo:["garage","shop","lucky","battle","sim","hidden","elite","boss"]},
   /* ★v0.22 仲間：その子の専用カードを E → R → C（アタック先）の順で前に足す（仮の好み） */
   allyPref(ch){const rk={R:0,C:1,E:2};return Object.keys(CARDS).filter(id=>CARDS[id].own===ch&&CARDS[id].r!=="SK").sort((a,b)=>rk[CARDS[a].r]-rk[CARDS[b].r]||(CARDS[a].t==="atk"?0:1)-(CARDS[b].t==="atk"?0:1))},
@@ -16,6 +16,9 @@ const BETA={
     return BETA.PREF[name]||base},
   /* ★v0.22.133 LD：道の選び方 ROUTE=hot（★v0.22.137）／fight（戦闘・エリート・裏道を先に＝熱い道）／garage（ボスの前の段にガレージがあれば必ず選ぶ＝冷ます道）／なし＝今のまま */
   route:null,
+  /* ★v0.22.151 E14（design 24-4）：ボットも合成する（遊ぶ人に近い測りに）。FUSE=0 で前の形（合成しない）。合成できる組が複数なら、エピックになる組 → 強化ずみになる組 → 先の組 */
+  fuse:true,cnt:{fuse:0,rot:0},
+  fusePick(){const fo=fuseOptions();if(!fo.length)return null;const rk=o=>(rarityOf(o.id)==="E"?2:0)+(o.up?1:0);return fo.slice().sort((x,y)=>rk(y)-rk(x))[0]},
   node(){const r=G.map[G.row];if(BETA.route==="fight"){const P=["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}
     if(BETA.route==="hot"){const lo=G.hp<G.maxhp*0.5,P=lo?["garage","shop","lucky","sim","battle","hidden","elite","boss"]:["elite","hidden","battle","shop","lucky","sim","garage","boss"];let bi=0,bv=99;r.forEach((n,j)=>{const v=P.indexOf(n.k);if(v>=0&&v<bv){bv=v;bi=j}});return bi}/* ★v0.22.137 ROUTE=hot：戦闘を先に・体力が半分より下ならガレージ */
     if(BETA.route==="garage"){const nx=G.map[G.row+1];if(nx&&nx[0]&&nx[0].k==="boss"){const g=r.findIndex(n=>n.k==="garage");if(g>=0)return g}}
@@ -41,7 +44,7 @@ const BETA={
             if(w.rank==="elite"||w.rank==="boss"){const op=partOptions(3);if(op.length)addPart(op[0],0)}}}}
         else if(n.k==="shop"){for(const k of BOT.TUNE_PREF){const pr=tunePrice(k,n,false);if(pr!=null&&G.money>=pr+10)buyTune(k,pr,false)}
           if(n.feat){const pool=partPool();n.featPart=pool.length?pick(pool):null;if(n.featPart)buyFeat(n,shopPrice(featCost(),n,false),false,G.parts.length>=RULES.partsMax?0:-1)}}
-        else if(n.k==="sim"){const i=BOT.upgrade(kind);if(i>=0)G.deck[i].up=true}
+        else if(n.k==="sim"){const fo=BETA.fuse&&kind!=="random"?BETA.fusePick():null;if(fo){fuseCards(fo);BETA.cnt.fuse++}else{const i=BOT.upgrade(kind);if(i>=0)G.deck[i].up=true}}/* ★v0.22.151 E14：合成できるならシムで合成（強化1回ぶん） */
         else if(n.k==="lucky"){const op=partOptions(3);if(op.length)addPart(op[0],0)}
         else if(n.k==="garage"){G.hp=Math.min(G.maxhp,G.hp+restAmount())}
         advanceRow()}
@@ -64,3 +67,7 @@ const BETA={
     if(B.ev.slice(BETA._ev0).some(x=>x.k==="weakHit"||x.k==="weakFound"))s+=BETA.WEAK_HIT;
     const d1=BETA.weakDist(B.gear),dd=BETA._d0-d1;if(dd&&!(G.mode==="AT"&&B.gear>gear0))s+=dd*BETA.WEAK_STEP;/* AT の高い方は自動にまかせる（上がった分は数えない） */
     return s}})();
+
+/* ★v0.22.151 E14：本当の手で打ったローテーションを数える（BOT.battle の中の試し打ちは数えない） */
+(function(){let tr=0;const b=BOT.battle;BOT.battle=function(k){tr++;try{return b.call(BOT,k)}finally{tr--}};
+  const r=BOT.run;BOT.run=function(a){if(!tr&&a&&a.t==="play"&&B&&B.hand&&B.hand[a.i]&&B.hand[a.i].id==="pitsign")BETA.cnt.rot++;return r.call(BOT,a)}})();
