@@ -667,3 +667,11 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 #ui .yogiri .ygn rt{font:9px/10px "PM10";letter-spacing:2px;color:rgba(208,216,232,.7)}
 /* ★v0.22.162 夜霧の上の足りない所＝fill の部品（128×64・縦横につながる）を、絵の上はしに下そろえで並べる */
 #ui .yogiri .ygf{position:absolute;left:0;right:0;top:0;image-rendering:pixelated;pointer-events:none}
+/* ★v0.22.163 AD v1.25：夜霧は縦いっぱい・左に縦のふち・絵の層は子に分けた（ygb 雲の絵・ygf 上の fill・yge 左のふち） */
+#ui .yogiri{z-index:0}
+#ui .yogiri.art{background:none;border:0;border-radius:0;box-shadow:none}
+#ui .yogiri .ygb,#ui .yogiri .ygf{position:absolute;right:0;image-rendering:pixelated;pointer-events:none}
+#ui .yogiri .ygb{top:0}#ui .yogiri .ygf{top:0}
+#ui .yogiri .yge{position:absolute;left:0;top:0;pointer-events:none;image-rendering:pixelated;background:linear-gradient(90deg,rgba(22,27,45,0),rgba(22,27,45,.35) 30%,rgba(22,27,45,.8) 70%,#161b2d)}/* 部品が届くまでの仮：左へうすく・下は雲の絵のふち（下から18）まで */
+#ui .yogiri .yge.art{background-color:transparent}
+#ui .yogiri .ygl{right:auto;z-index:1}#ui .yogiri .ygn{right:0;z-index:1}

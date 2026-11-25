@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.162（β2）";
+const VERSION="試作 v0.22.163（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -257,8 +257,12 @@ function showMap(){
       const wxt=n.wx&&n.wx!=="dry"&&!hidQ&&i>=G.row?`<span class="wxt wx-${n.wx}">${esc(wxName(n.wx))}${wxFav(n.wx)?"★":""}</span>`:"";/* ★v0.22.126 天候の札（仮の字・アイコンの絵が来たら差しかえ） */const gh=n.ghost&&!hidQ,hg=i===G.row&&!hidQ?heatGain(n):0,hgt=hg?`<span class="heatg">+${hg}</span>`:"";/* ★v0.22.131 勝ったらヒート +n */const inner=wxt+hgt+(artHave(ic)?`${chain?`<img class="px mi mi2" src="${artURL(ic)}" alt="">`:""}<img class="px mi" src="${artURL(ic)}" alt=""><span class="nl">${lab2}</span>`:`<span class="ni">${NODE_ICON[n.k]}</span><span class="nl">${lab2}</span>`);
       h+=i===G.row?`<button class="node k-${n.k}${gh?" ghost":""} ${st}" ${at(x,y,step-4,52)} onclick="enterNode(${j})">${inner}</button>`
                   :`<div class="node k-${n.k}${gh?" ghost":""} ${st}${G.path[i]===j?" went":""}" ${at(x,y,step-4,52)}>${inner}</div>`})});
-  if(fogC>=0){const x0=10+fogC*step-4,yg="assets/c2/ui/c2/revremit_ui_map_yogiri.png",U=TEXT.ui||{};/* 絵（グラフィック班）が届くまでは仮の黒い雲（CSS） */
-    h+=`<div class="yogiri${artHave(yg)?" art":""}" onclick="yogiriHelp()" style="left:${x0}px;top:58px;width:${640-x0}px;height:212px;${artHave(yg)?`background:url('${artURL(yg)}') left bottom/640px 168px repeat-x`:""}">${artHave(yg)?(()=>{const yf="assets/c2/ui/c2/revremit_map_nightfog_fill.png";return `<div class="ygf" style="height:${212-168}px;${artHave(yf)?`background:url('${artURL(yf)}') left bottom/128px 64px repeat`:"background:#161b2d"}"></div>`})():""}<div class="ygl small">${esc(U.fog_map_cloud||U.yogiri_line||`霧の夜：${FV0}段先まで見える`)}</div><div class="ygn">${rubyTxt(U.fog_map_name||U.yogiri_name||"夜霧")}</div></div>`}
+  if(fogC>=0){const x0=10+fogC*step-2,YT=17,YB=304,H=YB-YT,EW=40,yg="assets/c2/ui/c2/revremit_ui_map_yogiri.png",yf="assets/c2/ui/c2/revremit_map_nightfog_fill.png",ye="assets/c2/ui/c2/revremit_map_nightfog_edge_side.png",U=TEXT.ui||{},hy=artHave(yg);
+    /* ★v0.22.163 AD v1.25：雲は縦いっぱい（上の帯の下 y17 〜 チューニングの行の上 y304・上下は画面の部品に隠れる）。見える所との境（左）に縦のふち（edge_side・40 幅・縦に並べる・左が透明）＝届くまでは左へうすくなる仮。マスは左のふちにかからない（x0＝前の段のマスの右はし＋2） */
+    h+=`<div class="yogiri${hy?" art":""}" onclick="yogiriHelp()" style="left:${x0}px;top:${YT}px;width:${640-x0}px;height:${H}px">`+
+      (hy?`<div class="ygb" style="left:${EW}px;height:${H}px;background:url('${artURL(yg)}') left bottom/640px 168px repeat-x"></div><div class="ygf" style="left:${EW}px;height:${H-168}px;${artHave(yf)?`background:url('${artURL(yf)}') left bottom/128px 64px repeat`:"background:#161b2d"}"></div>`
+        +`<div class="yge${artHave(ye)?" art":""}" style="width:${EW}px;height:${artHave(ye)?H:H-18}px;${artHave(ye)?`background:url('${artURL(ye)}') left top/${EW}px 128px repeat-y`:""}"></div>`:"")+
+      `<div class="ygl small" style="left:${EW+6}px;top:${62-YT}px">${esc(U.fog_map_cloud||U.yogiri_line||`霧の夜：${FV0}段先まで見える`)}</div><div class="ygn" style="left:${EW}px;top:${Math.round(H/2)-14}px">${rubyTxt(U.fog_map_name||U.yogiri_name||"夜霧")}</div></div>`}
   h+=heatBar(476,22,true);/* ★v0.22.131（★v0.22.153 回復の字は炎の左） */
   {const cur=G.map[G.row]||[],ws=[...new Set(cur.map(n=>n.wx).filter(w=>w&&w!=="dry"))];if(ws.length)h+=`<div class="wxleg small" ${at(8,40,560,16)}>${ws.map(w=>`<b class="wx-${w}">${esc(wxName(w))}${wxFav(w)?"★":""}</b>：${esc(wxFav(w)?wxLine(w).split("／")[0]+"（得意＝悪い所なし）":wxLine(w))}`).join("　")}</div>`}/* ★v0.22.126 今の段の天候の1行 */
   h+=`<div class="mparts" ${at(8,306,200,24)}>${G.parts.map(p=>`<span title="${esc(PARTS[p].n)}">${partIcon(p,24)}</span>`).join("")}</div><div class="small" ${at(150,312,420)}>チューニング：${Object.keys(TUNE).map(k=>TUNE[k][0]+G.tune[k]).join(" ")}</div>
