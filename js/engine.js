@@ -113,8 +113,9 @@ function baseCost(c,up,gear){const d=CD(c);up=up===undefined?!!c.up:up;
   return up&&d.cu!=null?d.cu:d.c}
 function costOf(c){const d=CD(c);let x=baseCost(c,undefined,B?B.gear:0);if(d.t==="atk"&&B&&B.atkDown)x=Math.max(0,x-B.atkDown);return x}
 function descOf(c,up,gear){const d=CD(c);up=up===undefined?!!c.up:up;const v=cardVal(c,up);
-  return (up&&d.du?d.du:d.d).replace(/\{v\}/g,v)/* ★v0.22.7 du＝強化したときの説明 */.replace(/\{gv\}/g,Math.round(v*((gear||0)+1))).replace(/\{k\}/g,kOf(c,up))}
-function argOf(a,v,k){return a==="v"?v:a==="k"&&k!=null?k:a}
+  return (up&&d.du?d.du:d.d).replace(/\{v\}/g,v)/* ★v0.22.7 du＝強化したときの説明 */.replace(/\{gv\}/g,Math.round(v*((gear||0)+1))).replace(/\{k\}/g,kOf(c,up)).replace(/\{j\}/g,jOf(c,up))}
+function argOf(a,v,k,j){return a==="v"?v:a==="k"&&k!=null?k:a==="j"&&j!=null?j:a}
+function jOf(c,up){const d=CD(c);up=up===undefined?!!c.up:up;return up&&d.ju!=null?d.ju:d.j}/* ★v0.22.167 3つ目の数 {j}（design 10-21 v0.11.137：陽だまりグリップ） */
 function kOf(c,up){const d=CD(c);up=up===undefined?!!c.up:up;return up&&d.ku!=null?d.ku:d.k}/* ★v0.22.24 2つ目の数 {k}（text 28-0） */
 /* 回転を下げる量（見込み用） */
 function revDownOf(c){const v=cardVal(c);return CD(c).fx.filter(f=>f[0]==="revDown").reduce((s,f)=>s+argOf(f[1],v),0)}
@@ -539,7 +540,7 @@ function simulateCard(i,shift){
 /* カードに書いてある元の数字（倍率・帯なし）：色を変える基準。num の書き方は cards.js */
 function baseNumbers(c){const d=CD(c),v=cardVal(c),hits=[];let block=0;
   d.fx.forEach(f=>{const a=argOf(f[1],v);if(f[0]==="atk"||f[0]==="atkGear"||f[0]==="atkGear6"||f[0]==="kousetsu"||f[0]==="taikan"||f[0]==="atkPerfCnt"||f[0]==="perfBoth"||f[0]==="vsBigBoth")hits.push(a);if(f[0]==="atkHitsChainN")for(let k=0;k<f[2];k++)hits.push(a);/* ★BUG-43 紅雪・戴冠にも数字（実際の数＝×0.5 か満額は simulateCard） */if(f[0]==="atkHits")for(let k=0;k<f[2];k++)hits.push(a);
-    if(f[0]==="blk"||f[0]==="blkGear"||f[0]==="blkRaw"||f[0]==="vsBigBoth")block+=a;if(f[0]==="perfBoth")block+=argOf(f[2],v)});
+    if(f[0]==="blk"||f[0]==="blkGear"||f[0]==="blkRaw"||f[0]==="vsBigBoth")block+=a;if(f[0]==="perfBoth")block+=argOf(f[2],v,kOf(c))});
   if(d.fx.some(f=>f[0]==="atkBlk"||f[0]==="atkChain"||f[0]==="atkFrz")&&!hits.length)hits.push(0);
   return{hits,block}}
 /* カードを打つ。shift：MT でシフトアップするか（AT は自動で決まる） */
@@ -597,7 +598,7 @@ function playCard(i,shift){
   m=Math.round(m*100)/100;
   let v=cardVal(c);if(band)v=rnum(v*((d.bm||RULES.bandMul)+treeCardBand(c.id)),v);// ★帯（★v0.22.48 ツリーの3段目 +0.25）
   const x=mkCtx(m);
-  const kv=kOf(c),runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v,kv)))});
+  const kv=kOf(c),jv=jOf(c),runFx=()=>d.fx.forEach(f=>{const op=OPS[f[0]];if(op)op(x,...f.slice(1).map(a=>argOf(a,v,kv,jv)))});
   const blk0=B.block,hu0=new Set(B.hand.map(h=>h.uid));if(d.frzNoCap)B.frzNoCapNow=true;
   B.retry=false;runFx();B.frzNoCapNow=false;if(c.id==="m_hougou")B.hougouT=true;
   /* ★v0.22.47 改造の2段目（余熱・下取り・アルバム） */
