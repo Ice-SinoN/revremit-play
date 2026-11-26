@@ -42,6 +42,9 @@ function fxParts(x,y,n,col,o){o=o||{};for(let i=0;i<n;i++){const a=(o.a!=null?o.
   A.fx.push({k:"pt",x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(o.up||0),g:o.g!=null?o.g:60,col:Array.isArray(col)?col[i%col.length]:col,s:o.s||1,t:0,life:o.life||500})}}
 function fxLine(x1,y1,x2,y2,col,life){A.fx.push({k:"line",x1,y1,x2,y2,col,t:0,life:life||160})}
 function fxRing(x,y,r,col,life){A.fx.push({k:"ring",x,y,r,col,t:0,life:life||300})}
+/* ★v0.22.181 白いまたたき（光の粒）：体の上の決まった範囲に、十字の星を出して消す。とどめの色はキャラの色（ライムは YUKI だけ） */
+function fxTwinkle(x,y,n){for(let i=0;i<n;i++)A.fx.push({k:"tw",x:x-46+Math.random()*92,y:y-205+Math.random()*190,s:3+Math.floor(Math.random()*3),t:0,life:260+Math.random()*200})}
+function finCol(){const c=String((typeof G!=="undefined"&&G&&G.char)||"YUKI").toUpperCase();return({YUKI:"#C5FF45",HINA:"#FF8A3D",MOMO:"#FF8FC8",NANA:"#FFD34D"})[c]||"#F7F9F5"}
 function fxCat(x,y,life){A.fx.push({k:"cat",x,y,t:0,life:life||700})}
 /* 画面いっぱいの光：1秒に3回をこえない（前の光から 350ms はつけない） */
 function flash(col,life){const now=A.now||performance.now();if(A.lastFlash&&now-A.lastFlash<350)return;A.lastFlash=now;A.flash={col,t:0,life:life||90}}
@@ -80,10 +83,10 @@ const MOTIONS={
     ys("atk_heavy",1,{d:210,dx:26,on(){const f=FIST();fxLine(f.x-20,f.y,f.x+60,f.y,"#F7F9F5",180);hits.forEach(e=>hitEnemyFx(e,true))}}),
     ys("atk_heavy",1,{d:120,dx:8,on(){settleE()}}),ys("stand",0,{d:60,dx:0})]},
   atk_finisher(hits){return[
-    ys("atk_finisher",0,{d:320,dx:0,on(){A.dim=0.35},up(k){A.P.tint=(Math.floor(k*6)%2)?"#C5FF45":null;if(Math.random()<0.5)fxParts(FIST().x,FIST().y,2,["#C5FF45","#F7F9F5"],{v:20,g:-20,life:300})}}),
+    ys("atk_finisher",0,{d:320,dx:0,on(){A.dim=0.35;A.P.tint=null;fxTwinkle(A.P.x,A.P.y,6)},up(k){if(Math.random()<0.35)fxTwinkle(A.P.x,A.P.y,1);if(Math.random()<0.5)fxParts(FIST().x,FIST().y,2,[finCol(),"#F7F9F5"],{v:20,g:-20,life:300})}}),/* ★v0.22.181 AD v1.38：体をライム一色に点めつさせない（絵が消えたように見える）。絵はそのまま、上に白いまたたきを重ねる。4人同じ形 */
     ys("atk_finisher",0.5,{d:140,on(){A.P.tint=null},up(k){A.P.dx=k*56;A.P.dy=-Math.sin(k*Math.PI)*10}}),
     ys("atk_finisher",1,{d:340,dx:60,dy:0,on(){flash("#F7F9F5",120);A.shake=5;const c=EC();
-      fxParts(c.x,c.y,24,["#F7F9F5","#7FD8FF","#C5FF45","#FF4040"],{v:90,g:30,life:600});hits.forEach(e=>hitEnemyFx(e,true))}}),
+      fxParts(c.x,c.y,24,["#F7F9F5","#7FD8FF",finCol(),"#FF4040"],{v:90,g:30,life:600});hits.forEach(e=>hitEnemyFx(e,true))}}),
     ys("stand",0,{d:180,on(){A.dim=0},up(k){A.P.dx=60*(1-k)},end(){settleE()}})]},
   guard(){return[ys("guard",0,{d:120,dx:-2}),ys("guard",1,{d:260,on(){const f={x:A.P.x+22,y:A.P.y-36};fxRing(f.x,f.y,14,"#F7F9F5",260);fxParts(f.x,f.y,6,"#7FD8FF",{v:20,g:0})}}),ys("stand",0,{d:40,dx:0})]},
   debuff(){return[ys("debuff",0,{d:130,dx:3}),
@@ -114,7 +117,7 @@ function mOugi(e,D){if(ogQuiet()||!D.og)return[];const A0=(typeof OUGI_ART!=="un
   const skip=function(){if(A.ogSkip)this.t=this.d};A.ogSkip=false;
   const st=[{d:short?600:800,on(){ogCutShow(A0,D,T,gold);SND.se("og_cutin",{who});try{AUDIO.bgmDuck&&AUDIO.bgmDuck(short?.6:2,.3)}catch(x){}},up:skip,end(){ogCutHide()}}];
   if(!short){if(sprK){const tag=Object.keys(SPR[sprK].tags||{}).find(t=>t.startsWith("og_"))||"stand";
-      st.push({d:1200,on(){A.pOver=sprK;A.P.tag=tag;A.P.fi=0},up(k){A.P.fi=Math.min(11,Math.floor(k*12));if(A.ogSkip)this.t=this.d},end(){A.pOver=null;A.P.tag="stand";A.P.fi=0}})}
+      st.push({d:1200,on(){A.pOver=sprK;A.P.tag=tag;A.P.fi=0},up(k){A.P.fi=Math.min(11,Math.floor(k*12));if(A.ogSkip)this.t=this.d;if(k>0.8&&Math.random()<0.4)fxTwinkle(A.P.x,A.P.y,1)},end(){A.pOver=null;A.P.tag="stand";A.P.fi=0;fxTwinkle(A.P.x,A.P.y,5)/* ★v0.22.181 AD v1.38：12コマの終わりは4人とも白いまたたき（花霞のような、とどめの無い奥義も同じ形） */}})}
     else st.push({d:300,on(){A.lastFlash=0;flash("#FFFFFF",300)},up:skip})}
   st.push({d:1,on(){A.ogSkip=false;SND.se(D.og)}});return st}
 function ogCutShow(A0,D,T,gold){ogCutHide();try{S.wxNote=null;document.querySelectorAll("#ui .drvnote").forEach(e=>e.remove())}catch(x){}/* ★v0.22.175 QA：霧の得の1行などはカットインの上に出さない */const st=document.getElementById("stage");if(!st)return;const src=(A0.cutin1&&(!window.ART_HAVE||ART_HAVE.has(A0.cutin1)))?A0.cutin1:A0.cutin;const el=document.createElement("div");el.id="ogcut";el.className=(gold?"gold":"")+(A0.txt==="top"?" ttop":"");/* ★v0.22.157 AD：絵ごとに奥義の名前の置き場（txt:"top"＝左上＝タコメーターの弧の所。緋雪閃の新しい絵を入れるときに OUGI_ART.ougi_yuki_kousetsu.txt="top"） */
@@ -218,6 +221,7 @@ function draw(dt){
   else if(A.mode==="dim"){g.fillStyle="rgba(10,12,24,.62)";g.fillRect(0,0,RES.W,RES.H)}}
   // エフェクト
   A.fx.forEach(f=>{const k=f.t/f.life;
+    if(f.k==="tw"){const r=Math.round(f.s*Math.sin(k*Math.PI)*2)+1,X=Math.round(f.x),Y=Math.round(f.y);g.globalAlpha=1;g.fillStyle="#FFFFFF";g.fillRect(X-r,Y,r*2+1,1);g.fillRect(X,Y-r,1,r*2+1);if(r>2){g.fillRect(X-1,Y-1,3,3)}}
     if(f.k==="pt"){const tt=f.t/1000;g.globalAlpha=1-k;g.fillStyle=f.col;g.fillRect(Math.round(f.x+f.vx*tt),Math.round(f.y+f.vy*tt+0.5*f.g*tt*tt),f.s,f.s)}
     else if(f.k==="num"){g.globalAlpha=k<0.7?1:1-(k-0.7)/0.3;const w=digitsW(f.txt,2);digits(g,f.txt,Math.round(f.x-w/2)+1,Math.round(f.y-k*14)+1,"#171B22",2);digits(g,f.txt,Math.round(f.x-w/2),Math.round(f.y-k*14),f.col,2)}
     else if(f.k==="word"){g.globalAlpha=k<0.75?1:1-(k-0.75)/0.25;wordPx(g,f.txt,Math.round(f.x),Math.round(f.y-k*6),f.col)}
