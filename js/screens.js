@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.175（β2）";
+const VERSION="試作 v0.22.176（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -955,7 +955,11 @@ function bandRes(){const out=[],R=RULE();
   return out}
 function bandHtml(locked){if(!bandMine())return"";const md=bandMode(),res=bandRes();if(!md&&!res.length)return"";const two=md==="AT"&&driveOn(),y0=two?214:233;
   const madd=md==="MT"&&perfChainAdd()>0,rx=madd?82:52;
-  let h=`<div class="band${two?" two":""}" ${at(4,y0,res.length||madd?174:44,250-y0)}></div>`;/* ★v0.22.133 AD：資源のない子は札の幅だけ */
+  const bw=res.length||madd?175:44,bh=two?37:18,by=two?214:233,R1="assets/c2/ui/c2/revremit_ui_resbar_1row.png",R2="assets/c2/ui/c2/revremit_ui_resbar_2row.png",R9="assets/c2/ui/c2/revremit_ui_resbar_9slice.png";
+  /* ★v0.22.176 資源の行の帯の下地（AD OK 11-25 15:20）：幅 175 で1段＝1row（4,233）・2段＝2row（4,214）、それ以外の幅（資源のない子 44）は 9slice（左 11・右 2・上 11・下 2 は固定・真ん中だけ伸ばす）。絵がなければ前の CSS の帯 */
+  const bimg=bw===175?(two?R2:R1):null,bart=bimg?artHave(bimg):artHave(R9);
+  let h=bart?`<div class="band art${two?" two":""}" style="position:absolute;left:4px;top:${by}px;width:${bw}px;height:${bh}px;${bimg?`background:url('${artURL(bimg)}') 0 0/${bw}px ${bh}px no-repeat`:`border-style:solid;border-width:11px 2px 2px 11px;border-image:url('${artURL(R9)}') 11 2 2 11 fill stretch`}"></div>`
+    :`<div class="band${two?" two":""}" ${at(4,y0,res.length||madd?174:44,250-y0)}></div>`;/* ★v0.22.133 AD：資源のない子は札の幅だけ */
   const DIf=n=>`assets/c2/ui/c2/revremit_ui_drive_${n}.png`,img=n=>artHave(DIf(n)),DI=n=>"",DM=n=>img(n)?`<img class="px dimg" src="${artURL(DIf(n))}" alt="">`:"";/* ★v0.22.136 走りかたの札の絵（AD v1.13・字は絵がないとき） */
   if(md==="MT"){const a=perfChainAdd();h+=`<button class="bmode mt${img("mt")?" pic":""}" ${at(4,233,44,18)} ${DI("mt")} onclick="modeHelp()">${DM("mt")}<i>MT</i></button>`+(a>0?`<div class="bmadd" ${at(50,236,28,12)}>+${a}</div>`:"")}/* ★v0.22.138 AD v1.16：上乗せは札のすぐ右（③と同じ）。資源はそのあと */
   else if(md==="AT"){if(two){const T=TEXT.ui||{},cur=B.drive||"eco",can=!locked&&canDrive();h+=`<button class="bmode at two${can?"":" off"}${img("at_2row")?" pic":""}" ${at(4,214,44,36)} ${DI("at_2row")} onclick="atTag()">${DM("at_2row")}<i>AT</i><br><b class="${cur}">${esc(T["drive_"+cur]||(cur==="eco"?"エコ":"スポーツ"))}</b></button>`}

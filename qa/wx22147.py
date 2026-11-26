@@ -13,7 +13,7 @@ with sync_playwright() as p:
     await go('YUKI','dawn');o.dawn={wx:B.wx,proc:A.wxProc,gas:B.gas,max:maxGas()};
     await go('NANA','fog');o.nanaFav=wxFav('fog');await go('HINA','dawn');o.hinaFav=wxFav('dawn');
     qaNewRun({mode:'MT',night:1});G.map[G.row].forEach((n,j)=>{if(/battle|elite/.test(n.k))n.wx=j%2?'fog':'dawn'});showMap();await w(300);
-    o.tags=[...document.querySelectorAll('.node .wxt')].map(e=>[e.textContent,getComputedStyle(e).color]);return o}""")
+    o.tags=[...document.querySelectorAll('.node .wxt')].map(e=>[e.title||e.textContent,getComputedStyle(e).color,!!e.querySelector('img')]);return o}""")
   R["o"]=o
   W={"street":(15,10),"touge":(20,10),"circuit":(5,20)}
   for ak,(f,d) in W.items():
@@ -23,7 +23,7 @@ with sync_playwright() as p:
   if o["fog"]["wx"]!="fog" or o["fog"]["proc"]!="fog" or o["fog"]["blk"]<2:R["ng"].append(["fog",o["fog"]])
   if o["dawn"]["wx"]!="dawn" or o["dawn"]["proc"]!="dawn":R["ng"].append(["dawn",o["dawn"]])
   if not o["nanaFav"] or not o["hinaFav"]:R["ng"].append(["fav",o["nanaFav"],o["hinaFav"]])
-  ft=[x for x in o["tags"] if x[0].startswith(("霧","夜明け"))]
-  if not ft or any(c=="rgb(207, 227, 255)" for t,c in ft):R["ng"].append(["tags",o["tags"]])
+  ft=[x for x in o["tags"] if x[0].startswith(("霧","夜明け"))]  # ★v0.22.176 アイコンの絵（title に名前）
+  if not ft or not all(x[2] for x in ft):R["ng"].append(["tags",o["tags"]])
   pg.screenshot(path="/tmp/wx147_map.png");b.close()
 R["errors"]=errs;print(json.dumps(R,ensure_ascii=False))

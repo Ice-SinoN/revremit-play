@@ -3,7 +3,7 @@ import sys,json,pathlib
 from playwright.sync_api import sync_playwright
 html=pathlib.Path(sys.argv[1]).resolve().as_uri();R={"ng":[],"errors":[]}
 def ng(m):R["ng"].append(m)
-OV="""(sel)=>{const a=[...document.querySelectorAll(sel)];const out=[];const others=[...document.querySelectorAll('#ui > *')];
+OV="""(sel)=>{const a=[...document.querySelectorAll(sel)];const out=[];const others=[...document.querySelectorAll('#ui > *')].filter(e=>!e.classList.contains('yogiri'));/* ★v0.22.176 夜霧の雲は下にしく（炎は雲の上）＝重なりに数えない */
  a.forEach(e=>{const r=e.getBoundingClientRect();others.forEach(o=>{if(o===e||o.contains(e)||e.contains(o)||o.classList.contains('band')||o.classList.contains('bres')||o.classList.contains('bmode')||o.classList.contains('toast2'))return;const q=o.getBoundingClientRect();if(!q.width||!q.height)return;const st=document.querySelector('#stage').getBoundingClientRect();if(q.width>st.width*0.9)return;if(r.left<q.right-1&&r.right>q.left+1&&r.top<q.bottom-1&&r.bottom>q.top+1)out.push(e.className+' x '+o.className)})});return out}"""
 with sync_playwright() as p:
   b=p.chromium.launch()

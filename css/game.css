@@ -680,3 +680,6 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 #ui > .node{z-index:2}
 /* ★v0.22.175 マップの天候のアイコン（絵があれば・graphics の5つ）。字の札のかわりに 14×14 */
 .node .wxt.ic{padding:0;background:transparent;border:0;line-height:0}.node .wxt.ic img{width:14px;height:14px;image-rendering:pixelated;vertical-align:top}.node .wxt.ic b{font:9px/14px 'PM10';color:#ffd34d;vertical-align:top;text-shadow:0 1px 0 #000}
+/* ★v0.22.176 資源の行の帯の下地（絵）・天候のアイコンは 20×20（丸い枠つき） */
+.band.art{background-color:transparent;border:0;clip-path:none;image-rendering:pixelated;box-sizing:border-box}
+.node .wxt.ic img{width:20px;height:20px}.node .wxt.ic b{line-height:20px}
