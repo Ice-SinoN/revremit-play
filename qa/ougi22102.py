@@ -25,7 +25,7 @@ with sync_playwright() as p:
     ids=["y_og_frz","y_og_cnt","y_og_red","h_og_rush","h_og_combo","h_og_pit","m_og_chain","m_og_guard","m_og_rev","n_og_shift","n_og_perf","n_og_crown"] if vw==1280 else ["h_og_rush","n_og_crown"]
     for id in ids:
       r=pg.evaluate(JS,[id,vw]);bad=[]
-      s=r["seen"];spr=id[0] in "yh"
+      s=r["seen"];spr=id[0] in "yh" or id in ("m_og_chain","m_og_guard","m_og_rev","n_og_shift","n_og_perf")  # ★v0.22.179 12コマ：MOMO 3本・NANA 2本（鳳凰戴天は直し中＝閃光のまま）
       if not(s["cut"] and s["band"] and s["nm"]): bad.append("カットイン")
       if spr and not s["pOver"]: bad.append("12コマ")
       if not spr and not s["flash"]: bad.append("閃光")
