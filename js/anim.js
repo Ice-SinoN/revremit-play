@@ -85,7 +85,7 @@ const MOTIONS={
   atk_finisher(hits){return[
     ys("atk_finisher",0,{d:320,dx:0,on(){A.dim=0.35;A.P.tint=null;fxTwinkle(A.P.x,A.P.y,6)},up(k){if(Math.random()<0.35)fxTwinkle(A.P.x,A.P.y,1);if(Math.random()<0.5)fxParts(FIST().x,FIST().y,2,[finCol(),"#F7F9F5"],{v:20,g:-20,life:300})}}),/* ★v0.22.181 AD v1.38：体をライム一色に点めつさせない（絵が消えたように見える）。絵はそのまま、上に白いまたたきを重ねる。4人同じ形 */
     ys("atk_finisher",0.5,{d:140,on(){A.P.tint=null},up(k){A.P.dx=k*56;A.P.dy=-Math.sin(k*Math.PI)*10}}),
-    ys("atk_finisher",1,{d:340,dx:60,dy:0,on(){flash("#F7F9F5",120);A.shake=5;const c=EC();
+    ys("atk_finisher",1,{d:340,dx:60,dy:0,on(){flash("#F7F9F5",34)/* ★v0.22.183 AD v1.40：画面が白くなるのは1〜2コマだけ（120ms＝約7コマだった・とどめは4人とも同じ） */;A.shake=5;const c=EC();
       fxParts(c.x,c.y,24,["#F7F9F5","#7FD8FF",finCol(),"#FF4040"],{v:90,g:30,life:600});hits.forEach(e=>hitEnemyFx(e,true))}}),
     ys("stand",0,{d:180,on(){A.dim=0},up(k){A.P.dx=60*(1-k)},end(){settleE()}})]},
   guard(){return[ys("guard",0,{d:120,dx:-2}),ys("guard",1,{d:260,on(){const f={x:A.P.x+22,y:A.P.y-36};fxRing(f.x,f.y,14,"#F7F9F5",260);fxParts(f.x,f.y,6,"#7FD8FF",{v:20,g:0})}}),ys("stand",0,{d:40,dx:0})]},
