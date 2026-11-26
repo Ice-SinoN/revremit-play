@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.188（β2）";
+const VERSION="試作 v0.22.189（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -638,9 +638,9 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   let h=`<div class="hdr" ${at(100,4,380,18)}>${clear?"全エリア クリア！":"エンジン停止……現実に戻った"}</div><div class="sign rk" ${at(486,4,54,40)}><div class="rank">${res.rank}</div></div>${res.lossCap?`<div class="small sh lossc" ${at(550,10,86,36)}>${(TEXT.ui&&TEXT.ui.rank_loss_cap||"負けたので<br>{r} まで").replace("{r}",res.lossCap)}</div>`:""}
   <div class="small sh" ${at(100,24,380)}>${Object.entries(res.pts).map(([k,v])=>`${k}${v}`).join("・")}　合計${res.total}</div>
   <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}</div><div class="small sh gold" ${at(546,48,92,12)}>ログ +${lg}</div>`;/* ★v0.22.154 QA：「ログ +n」は2行目の後ろから、ランクの札の下へ（長い行でランクの札にかかっていた） */
-  h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,50)} onclick="togglePick(${i})"`})}).join("");
-  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn"${cnFit(PARTS[p].n)}>${esc(PARTS[p].n)}</span></button>`}).join("");
-    const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`;
+  h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,CASE_H)} onclick="togglePick(${i})"`})}).join("");
+  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,CASE_H)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn"${cnFit(PARTS[p].n)}>${esc(PARTS[p].n)}</span></button>`}).join("");
+    const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,CASE_H)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`;
     /* ★v0.22.61 虎雪 11-20 07:58：パーツの効果の文と数値をタップなしで（選んでいるものは明るく） */
     h+=`<div class="sign rparts" id="rpd" ${at(100,216,440,58)}>${resPartsHTML()}</div>`}
   h+=`<div class="sign foot" id="pkd" ${at(100,276,300,74)}><div class="h">ミニカーに残すカードを${S.need}枚</div><div class="small dim">上のショーケースから選ぶ（ランダムな${res.ten.length}枚）${G.parts.length?"・パーツも1つ":""}</div><div class="small">評価${res.rank}：次のランで 耐久+${MC_BONUS.hp[res.ri]}・攻撃+${MC_BONUS.atk[res.ri]}%</div></div>
@@ -648,7 +648,8 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   ui().innerHTML=h;
 }
 /* ショーケースの1マス（0〜23：左上から右へ）の左上 */
-const CASE_XY=i=>[103+(i%6)*73,52+Math.floor(i/6)*55];
+/* ★v0.22.189 AD・QA（β のあと）：ショーケースの名前の行を 2px 下げる＝カードの高さ 50→52（名前は下の 2px に入る・字の上のはしが絵の枠にかからない・えらんだ枠も名前をかこむ・行のすき間は 5→3） */
+const CASE_H=52,CASE_XY=i=>[103+(i%6)*73,52+Math.floor(i/6)*55];
 /* ショーケースの中のカード：絵の窓 50×38＋名前 */
 function caseCard(c,o){const d=CD(c),r=rarityOf(c),art=cardArtTag(c.id||c);
   return `<button class="case t-${d.t} r-${r}" ${o.attrs||""}><span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span><span class="cn"${cnFit(d.n+(c.up?"+":""))}>${esc(d.n)}${c.up?"+":""}</span></button>`}
