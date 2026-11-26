@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.179（β2）";
+const VERSION="試作 v0.22.180（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -204,7 +204,7 @@ function showMinicarGarage(mode){SND.bgm("garage");if(!(S.flow&&!S.flow.mode))tr
   setScreen("garage");setScene("dim");
   const mc=loadMinicars().slice().reverse();S.mcAll=mc;S.mcMode=mode;S.mcSel=(S.mcSel||[]).filter(id=>mc.some(m=>m.id===id));
   const sel=mc.filter(m=>S.mcSel.includes(m.id)),sc=$("#mcl")?$("#mcl").scrollTop:0;
-  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ${S.flow&&!S.flow.mode?"":"（"+esc(mode)+"）"}</div><div class="sign" ${at(8,26,300,328)}></div>
+  ui().innerHTML=`<div class="hdr" ${at(8,6,300,18)}>ガレージ${S.flow&&!S.flow.mode||!mode?"":"（"+esc(mode)+"）"}<!-- ★v0.22.180 走り方が無いときはかっこごと出さない（AD 11-26） --></div><div class="sign" ${at(8,26,300,328)}></div>
   <div class="scroll grid1" id="mcl" ${at(14,30,288,320)}>${mc.length?mc.map((m,i)=>mcHTML(m,{cls:S.mcSel.includes(m.id)?"on":"",attrs:`onclick="toggleBring(${i})"`})).join(""):`<div class="dim small">まだミニカーがない。ランを終えると1台できる。</div>`}</div>
   ${backBtn("もどる","S.mcSel=[];S.flowReady||S.flow?showReady():showTitle()")}
   <div class="sign mcdet" ${at(312,58,320,226)}><div class="scroll" id="mcd">${sel.length?sel.map(mcDetail).join(""):`<div class="small dim">${esc(TU("mc_detail_none","ミニカーを選ぶと、中身（上がるステータス・カード・パーツ）がここに出ます。"))}</div>`}</div></div>
