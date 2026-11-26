@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.187（β2）";
+const VERSION="試作 v0.22.188（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -639,7 +639,7 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
   <div class="small sh" ${at(100,24,380)}>${Object.entries(res.pts).map(([k,v])=>`${k}${v}`).join("・")}　合計${res.total}</div>
   <div class="small dim sh" ${at(100,35,380)}>シフト${st.shiftTry}回（パーフェクト${st.perfect}・グッド${st.good}）・ワンターンキル${st.otk}${G.night?`・NIGHT ${G.night}`:""}</div><div class="small sh gold" ${at(546,48,92,12)}>ログ +${lg}</div>`;/* ★v0.22.154 QA：「ログ +n」は2行目の後ろから、ランクの札の下へ（長い行でランクの札にかかっていた） */
   h+=res.ten.map((c,i)=>{const[x,y]=CASE_XY(i);return caseCard(c,{attrs:`id="pk${i}" ${at(x,y,70,50)} onclick="togglePick(${i})"`})}).join("");
-  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn${[...PARTS[p].n].length>6?" lng":""}">${esc(PARTS[p].n)}</span></button>`}).join("");
+  if(G.parts.length){h+=G.parts.map((p,i)=>{const[x,y]=CASE_XY(12+i);return `<button id="pp${i}" class="case pc ${i===0?"sel":""}" ${at(x,y,70,50)} onclick="pickPart(${i})">${partIcon(p,32)}<span class="cn"${cnFit(PARTS[p].n)}>${esc(PARTS[p].n)}</span></button>`}).join("");
     const[x,y]=CASE_XY(12+G.parts.length);h+=`<button id="pp${G.parts.length}" class="case pc" ${at(x,y,70,50)} onclick="pickPart(${G.parts.length})"><span class="cn">パーツなし</span></button>`;
     /* ★v0.22.61 虎雪 11-20 07:58：パーツの効果の文と数値をタップなしで（選んでいるものは明るく） */
     h+=`<div class="sign rparts" id="rpd" ${at(100,216,440,58)}>${resPartsHTML()}</div>`}
@@ -651,7 +651,9 @@ function showResult(clear){if(S.runDone!==G){S.runDone=G;try{const st=SAVE.cur.p
 const CASE_XY=i=>[103+(i%6)*73,52+Math.floor(i/6)*55];
 /* ショーケースの中のカード：絵の窓 50×38＋名前 */
 function caseCard(c,o){const d=CD(c),r=rarityOf(c),art=cardArtTag(c.id||c);
-  return `<button class="case t-${d.t} r-${r}" ${o.attrs||""}><span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span><span class="cn${[...d.n].length>6?" lng":""}">${esc(d.n)}${c.up?"+":""}</span></button>`}
+  return `<button class="case t-${d.t} r-${r}" ${o.attrs||""}><span class="cw">${art||`<span class="ck">${TYPE_K[d.t]}</span>`}</span><span class="cn"${cnFit(d.n+(c.up?"+":""))}>${esc(d.n)}${c.up?"+":""}</span></button>`}
+/* ★v0.22.188 AD：ショーケースの名前は絵の下に1行。長い名前は横だけちぢめて70の中に入れる（2行に折れて絵にかからない） */
+function cnFit(n){const w=[...String(n)].reduce((s,ch)=>s+(/[\x00-\x7f]/.test(ch)?5:10),0),k=Math.min(1,66/w);return k<1?` style="transform:scaleX(${k.toFixed(3)});transform-origin:50% 50%;left:${Math.round(35-w/2)}px;right:auto;width:${w}px"`:""}
 function togglePick(i){const s=S.pickSel,k=s.indexOf(i);if(k>=0)s.splice(k,1);else if(s.length<S.need)s.push(i);
   S.res.ten.forEach((_,j)=>{const el=$("#pk"+j);if(el)el.classList.toggle("sel",s.includes(j))});
   const b=$("#mkcar"),rest=S.need-s.length;if(b){b.disabled=rest>0;b.textContent=rest>0?`あと${rest}枚えらぶ`:"ミニカーを作る"}
