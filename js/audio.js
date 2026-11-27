@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.30（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.32（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -31,6 +31,8 @@
  * v0.13：design 11章の画面の音（試作には画面ができたときに）：SE card_toss・card_mod（{lv,br}）・mod_switch（{to}）・tree_cap・tree_reset。
  *       ほかは今の SE を使い回す（audio-list 11章）。
  * v0.14：SORA 編を text 18章と照らした分（β のあと）：SE amb_signal・amb_tire、AUDIO.quiet(level,fade)・AUDIO.bgmDuck(sec)・AUDIO.engineMuffle(bool)。
+ * v0.32：design 26-1：MIO の CVT のエンジン音（setEngineType('cvt')＝engine_cvt・帯の芯で cvt_core）、KAEDE の turbine_hi（7500 以上・焔紅葉の ×2）。
+ * v0.31：text 38章（港）・39章（最後の夜・ZERO）の場面の音：futou_phase・light_home・frame_glow・light_gather・zero_rise・zero_morph・zero_borrow {who}・light_scatter・dawn_break、cue 8つ、埠頭の霧（futoufog）。
  * v0.30：design 25章：奥義18（ougi_sora_kyouon など・カードの id でも呼べる）、高速と港の戦闘曲・マップ・ボス曲（boss_zankyou・boss_futou）、最後の夜 boss_zero（bgmPhase 1〜3）と jingle zero_dawn、
  *       港の環境音（weather(wx,{area:'harbor'})・harborfog）。
  * v0.29：β のあとの組みこみ（窓口 11-27）：AUDIO.cue(key,i)（会話の行の音の表 CUES）・AUDIO.bossBgm(key)（新しいボス6体の曲）・SORA〜MIO の奥義の頭とツリーの曲 tree_その子。
@@ -178,7 +180,7 @@ function EngineReal(c,out){
  const ns=c.createBufferSource();ns.buffer=noiseBuf(c);ns.loop=true;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;bp.frequency.value=1600;
  const am=c.createGain();am.gain.value=.05;ns.connect(bp).connect(am).connect(lp);
  const mo=c.createOscillator();mo.type='square';const mg=c.createGain();mg.gain.value=.05;mo.connect(mg).connect(am.gain);
- load.connect(rat).connect(g);
+ load.connect(rat).connect(g);let sm=false; // v0.32：CVT（sm＝なめらか：踏んだうなり・戻したパンパンなし）
  const srcs=[o1,o2,jn,ns,mo,ratO];let prev=1000,vol=.34;
  const ff=r=>Math.max(8,r/30);
  return{start(t,v=.34){vol=v;srcs.forEach(s=>s.start(t));g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.05);},
@@ -188,22 +190,28 @@ function EngineReal(c,out){
    S(o1.frequency,f);S(o2.frequency,f/2);S(mo.frequency,f);S(ratO.frequency,f/2);S(lp.frequency,350+rpm*.6+rg*1800);S(bp.frequency,1200+rpm*.15);
    // レッド（6800〜）で荒く：ひずみ・ゆらぎ・吸気・650Hz の共鳴が増える。7500〜で「ガラガラ」
    S(pre.gain,.85+rg*1.6);S(jg.gain,180+rg*520);S(am.gain,.05+rg*.22);S(mg.gain,.05+rg*.1);S(pk2.gain,7+rg*5);S(ratD.gain,r2*.5);S(rat.gain,1-rg*.5);
-   if(glide){if(rpm>prev+300){load.gain.setTargetAtTime(1.15,t,.03);load.gain.setTargetAtTime(.75,t+glide+.25,.25);lp.frequency.setTargetAtTime(900+rpm*.8,t,.03);lp.frequency.setTargetAtTime(350+rpm*.6+rg*1800,t+glide+.2,.3);}
+   if(glide&&!sm){if(rpm>prev+300){load.gain.setTargetAtTime(1.15,t,.03);load.gain.setTargetAtTime(.75,t+glide+.25,.25);lp.frequency.setTargetAtTime(900+rpm*.8,t,.03);lp.frequency.setTargetAtTime(350+rpm*.6+rg*1800,t+glide+.2,.3);}
     else if(rpm<prev-800){load.gain.setTargetAtTime(.55,t,.08);const r=rng(Math.round(t*1000));for(let i=0;i<3;i++)nz(c,g,t+.15+r()*.6,{ft:'lowpass',f:1400,dur:.03,g:.9});}}
    prev=rpm;},
   cut(t,d=.03){g.gain.setValueAtTime(vol,t);g.gain.linearRampToValueAtTime(vol*.12,t+.005);g.gain.setValueAtTime(vol*.12,t+d);g.gain.linearRampToValueAtTime(vol,t+d+.005);},
   fade(t,d){g.gain.setValueAtTime(vol,t);g.gain.linearRampToValueAtTime(0,t+d);},
   stop(t){g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,.04);srcs.forEach(s=>s.stop(t+.3));},
-  get vol(){return vol;}};
+  smooth(v){sm=!!v;},get vol(){return vol;}};
 }
 function makeEngine(c,o,type){return EngineReal(c,o);} // ★RA-03 で本物寄りに決まったので、ゲームっぽい合成（v0.2 まで）は外した
 // ★虎雪 08:20：エンジン音は鳴りっぱなしにしない。回転が変わったときだけ「前の回転 → 新しい回転」を約2秒鳴らして消す。
 // 1回分の音（WAV の書き出しにも使う）
 function burst(c,o,t,from,to,type,opt){opt=opt||{};const dur=opt.dur||2.0,car=Object.assign({},YUKI,opt.car||{});
  const e=makeEngine(c,o,type);const v=type==='game'?.28:.34;e.start(t,v);e.set(from,t,0);
- const up=to>from;e.set(to,t+.05,up?.35:.6);
+ const up=to>from;
+ if(type==='cvt'){e.smooth(true);e.set(to,t+.05,up?1.0:1.2); // v0.32：CVT＝段がない。回転に合わせて高さがなめらかに上がり下がり＋ベルトのうなり
+  const bw=c.createOscillator();bw.type='triangle';bw.frequency.setValueAtTime(from/7,t);bw.frequency.setTargetAtTime(to/7,t+.05,up?.33:.4);
+  const bg=c.createGain();bg.gain.setValueAtTime(0,t);bg.gain.linearRampToValueAtTime(.035,t+.15);bg.gain.setValueAtTime(.035,t+dur*.45);bg.gain.linearRampToValueAtTime(0,t+dur);
+  const bl=c.createBiquadFilter();bl.type='bandpass';bl.frequency.value=900;bl.Q.value=.8;bw.connect(bl).connect(bg).connect(o);bw.start(t);bw.stop(t+dur+.05);
+  nz(c,o,t,{ft:'bandpass',f:Math.max(600,from/3),f2:Math.max(600,to/3),dur:dur*.9,g:.03,a:.2,q:4});}
+ else e.set(to,t+.05,up?.35:.6);
  if(opt.limiter){const L=car.limit;for(let i=0;i<8;i++){e.set(i%2?L+80:L-260,t+.35+i*.055,0);e.cut(t+.35+i*.055,.02);}e.set(L,t+.8,.05);}
- if(up&&to>=car.bandLo&&to<=car.bandHi&&from<car.bandLo)tone(c,o,t+.3,{type:'square',f:3400,dur:.02,g:.05});
+ if(type!=='cvt'&&up&&to>=car.bandLo&&to<=car.bandHi&&from<car.bandLo)tone(c,o,t+.3,{type:'square',f:3400,dur:.02,g:.05});
  const fadeAt=t+dur*.45;e.fade(fadeAt,dur*.55);e.stop(t+dur+.05);return e;
 }
 const YUKI={idle:1000,bandLo:5500,bandHi:6500,red:7000,limit:8000};
@@ -1100,9 +1108,68 @@ Object.keys(OGX30).forEach(k=>{const [who,type,hit,fx]=OGX30[k];SE.push({id:'oug
  const g=c.createGain();g.gain.value=hit?.6:1;g.connect(o);fx(c,g,t+(hit?.05:.3));}});LV['ougi_'+k]=hit?1.2:1.1;});
 Object.assign(LV,{ougi_sora_kyouon:.8,ougi_kaede_haisui:.9,ougi_luna_yozora:1,ougi_kuro_douke:.7,ougi_luna_hoshi:.9,ougi_kuro_kodou:.9,ougi_sora_waon:1});
 
+
+// ---------- v0.31（2026-11-27）：港の話（text 38章）と最後の夜・ZERO の話（text 39章）の場面の音。正本：revremit-audio-list.md 22章（母艦 revremit_review\ にも） ----------
+SE.push(
+// 埠頭の第2形態「汽笛の霧」に変わった：大きな霧笛2つ（低い「ボーー」）＋白くかすむ風
+{id:'futou_phase',name:'埠頭の第2形態「汽笛の霧」（霧笛が鳴って港が白くかすむ）',dur:3.6,fn:(c,o,t)=>{[[0,1],[1.4,.7]].forEach(([d,g])=>{[[mf(38),.14],[mf(45),.09],[mf(50),.04]].forEach(([f,gg])=>{tone(c,o,t+d,{type:'sawtooth',f,dur:1.6,g:gg*g,a:.15,hold:.9,lp:650});tone(c,o,t+d,{type:'sawtooth',f,det:8,dur:1.6,g:gg*.5*g,a:.15,hold:.9,lp:500});});});
+ nz(c,o,t+.2,{ft:'bandpass',f:600,f2:2400,dur:2.8,g:.12,a:1.4,q:.5});nz(c,o,t+1,{ft:'highpass',f:5000,dur:2,g:.04,a:.8});}},
+// 光が帰っていく（埠頭の後・ZERO のあと）：やわらかく上がるベルが遠ざかる
+{id:'light_home',name:'光が帰っていく（記録が送り先へ）',dur:2.6,fn:(c,o,t,p)=>{const N=[76,79,83,86,88,91,95];N.forEach((m,i)=>{tone(c,o,t+i*.16,{f:mf(m),dur:1.1,g:.06-i*.005});tone(c,o,t+i*.16,{f:mf(m)*2.76,dur:.3,g:.012});});
+ nz(c,o,t,{ft:'highpass',f:4000,f2:9000,dur:2.2,g:.05,a:.6});tone(c,o,t,{f:mf(52),dur:2,g:.06,a:.5,hold:.6});}},
+// 最後の夜に初めて入る：筐体の枠が強く光る（低いうなりがふくらんで、高いきらめき）
+{id:'frame_glow',name:'筐体の枠がいつもより強く光る（最後の夜のはじめ）',dur:2.4,fn:(c,o,t)=>{tone(c,o,t,{type:'sawtooth',f:mf(33),f2:mf(45),dur:1.6,g:.1,a:1.2,lp:900});nz(c,o,t,{ft:'bandpass',f:400,f2:4000,dur:1.6,g:.12,a:1.4,q:.7});
+ [69,76,81,88].forEach((m,i)=>tone(c,o,t+1.4+i*.05,{f:mf(m+12),dur:.8,g:.05}));nz(c,o,t+1.4,{ft:'highpass',f:6000,dur:.6,g:.08});}},
+// 光が集まってくる（零号のあと）：四方から細いきらめきが寄って、上がる風
+{id:'light_gather',name:'帰り道のない光が集まってくる（零号のあと）',dur:2.6,fn:(c,o,t)=>{const r=rng(12);for(let k=0;k<18;k++){const d=k*.11,m=96-k*1.2;let n=o;if(c.createStereoPanner){n=c.createStereoPanner();n.pan.value=(k%2?1:-1)*(1-k/18);n.connect(o);}tone(c,n,t+d,{f:mf(m),dur:.35,g:.04});}
+ nz(c,o,t,{f:3000,f2:600,dur:2.2,g:.14,a:1.8,q:.6});tone(c,o,t+.5,{type:'sawtooth',f:mf(40),dur:1.9,g:.06,a:1.4,lp:500});}},
+// ZERO が立ち上がる：深い一撃と、剣・槍・盾のどれともつかないぶつかる和音
+{id:'zero_rise',name:'ZERO の形が立ち上がる',dur:2.4,fn:(c,o,t)=>{tone(c,o,t,{f:80,f2:28,dur:1.2,g:1});nz(c,o,t,{ft:'lowpass',f:3000,f2:150,dur:1,g:.6});
+ [45,46,52,57,58].forEach(m=>[-9,9].forEach(dt=>tone(c,o,t+.05,{type:'sawtooth',f:mf(m),det:dt,dur:1.9,g:.03,a:.1,hold:.8,lp:1800})));
+ const r=rng(8);for(let k=0;k<8;k++)tone(c,o,t+.2+r()*1,{type:'square',f:200+r()*2600,dur:.03,g:.04});}},
+// ZERO の形が変わる（ぐにゃりとゆがむ）：音程がうねって沈み、グリッチ
+{id:'zero_morph',name:'ZERO の形が変わる（ぐにゃりとゆがむ）',dur:1.4,fn:(c,o,t)=>{const os=tone(c,o,t,{type:'sawtooth',f:mf(57),dur:1.1,g:.12,a:.05,hold:.6,lp:1600});os.frequency.linearRampToValueAtTime(mf(50),t+.35);os.frequency.linearRampToValueAtTime(mf(62),t+.7);os.frequency.linearRampToValueAtTime(mf(45),t+1.05);
+ nz(c,o,t,{f:1500,f2:400,dur:1,g:.18,a:.2,q:1});const r=rng(21);for(let k=0;k<10;k++){const d=r()*1;nz(c,o,t+d,{f:1000+r()*4000,dur:.03,g:.14,q:2});}tone(c,o,t+1.05,{f:110,f2:40,dur:.3,g:.7});}},
+// 借りた記録（{who}）：つかまえるグリッチ → その子のテーマの頭の4音を、ゆがめて（少し低く・こもって）
+{id:'zero_borrow',name:'ZERO が仲間の記録を借りた（{who}）',dur:1.4,fn:(c,o,t,p)=>{const w=OUGI[String((p&&p.who)||'yuki').toLowerCase()]||OUGI.yuki;
+ for(let k=0;k<5;k++)nz(c,o,t+k*.03,{f:4000-k*500,dur:.02,g:.14,q:3});const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;lp.connect(o);
+ w.m.forEach((n,i)=>wLead(c,lp,t+.12+i*.11,mf(n-1),.14,w.lt));tone(c,o,t+.6,{type:'square',f:mf(w.m[3]-13),f2:mf(w.m[3]-25),dur:.4,g:.05,lin:true});}},
+// ZERO がほどけて、光が四方へ散る（10色＝10人の高さ）
+{id:'light_scatter',name:'ZERO がほどけ、光が四方へ散る',dur:2.6,fn:(c,o,t)=>{SEFN('enemy_down')(c,o,t);const K=['yuki','hina','momo','nana','sora','kaede','rin','luna','kuro','mio'];
+ K.forEach((w,i)=>{const O=OUGI[w];let n=o;if(c.createStereoPanner){n=c.createStereoPanner();n.pan.value=Math.sin(i*1.3)*.9;n.connect(o);}tone(c,n,t+.3+i*.12,{f:mf(O.hi+12),dur:.8,g:.045});tone(c,n,t+.3+i*.12,{f:mf(O.hi+12)*2.76,dur:.2,g:.01});});
+ nz(c,o,t+.3,{ft:'highpass',f:5000,f2:9000,dur:1.8,g:.06,a:.2});}},
+// 空のふちが白くなりはじめる（ZERO の3つ目の形の前）
+{id:'dawn_break',name:'空のふちが白くなりはじめる（夜明けの気配）',dur:2.6,fn:(c,o,t)=>{[57,64,69].forEach(m=>[-6,6].forEach(dt=>tone(c,o,t,{type:'sawtooth',f:mf(m),det:dt,dur:2.4,g:.025,a:1.4,hold:.4,lp:1800})));
+ tone(c,o,t+1.2,{f:mf(93),dur:1.2,g:.04,a:.3});const f=3200;[0,.09,.2].forEach((x,i)=>tone(c,o,t+1.6+x,{f:f*(1+i*.06),f2:f*(1.15+i*.06),dur:.07,g:.04}));}},
+);
+Object.assign(LV,{futou_phase:1.8,light_home:2,frame_glow:2.2,light_gather:3,zero_rise:1.3,zero_morph:1.3,zero_borrow:2,light_scatter:3.5,dawn_break:3});
+Object.assign(CUES,{
+ // 港（text 38章）
+ harbor_area:{0:[S('amb_horn',{vol:.6})]},
+ harbor_boss_pre:{0:[F('quiet',[.6,1.2]),S('amb_horn',{vol:.5},.3)],1:[F('ambient',['harborfog',.3,2])],5:[F('quiet',[1,.4])]},
+ harbor_boss_post:{0:[S('amb_horn')],1:[S('light_home'),F('ambientStop',[4],.6)]},
+ // 最後の夜・ZERO（text 39章）
+ night11_first:{0:[S('frame_glow')]},
+ zero_link:{0:[S('rev_swell')],1:[S('light_gather')],3:[F('bgmDuck',[2.5,.15]),S('zero_rise')]},
+ zero_phase2:{0:[S('zero_morph'),F('bgmPhase',[2])]},
+ zero_phase3:{0:[S('dawn_break'),F('weather',['dawn',{boss:'zero'}])],2:[S('zero_morph'),F('bgmPhase',[3])]},
+ zero_ed:{0:[[0,'stop'],S('light_scatter',{},.2)],1:[S('light_home')],3:[S('gate_boot',{part:'melody',rec:true})],6:[S('light_home')],7:[[0,'jingle','zero_dawn']],9:[[0,'bgm','ending']]},
+});
+
+// ---------- v0.32（2026-11-27）：design 26-1（窓口 09:15）。正本：revremit-audio-list.md 23章 ----------
+SE.push(
+// MIO：回転が帯の芯に入った（最適解の合図）。小さく澄んだ「キン」1つ
+{id:'cvt_core',name:'MIO：回転が帯の芯に入った（CVT・最適解の合図）',dur:.5,fn:(c,o,t)=>{tone(c,o,t,{f:mf(96),dur:.4,g:.08});tone(c,o,t,{f:mf(96)*2.76,dur:.15,g:.02});tone(c,o,t,{type:'triangle',f:mf(84),dur:.08,g:.05});nz(c,o,t,{ft:'highpass',f:7000,dur:.03,g:.08});}},
+// KAEDE：7500 以上で打った（焔紅葉の ×2 の合図）。ツインターボの「キューン」を高く・鋭く＋ブローオフ
+{id:'turbine_hi',name:'KAEDE：タービン音の高い版（7500 以上・焔紅葉の ×2）',dur:.8,fn:(c,o,t)=>{[0,9].forEach(d=>tone(c,o,t,{f:3200+d*30,f2:11000+d*60,dur:.32,g:.05,a:.18}));
+ tone(c,o,t,{type:'sawtooth',f:mf(64),f2:mf(76),dur:.3,g:.07,a:.15,lp:2600});nz(c,o,t+.3,{ft:'highpass',f:4500,f2:9000,dur:.3,g:.2,a:.01});tone(c,o,t+.32,{f:mf(100),dur:.3,g:.04});}},
+);
+Object.assign(LV,{cvt_core:4.5,turbine_hi:1.2});
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 Object.keys(OGCARD).forEach(k=>{ALIAS[k]='ougi_'+OGCARD[k];ALIAS['og_ougi_'+OGCARD[k]]='ougi_'+OGCARD[k];});
+Object.assign(ALIAS,{se_turbine_hi:'turbine_hi',se_cvt_core:'cvt_core'});
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
 let C=null,M=null,BUS={},vol={master:.8,se:.9,engine:.38,bgm:.55,amb:.4},muted=false,engType='real',car=Object.assign({},YUKI);
 let bgmIn=null,hp=null,trem=null,tremLfo=null,DUCK=null,BDK=null,ENGLP=null,engMuf=1;
@@ -1140,7 +1207,10 @@ function ghostBurst(c,o,t,from,to,dur){const lp=c.createBiquadFilter();lp.type='
 function engineBurst(from,to,opt){
  if(FARMON)return;const c=ok();if(!c)return;opt=opt||{};engineStopNow();
  const dur=opt.dur||(to<from?1.6:2.0);
- cur=burst(c,BUS.engine,c.currentTime+(ghost?.13:.01),from,to,engType,{dur,car,limiter:opt.limiter});if(ghost)cur2=ghostBurst(c,BUS.engine,c.currentTime+.01,from,to,dur);
+ cur=burst(c,BUS.engine,c.currentTime+(ghost?.13:.01),from,to,engType,{dur,car,limiter:opt.limiter});
+ if(engType==='cvt'){const cl=car.coreLo!=null?car.coreLo:car.bandLo+(car.bandHi-car.bandLo)*.3,ch=car.coreHi!=null?car.coreHi:car.bandLo+(car.bandHi-car.bandLo)*.7,inC=r=>r>=cl&&r<=ch;
+  if(inC(to)&&!inC(from))warnT.push(setTimeout(()=>playSE('cvt_core'),to>from?620:700));} // 帯の芯に入ったときだけ「キン」
+ if(ghost)cur2=ghostBurst(c,BUS.engine,c.currentTime+.01,from,to,dur); // ★① v0.22.194：v0.32 ではこの行が上の // のうしろに入っていた（影線の2台目が鳴らない）ので行を分けた
  // レッドの警告は SE として別に（2秒の間に2〜3回。リミットに近いほど速く）
  if(to>=car.red&&!opt.limiter){const k=Math.min(1,(to-car.red)/Math.max(1,car.limit-car.red)),gap=opt.top?160:420-260*k,n=opt.top?5:3;
   // {top:true}＝いちばん上のギア（ブローがある）：警告を速く・少し大きく
@@ -1180,8 +1250,9 @@ const AMBGEN={
   if(r()<.6)tone(c,g,t+2+r()*2,{f:mf(74+Math.floor(r()*4)*2),dur:2.5,g:.012,a:.8});return len;},
 };
 // v0.30：港の環境音（21章）
-Object.assign(AMBBED,{harbor:[['lowpass',400,.7,.05]],harborfog:[['bandpass',1000,.6,.07],['lowpass',380,.7,.05]]});
+Object.assign(AMBBED,{futoufog:[['bandpass',1000,.6,.08],['lowpass',380,.7,.06]],harbor:[['lowpass',400,.7,.05]],harborfog:[['bandpass',1000,.6,.07],['lowpass',380,.7,.05]]});
 Object.assign(AMBGEN,{harbor:(c,g,t,r)=>{const len=4+r()*2;waveSwell(c,g,t,len,.22,r);if(r()<.18)SEFN('amb_horn')(c,g,t+r()*2);return len*.7;},
+ futoufog:(c,g,t,r)=>{const len=7;waveSwell(c,g,t,len,.18,r);[43,50].forEach(m=>tone(c,g,t,{f:mf(m),dur:len+1,g:.05,a:2,hold:len-2}));SEFN('amb_horn')(c,g,t+.5+r()*2);nz(c,g,t+.5,{ft:'bandpass',f:700,f2:2000,dur:3,g:.06,a:1.5,q:.5});return len;},
  harborfog:(c,g,t,r)=>{const len=5;waveSwell(c,g,t,len,.18,r);[43,50].forEach(m=>tone(c,g,t,{f:mf(m),dur:len+1,g:.04,a:2,hold:len-2}));if(r()<.35)SEFN('amb_horn')(c,g,t+r()*2.5);return len*.8;}});
 function ambStop(f){if(!AMB||!C){AMB=null;return;}const A=AMB;AMB=null;clearInterval(A.timer);(A.beds||[]).forEach(s=>{try{s.stop(C.currentTime+f+.1)}catch(x){}});const t=C.currentTime;A.g.gain.cancelScheduledValues(t);A.g.gain.setValueAtTime(A.g.gain.value,t);A.g.gain.linearRampToValueAtTime(0,t+f);setTimeout(()=>A.g.disconnect(),(f+7)*1000);}
 function bgm(id){if(FARMON&&id!=='farm')return;const c=ok();if(!c)return;if(!(P&&P.id===id))PHASE=1;if(!BGM[id]){console.warn('AUDIO: BGM がない',id);return;}
@@ -1199,16 +1270,16 @@ function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGL
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.30',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.32',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
- setCar(cr){car=Object.assign({},YUKI,cr||{});},
+ setCar(cr){car=Object.assign({},YUKI,cr||{});if(cr&&cr.cvt!=null)engType=cr.cvt?'cvt':'real';}, // v0.32：{cvt:true}＝MIO の CVT（coreLo・coreHi＝帯の芯。なければ帯のまん中 40%）
  engineBurst,
  overrev(){engineBurst(car.limit-400,car.limit,{limiter:true,dur:1.4});playSE('overrev');},
  blow(){engineStopNow();playSE('engine_blow');bgmStop(.05);},
  engineStop:engineStopNow,
- setEngineType(t){engType='real';}, // 本物寄りだけ（呼んでも変わらない）
+ setEngineType(t){engType=t==='cvt'?'cvt':'real';}, // v0.32：'cvt'＝MIO の CVT（engine_cvt）。'real'（ほかの子）にもどす
  bgm,bgmStop,redFilter,jingle,
  farmMode(on){FARMON=!!on;if(FARMON){engineStopNow();if(RL){const R=RL;RL=null;try{R.e.stop(C.currentTime)}catch(x){}}bgmStop(.6);setTimeout(()=>{if(FARMON)bgm('farm');},650);applyVol();}
   else{bgmStop(.6);applyVol();}},
@@ -1229,7 +1300,7 @@ window.AUDIO={
  ambientVol(v,fade){if(AMB&&C){const t=C.currentTime;AMB.g.gain.cancelScheduledValues(t);AMB.g.gain.setValueAtTime(AMB.g.gain.value,t);AMB.g.gain.linearRampToValueAtTime(v,t+(fade==null?1:fade));}},
  ambientStop(fade){ambStop(fade==null?3:fade);},
  // v0.22：天候（design 10-16 の id）→ 環境音。ふつうのマスは小さく、ボスの第2形態（{boss}）はそのボスの版で少し大きく。dry（ドライ）は止める
- weather(wx,opt){const B={zankyou:'downpour',hw_boss:'downpour',futou:'harborfog',hb_boss:'harborfog',zankou:'downpour',byakuya:'blizzard',zerogou:'fog',kuuten:'rain',sanka:'petals',miketsu:'dawn',boss1:'downpour',boss2:'blizzard',boss3:'fog'};
+ weather(wx,opt){const B={zankyou:'downpour',hw_boss:'downpour',futou:'futoufog',hb_boss:'futoufog',zankou:'downpour',byakuya:'blizzard',zerogou:'fog',kuuten:'rain',sanka:'petals',miketsu:'dawn',boss1:'downpour',boss2:'blizzard',boss3:'fog'};
   const W={rain:'rain',snow:'snow',fog:'fog',dawn:'dawn'};const b=opt&&opt.boss,hb=opt&&opt.area==='harbor';let id=b?(B[b]||W[wx]):W[wx];if(!b&&hb)id=wx==='fog'?'harborfog':(id||'harbor');if(!id){ambStop(2);return;}
   if(AMB&&AMB.id===id){this.ambientVol(b?.45:.35,1);return;}this.ambient(id,b?.45:.35,b?1:2);},
  // v0.14（β のあと・SORA 編の無音）：場面ぜんぶ（BGM・SE・エンジン）を level（0〜1）までしぼる。quiet() か quiet(1) でもどす

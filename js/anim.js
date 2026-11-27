@@ -20,6 +20,8 @@ function syncDisp(){if(!B||!G)return;Object.assign(A.disp,{php:G.hp,pmax:G.maxhp
 /* ---- モーションの列 ----
    1つの段＝{d:時間ms, on(): はじめに1回, up(k): 0〜1, end(): おわりに1回} */
 function push(...steps){A.q.push(...steps)}
+/* ★v0.22.194 audio-list 22-3：第2形態の演出の頭の音。埠頭（hb_boss）＝「汽笛の霧」の霧笛 futou_phase。天候の音は今の wxApply の weather(x,{boss}) のまま */
+function phaseSnd(){try{if(typeof B!=="undefined"&&B&&(B.key==="hb_boss"||B.key==="futou"))SND.se("futou_phase")}catch(e){}}
 function busy(){return !!A.cur||A.q.length>0}
 /* 残りを全部すぐ終わらせる（押したら次へ） */
 function flushAnim(){
@@ -167,7 +169,7 @@ function playEvents(evs){
         if(x.k==="frz")push({d:1,on(){SND.se("freeze")}});if(x.k==="burn")push({d:1,on(){SND.se("burn")}});if(x.k==="noise")push({d:1,on(){SND.se("noise")}});if(x.k==="gasout")push({d:1,on(){SND.se("gas_empty")}});
         if(x.k==="charge")push({d:1,on(){fxWord(PC().x+30,PC().y-80,"CHARGE","#FFD34D")}});
         if(x.k==="onup")push({d:1,on(){fxParts(PC().x,PC().y-20,6,["#7FD8FF","#F7F9F5"],{v:20,g:-10})}});
-        if(x.k==="phase")push({d:300,on(){phaseArt(x);A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
+        if(x.k==="phase")push({d:300,on(){phaseArt(x);phaseSnd();A.E.pal=x.pal||A.E.pal;if(x.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});
         if(x.k==="rotate")push({d:1,on(){for(let k=0;k<x.n;k++){setTimeout(()=>SND.se("card_toss"),k*120)}const dn=x.drawn!=null?x.drawn:x.n;for(let k=0;k<dn;k++)setTimeout(()=>SND.se("card_draw"),x.n*120+80+k*120)}});/* ★audio-check 2：引く音は引けた枚数だけ *//* ★audio-list 11-2：捨てる 0.12秒ずつ → 同じ枚数引く */
         if(x.k==="rescue")push({d:1,on(){fxWord(PC().x-20,PC().y-74,"花の便り","#FF9FC8");fxParts(PC().x,PC().y-30,8,["#FF9FC8","#F7F9F5"],{v:22,g:-8});SND.se("card_draw");if(x.first&&typeof toast2==="function")toast2("MOMO：ふふ、お届けものよ。",226)}});/* ★design 10-10・text 27-2 */
         if(x.k==="weakFound")push({d:1,on(){const W=(typeof TEXT!=="undefined"&&TEXT.wk)||{};fxText(A.E?A.E.x:466,RES.bars.y-46,W.pop||"弱点！","big",900);SND.se("weak_hit");try{const p=PRF();p.weakSeen=Object.assign({},p.weakSeen,{[x.key]:1});SAVE.auto()}catch(e){}const t=W.found&&W.found[x.boss];if(t)setTimeout(()=>toast2("みお："+t,250,3200),500)}});/* ★v0.22.123 弱点ギア */
@@ -183,7 +185,7 @@ function playEvents(evs){
     if(e.k==="eact"){if(i===0||evs[i-1].k!=="phit"&&evs[i-1].k!=="eact"&&evs[i-1].k!=="eblk")push({d:1,on(){SND.se("enemy_turn")}});const sub=[];i++;while(i<evs.length&&["phit","eblk"].includes(evs[i].k))sub.push(evs[i++]);
       push(...mEnemyAct(e.p,sub.filter(x=>x.k==="phit")));continue}
     if(e.k==="gasout"){push({d:1,on(){SND.se("gas_empty")}});i++;continue}
-    if(e.k==="phase"){push({d:300,on(){phaseArt(e);A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});i++;continue}
+    if(e.k==="phase"){push({d:300,on(){phaseArt(e);phaseSnd();A.E.pal=e.pal||A.E.pal;if(e.glitch)A.E.glitch=1;flash("#FFFFFF",300)}});i++;continue}
     if(e.k==="eburn"){push({d:200,on(){fxParts(EC().x,EC().y,10,["#FF8A3D","#FF4040"],{a:-Math.PI/2,spread:0.8,v:30,g:-20});fxNum(EC().x,EC().y-30,e.v,"#FF8A3D");A.disp.ehp=Math.max(0,A.disp.ehp-e.v)}});i++;continue}
     if(e.k==="turn"){push({d:1,on(){syncDisp()}});i++;continue}
     if(e.k==="win"){push(...mWin());i++;continue}
