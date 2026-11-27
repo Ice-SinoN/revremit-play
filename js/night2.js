@@ -138,5 +138,23 @@ W("checkPhase",f=>function(){const was=B&&B.e&&B.e.phased;const r=f.apply(this,a
 W("wxMinus",f=>function(){if(hasP("p_night_dawn")&&typeof wxNow==="function"&&wxNow()==="dawn")return false;return f.apply(this,arguments)});
 W("redLo",f=>function(){const r=f.apply(this,arguments);return hasP("p_night_dawn")&&B&&!B.over&&typeof wxNow==="function"&&wxNow()==="dawn"?r-250:r});
 /* 仮のアイコン：グラフィック班の絵（items\c2\revremit_item_part_p_night_＊.png）が来るまで、夜の4つは月のしるし（assets/c2/items/c2/revremit_item_part_p_night_＊.png を同梱） */
-window.NIGHT2={VERSION:"0.5.23",applyAreas};
+/* ===== v0.5.26 text 45章：走る子が MIO のとき、通信の MIO の行を YUKI の行に（38〜40章） ===== */
+{const Y=t=>["YUKI",t,"normal"],ALT={
+  harbor_area:{1:"……港。船を待った夜とか、<br>荷を運んだ夜の記録が多い。",2:"……守りが固い。<br>ギア落として、立ち上がって。"},
+  hb_boss_pre:{2:"……名前、「埠頭」。<br>最後の船を、待ってた夜の記録。",3:"……毎晩、迎えに来てた。<br>船が来なくなっても。",4:"……待つ形のまま、固まってる。<br>守り、すごく固い。"},
+  hb_boss_post:{2:"……届いた。<br>待ってた人のところに。",3:"……港、静かになった。<br>次は、サーキット。"},
+  highway_area:{1:"……高速。急いだ夜の記録が、<br>たくさん走ってる。",2:"……敵が速い。<br>ギアは高いまま、置いていかれないで。"},
+  hw_boss_pre:{2:"……名前、「残響」。<br>急いだ夜の、音だけの記録。",3:"……走り去った音だけ、<br>トンネルで鳴りつづけてる。",4:"……速い。<br>回転、下げられても、すぐ上げて。"},
+  hw_boss_post:{2:"……届いた。<br>急いでた先に、ちゃんと着いた。",3:"……次は、サーキット。"}};
+ Object.entries(ALT).forEach(([k,m])=>{const mk=k+"_mio",base=TEXT.scenes[mk]||TEXT.scenes[k];if(!base)return;
+   TEXT.scenes[mk]=Object.assign({},base,{lines:base.lines.map((l,i)=>m[i]&&l&&l[0]==="MIO"?Y(m[i]):l)})});
+ /* 弱点のヒント（①は「みお：」＋文で出す）：MIO で走るときは「こゆき：」＋YUKI の文 */
+ const WK={"速いです……高いギアのまま、追いついてください！":"……速い。高いギアのまま、追いついて。","弱点です！　高いギアで、追いついてます！":"……弱点。高いギアで、追いついてる。",
+  "固くて、重たい……低いギアで、押し上げてください！":"……固くて、重い。<br>低いギアで、押し上げて。","弱点です！　低いギアで、守りがくずれてます！":"……弱点。低いギアで、くずれてる。",
+  "形ごとに、効くギアがちがいます……高い、中、低いの順かも！":"……形ごとに、効くギアがちがう。<br>高い、中、低い、の順かも。","弱点です！　この形には、このギア……！":"……弱点。この形には、このギア。"};
+ W("toast2",f=>function(t){try{if(G&&G.char==="MIO"&&typeof t==="string"&&t.startsWith("みお：")){const y=WK[t.slice(3)];if(y){const a=[].slice.call(arguments);a[0]="こゆき："+y.replace(/<br>/g,"");return f.apply(this,a)}}}catch(e){}return f.apply(this,arguments)});}
+/* v0.5.26 QA：「つづきから」の札のエリアの名前は、その夜の並び（N9〜11 の5つ目など）で */
+W("runLabel",f=>function(r){try{const g=r.G,ks=NIGHT_AREAS[g.night|0];if(ks&&g.map){const row=Math.min(g.row,g.map.length-1),a=g.map[row][0].a,start=g.map.findIndex(x=>x[0].a===a),AR=BYKEY[ks[a]];
+  if(AR)return`${g.mode}・エリア${a+1} ${AR.n} ${row-start+1}段・耐久${g.hp}/${g.maxhp}`}}catch(e){}return f.apply(this,arguments)});
+window.NIGHT2={VERSION:"0.5.26",applyAreas};
 })();

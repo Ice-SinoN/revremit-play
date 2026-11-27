@@ -40,7 +40,7 @@ function kMove(dir){const L=kList();if(!L.length)return;let c=kValid(L);if(!c){k
     const ov=v[0]?(o.r.top<r.bottom&&o.r.bottom>r.top):(o.r.left<r.right&&o.r.right>r.left);if(!ov&&perp>along*2.5)return;/* 向きからずれすぎた物（ななめ遠く）には飛ばない */const s=along+perp*(ov?0.3:2.5);if(s<bs){bs=s;best=o}});
   if(best)kSet(best.el)}
 function kClick(el){if(!el)return;if(el.matches("input,textarea,select")){el.focus();return}el.click()}
-function kFind(re){return kList().find(o=>re.test((o.el.getAttribute("onclick")||"")+"|"+(o.el.textContent||"").trim()))}
+function kFind(re){return kList().find(o=>re.test((o.el.getAttribute("onclick")||"").replace(/\|/g,"\u00a6")+"|"+(o.el.textContent||"").trim()))}/* ★v0.22.198 BUG-65 の残り：onclick の中の「||」を ¦ に置きかえて、区切りの「|」は1つだけにする（ミニカーのガレージの「◀ もどる」） */
 function kBack(){const m=document.getElementById("modal");if(m&&m.children.length){const b=kFind(/^[^|]*\|\s*(閉じる|とじる|もどる|戻る|やめる|キャンセル|いいえ|×)\s*$/);if(b){kClick(b.el)}else closeModal();KEYS.cur=null;return}
   if(window.SCREEN==="battle"&&typeof S!=="undefined"&&S.sel>=0){S.sel=-1;if(window.A)A.pv=null;renderBattle();return}
   const b=kFind(/^[^|]*\|\s*([←◀]\s*)?(戻る|もどる|閉じる|とじる|やめる|タイトルへ)/);if(b)kClick(b.el)}/* ★v0.22.196 BUG-65：「◀ もどる」「◀ タイトルへ」も */

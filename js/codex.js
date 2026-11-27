@@ -30,7 +30,10 @@ const cdxImgKey=p=>{const m=String(p||"").match(/revremit_story_(.+)\.png$/);ret
 const CDX_RORD={C:0,R:1,E:2,SK:3,OG:9};
 function cdxCards(){const o=["N"].concat(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]);
   return Object.keys(CARDS).filter(id=>{const d=CARDS[id];return!d.gen&&d.t!=="jam"}).sort((a,b)=>{const A=CARDS[a],B_=CARDS[b];
-    return(o.indexOf(A.own)-o.indexOf(B_.own))||((CDX_RORD[A.r]||0)-(CDX_RORD[B_.r]||0))})}
+    return(o.indexOf(A.own)-o.indexOf(B_.own))||(cdxGrp(a)-cdxGrp(b))||((CDX_RORD[A.r]||0)-(CDX_RORD[B_.r]||0))})}
+/* v0.5.26 その子の中の段：ふつう → 合成 → フルオートで見つかる → 奥義（design 26-6 の6人の36組・12枚も、fused／dig があれば同じ段に入る） */
+function cdxGrp(id){const d=CARDS[id]||{};return d.r==="OG"?3:d.dig?2:d.fused?1:0}
+const CDX_GRPN={1:"合成",2:"フルオートで見つかる",3:"奥義"};
 function cdxParts(){const o=["N"].concat(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]);return Object.keys(PARTS).sort((a,b)=>o.indexOf(PARTS[a].own)-o.indexOf(PARTS[b].own))}
 /* v0.5.22 夜の周回（night2.js）：AREAS はその夜の並びに入れかわるので、図鑑は決まった並び（ストリート・峠・サーキット＋開いた夜の高速・港）で見る */
 const AREA_XK={highway:1,harbor:1};
@@ -145,8 +148,8 @@ function cdxListHTML(t,L){if(!L.length)return`<div class="small dim">まだ何�
       const nm=t==="snd"?(x.seen?x.n:"？？？"):t==="img"?(x.seen?"":"？？？"):x.id;
       h+=t==="img"?`<button class="cdxi${x.og?" og":""}${x.gold?" gold":""}${sel(x)}" ${tap(x)}>${x.seen?`<img class="px" src="${artURL(x.p)}" alt="">`:`<span class="cdxq">？</span>`}</button>`
         :`<button class="cdxrow${x.seen?"":" no"}${sel(x)}" ${tap(x)}>${t==="snd"&&CDX.playing===x.id?"♪ ":""}${rr2Esc(nm)}</button>`});return h}
-  let ogH=false;
-  return L.map(x=>{const hd=t==="card"&&CARDS[x.id].r==="OG"&&!ogH&&CDX.who!=="OG"?(ogH=true,`<div class="cdxg cdxogh">奥義</div>`):"";if(t==="card"&&CARDS[x.id].r!=="OG")ogH=false;
+  let gk="";
+  return L.map(x=>{let hd="";if(t==="card"&&CDX.who!=="OG"){const g=cdxGrp(x.id),k=CARDS[x.id].own+"|"+g;if(k!==gk){gk=k;if(g)hd=`<div class="cdxg${g===3?" cdxogh":g===2?" cdxdigh":" cdxfuh"}">${CDX_GRPN[g]}</div>`}}
     return hd+cdxTile(t,x,sel,tap)}).join("")}
 function cdxTile(t,x,sel,tap){{const nm=!x.seen?"？？？":t==="card"?CARDS[x.id].n+(CDX.up?"+":""):t==="part"?PARTS[x.id].n:(x.hidden?"裏道の":"")+ENEMIES[x.key].n;
     const kind=t==="card"?"card":t==="part"?"part":"enemy",arg=kind==="enemy"?x.key:x.id;

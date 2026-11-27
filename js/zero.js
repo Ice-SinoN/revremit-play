@@ -17,26 +17,27 @@ if(TEXT.names)Object.keys({KAEDE:"かえで",RIN:"りん",LUNA:"るな",KURO:"�
 
 /* ---- 敵 ZERO（数は仮・LD が測る） ---- */
 const B3=ENEMIES.boss3||{hp:560,spd:11};
-const ZF=[{spd:12,pat:[["atk",24],["multi",9,3],["atk",28]]},          // 剣（弱点 高い）
-          {spd:13,pat:[["prc",28],["jam","crosstalk",2],["atk",26]]},     // 槍（弱点 中）
-          {spd:14,pat:[["blk",30],["atk",34],["multi",10,3]]}];           // 盾（弱点 低い）
-ENEMIES.zero={art:"zero",n:"ZERO",rank:"boss",hp:Math.round(B3.hp*1.3),spd:ZF[0].spd,pat:ZF[0].pat,weakGear:["high","mid","low"],final:1,
-  gimTxt:"3つの形（67%・33%で変わる）・形が変わるたびに仲間の記録を借りる"};
+const ZF=[{spd:13,pat:[["atk",26],["multi",10,3],["atk",34]]},                     // 剣（弱点 高い・design 26-5 ①）
+          {spd:14,pat:[["prc",34],["jam","crosstalk",2],["multi",8,4]]},              // 槍（弱点 中）
+          {spd:15,pat:[["blk",32],["atk",40],["apd",20],["multi",12,3]]}];            // 盾（弱点 低い）
+ENEMIES.zero={art:"zero",n:"ZERO",rank:"boss",hp:Math.round(B3.hp*1.3),spd:ZF[0].spd,pat:ZF[0].pat,weakGear:["high","mid","low"],final:1,cap:4,
+  gimTxt:"3つの形で弱点が変わる・仲間の記録を借りる"};
 if(typeof ART_FALLBACK!=="undefined")ART_FALLBACK.zero="boss3";
 if(typeof PALS!=="undefined")Object.assign(PALS,{f_zero:{hue:40,sat:0.5,lit:1.05},f_zero2:{hue:-140,sat:1.1},f_zero3:{hue:20,sat:0.7,lit:1.25}});
 
 /* ---- 借りる記録（text 39-3 の名前・中身は仮） ---- */
+/* 借りる記録＝ゴーストの守り（design 10-17-2）の数 ×1.5（design 26-5 ②）。その形のあいだだけ（B.zRec） */
 const ZREC={
- YUKI:{d:"ZERO がもう1回動く（番を1回おくらせる）",fx:e=>{e.next=Math.max(0,e.next-100/(e.spd+(e.spdUp||0)))}},
- HINA:{d:"ZERO の攻撃 +4",fx:e=>{e.atkUp+=4}},
- MOMO:{d:"ZERO の体力が 6% もどる（今の形の上まで）",fx:e=>{const top=e.maxhp*[1,0.67,0.33][e.zf||0];e.hp=Math.min(Math.floor(top),e.hp+Math.round(e.maxhp*0.06))}},
- NANA:{d:"ZERO の防御 +20",fx:e=>{e.block+=20}},
- SORA:{d:"ZERO の速さ +2",fx:e=>{e.spdUp=(e.spdUp||0)+2}},
- KAEDE:{d:"ZERO の攻撃 ×1.15",fx:e=>{B.am*=1.15}},
- RIN:{d:"ZERO の次の攻撃が貫通 22",fx:e=>{e.pat=e.pat.slice();e.pat.splice(e.pi%e.pat.length,0,["prc",22])}},
- LUNA:{d:"次の番のガソリン −1",fx:e=>{B.apPen=(B.apPen||0)+1}},
- KURO:{d:"山札に「混線」2枚",fx:e=>{if(CARDS.crosstalk)ENEMY_OPS.jam(e,"crosstalk",2)}},
- MIO:{d:"ZERO の防御の4割が次の番まで残る",fx:e=>{e.blkKeep=Math.max(e.blkKeep||0,0.4)}},
+ YUKI:{d:"形の体力が半分を切ると1回、防御 +18"},
+ HINA:{d:"形が変わってから2番、受けるダメージ半分"},
+ MOMO:{d:"打たれたカードの枚数だけ防御（最大 9）"},
+ NANA:{d:"3回動くごとに防御 +9"},
+ SORA:{d:"同じ種類のカードを続けて3枚打たれると、その番 防御 +12"},
+ KAEDE:{d:"いちばん大きい攻撃の次の番、防御 +15"},
+ RIN:{d:"形が変わってから3番、受けるダメージを1発ごとに −5"},
+ LUNA:{d:"4番に1回、その番に受けるダメージ半分"},
+ KURO:{d:"3枚打たれるごとにグリッチ +1（最大 5）・動くたびにグリッチの数だけ防御"},
+ MIO:{d:"毎番、防御 +5"},
 };
 const RECN={YUKI:"こゆきの凍結",HINA:"ひなの全開",MOMO:"ももの花の便り",NANA:"ななみのパーフェクト",SORA:"そらの音符",KAEDE:"かえでのレッドゾーン",RIN:"りんの間合い",LUNA:"るなの月",KURO:"クロのグリッチ",MIO:"みおの CVT"};
 const RECL={YUKI:"……あたしの止め方。<br>止まらないで、そのまま行って。",HINA:"ひなの走り、まねしないでくださいっ！<br>……でも、くせは知ってます！",MOMO:"ももの花、返してもらうね。<br>ちゃんと、ゆっくり見て。",
@@ -71,11 +72,13 @@ const ZEC={YUKI:"……朝。ROAD にも、来るんだ。",HINA:"朝です…�
  KURO:"くひひっ……♪<br>ルールの最後の行、ちょっとだけ見えた気がする。",MIO:"ROAD の朝……<br>みお、初めて見ました。"};
 const ch=()=>(G&&G.char)||"YUKI";
 function buildScenes(){const c=ch(),mio=c==="MIO";
- TEXT.scenes.night11_first={under:"street",lines:N11.concat([[c,N11C[c]||N11C.YUKI,"normal"]])};
- TEXT.scenes.zero_link={bg:"fx:boss_intro",lines:ZL.concat([[c,ZLC[c]||ZLC.YUKI,"serious"]])};
+ /* text 45章：走る子が MIO のとき、通信の MIO の行は YUKI の行に */
+ const Y=t=>["YUKI",t,"normal"];
+ TEXT.scenes.night11_first={under:"street",lines:N11.map((l,i)=>mio&&i===1?Y("……今夜の ROAD は、いちばん長い。<br>港の先、いちばん奥まで。"):l).concat([[c,N11C[c]||N11C.YUKI,"normal"]])};
+ TEXT.scenes.zero_link={bg:"fx:boss_intro",lines:ZL.map((l,i)=>mio&&i===2?Y("……送り先のない記録が、<br>ひとつになってく。"):mio&&i===4?Y("……名前、「ZERO」。<br>零号の、本当の姿。"):l).concat([[c,ZLC[c]||ZLC.YUKI,"serious"]])};
  TEXT.scenes.zero_phase2={lines:mio?[ZP2[0],ZP2M]:ZP2};TEXT.scenes.zero_phase3={lines:mio?[ZP3[0],ZP3M,ZP3[2]]:ZP3};
  TEXT.scenes.zero_ed={bg:"zero_cg|boss3_after|fx:win",lines:ZE.map((l,i)=>i===8?[c,ZEC[c]||ZEC.YUKI,"smile"]:(mio&&i===10)?["YUKI","……熱、下がった。暴走、止まってる","normal"]:l)};
- TEXT.scenes.zero_ed_short={bg:"zero_cg|boss3_after|fx:win",lines:[["MIO","ZERO、送りました。<br>……ROAD の朝、また来ましたね。","smile"]]}}
+ TEXT.scenes.zero_ed_short={bg:"zero_cg|boss3_after|fx:win",lines:[mio?Y("……ZERO、送った。<br>ROAD の朝、また来た。"):["MIO","ZERO、送りました。<br>……ROAD の朝、また来ましたね。","smile"]]}}
 buildScenes();
 /* YUKI_ONLY（①）にかからない key なので、キャラの版は作らず、そのつど走る子の行を入れる */
 const NO_TALK=/^(zero_link|zero_ed|zero_ed_short|zero_phase[23])$/;
@@ -85,7 +88,12 @@ if(typeof SND!=="undefined"&&typeof SND.bgm==="function"){const b0=SND.bgm;SND.b
 
 /* ---- 開き方：10人そろって NIGHT 10 をクリア ---- */
 const allTen=()=>{try{const u=PRF().unlock.chars||[];return TEN.every(c=>u.includes(c))}catch(e){return false}};
-W("nightMaxAvail",f=>function(){const r=f.apply(this,arguments);return r>=11&&!allTen()?10:r});
+/* v0.5.26 QA：BETA_NIGHTS（① 4・③ 9）で止まって NIGHT 10・11 に行けない → 全員で遊べる版は NIGHT 1〜11（window.NIGHT_CAP で上限を変えられる。β の版は 4 にする） */
+W("nightMaxAvail",f=>function(){let r;try{const cap=+window.NIGHT_CAP||NIGHTS.length;r=Math.max(1,Math.min(cap,NIGHTS.length,(PRF().unlock.nightMax||0)+1))}catch(e){r=f.apply(this,arguments)}return r>=11&&!allTen()?10:r});
+/* 上限をこえた夜のクリアでも「夜：NIGHT n が開いた」の行（①は BETA_NIGHTS までしか出さない） */
+W("runEnd",f=>function(clear,rank){const was=(()=>{try{return PRF().unlock.nightMax||0}catch(e){return 0}})(),g=G;const r=f.apply(this,arguments);
+  try{const cap=+window.NIGHT_CAP||NIGHTS.length,bn=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99,n=g&&g.night;if(clear&&n>was&&n>=bn&&n<Math.min(cap,NIGHTS.length)&&Array.isArray(S.runGot)){const t="夜："+TEXT.ui.night_open.replace("{n}",n+1);
+    if(!(n+1===11&&!allTen())&&!S.runGot.includes(t))S.runGot.push(t)}}catch(e){}return r});
 window.zeroOpen=()=>allTen()&&((PRF().unlock.nightMax||0)>=10);
 
 /* ---- 最後の夜に初めて入る（night11_first） ---- */
@@ -118,7 +126,7 @@ W("startBattleState",f=>function(key){const r=f.apply(this,arguments);try{if(key
 function zForm(f){const e=B.e;e.zf=f;e.mi=f;e.pat=ZF[f].pat;e.pi=0;e.spd=ZF[f].spd;
   const wx=f===2?"dawn":mostWx();B.wx=wx;B.wx2On=true;
   if(TEXT.wx)TEXT.wx.boss2=Object.assign({},TEXT.wx.boss2,{zero:f===2?{n:"夜明け",l:"ROAD に、初めて朝が来る"}:{n:(TEXT.wx[wx]&&TEXT.wx[wx].n)||wx,l:(TEXT.wx[wx]&&TEXT.wx[wx].l)||""}});
-  const bor=pickBorrow(3);B.zBor=(B.zBor||[]).concat(bor);B.zRec=bor;bor.forEach(c=>{try{ZREC[c].fx(e)}catch(x){}});
+  const bor=pickBorrow(3);B.zBor=(B.zBor||[]).concat(bor);B.zRec=bor;e.zfT0=B.pTurns;e.zAct=0;e.zLow=0;e.zBigNext=0;e.zGl=0;e.zCards=0;e.zSkip=1;try{const S0=window.AUDIO&&AUDIO.SE_IDS;if(S0&&(S0.includes("zero_form")||S0.includes("se_zero_form")))SND.se(S0.includes("zero_form")?"zero_form":"se_zero_form",{lv:f+1})}catch(x){}
   addLog(`ZERO の形が変わった（${["剣","槍","盾"][f]}）`);bor.forEach(c=>addLog((TEXT.ui.zero_borrow||"").replace("{name}",RECN[c])+`：${ZREC[c].d}`));
   ev({k:"phase",pal:"f_zero"+(f+1),glitch:true});ev({k:"wx2",wx,boss:"zero"});ev({k:"zform",f,bor})}
 W("checkPhase",f=>function(){const r=f.apply(this,arguments);try{const e=B&&B.e;if(B&&B.key==="zero"&&e&&e.hp>0){const want=e.hp<=e.maxhp*0.33?2:e.hp<=e.maxhp*0.67?1:0;while((e.zf||0)<want)zForm((e.zf||0)+1)}}catch(x){}return r});
@@ -135,13 +143,39 @@ W("afterAct",f=>function(r,rpm0){let zf=null;try{if(B&&B.key==="zero"){const z=B
 W("renderBattle",f=>function(){const r=f.apply(this,arguments);try{if(!isFinal()||!B||window.SCREEN!=="battle")return r;const u=ui();if(!u)return r;
   const E=ENEMIES[B.key]||{},ally=typeof ALLY_BOSS!=="undefined"&&ALLY_BOSS[G.char]&&ENEMIES[ALLY_BOSS[G.char]],tot=ally?3:2,n=B.key==="zero"?tot:B.key==="boss3"?tot-1:E.ally?1:0;
   if(n){const t=u.querySelector(".chaintag");const txt=`連戦 ${n}／${tot}`;if(t)t.textContent=txt;else u.insertAdjacentHTML("beforeend",`<div class="chaintag" ${at(4,92,70,14)}>${txt}</div>`)}
-  if(B.key==="zero"&&(B.zBor||[]).length&&!u.querySelector(".zrec")){const rec=B.zBor.map(c=>RECN[c]);
-    u.insertAdjacentHTML("beforeend",`<button class="zrec" ${at(78,92,236,14)} onclick="toast2(${JSON.stringify(B.zBor.map(c=>RECN[c]+"："+ZREC[c].d).join("／")).replace(/"/g,"&quot;")},76,4200)">借りた記録 ${B.zBor.length}：${esc(rec.slice(-3).map(x=>x.replace(/^.+?の\s*/,"")).join("・"))}</button>`)}}catch(e){}return r});
-try{const st=document.createElement("style");st.textContent=`.zrec{position:absolute;background:#140d22;color:#ffd9a8;border:1px solid #c08a3a;font-size:10px;line-height:12px;padding:0 2px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;document.head.appendChild(st)}catch(e){}
+  if(B.key==="zero"&&(B.zRec||[]).length&&!u.querySelector(".zrec")){const e=B.e,y=44+12*(e.gimTxt?gimLines(e).length:0)+14;
+    const face=c=>{const p=`assets/c2/ui/c2/charsel/revremit_ui_charsel_face_${c.toLowerCase()}.png`;return typeof artHave==="function"&&artHave(p)?`<img class="px" src="${artURL(p)}" alt="">`:""};
+    const tip=JSON.stringify(B.zRec.map(c=>RECN[c]+"："+ZREC[c].d).join("／")).replace(/"/g,"&quot;");
+    u.insertAdjacentHTML("beforeend",`<button class="zrec" ${at(340,y,296,16)} onclick="toast2(${tip},76,4200)">${B.zRec.map(c=>`<span class="zr1">${face(c)}${esc((TEXT.names&&TEXT.names[c])||c)}</span>`).join("")}</button>`)}}catch(e){}return r});
+try{const st=document.createElement("style");st.textContent=`.zrec{position:absolute;background:rgba(20,13,34,.85);color:#ffd9a8;border:1px solid #c08a3a;font-size:10px;line-height:14px;padding:0 2px;text-align:left;white-space:nowrap;overflow:hidden;display:flex;gap:6px;align-items:center}.zrec .zr1{display:inline-flex;align-items:center;gap:2px}.zrec img{width:14px;height:14px;object-fit:cover;object-position:top}`;document.head.appendChild(st)}catch(e){}
 
+/* ---- 借りた記録の効き目（design 26-5 ②）・形が変わる番は動かない ---- */
+const zOn=c=>B&&B.key==="zero"&&(B.zRec||[]).includes(c);
+const zBlk=(v,c)=>{B.e.block+=v;addLog(`${RECN[c]}：ZERO の防御 +${v}`);ev({k:"eblk",v})};
+W("enemyStep",f=>function(){if(!(B&&B.key==="zero"&&B.e))return f.apply(this,arguments);const e=B.e;
+  if(e.zSkip){e.zSkip=0;B.enemyActed=true;e.block=e.blkKeep?Math.floor(e.block*e.blkKeep):0;e.next+=100/(e.spd+(e.spdUp||0));addLog("ZERO は形を変えている（動かない）");ev({k:"eact",p:"none"});return null}
+  const pre=[];try{const f0=e.zf||0,hi=[1,0.67,0.33][f0],lo=[0.67,0.33,0][f0];
+   if(zOn("YUKI")&&!e.zLow&&e.hp<=e.maxhp*(hi+lo)/2){e.zLow=1;pre.push(["YUKI",18])}
+   if(zOn("MOMO")){const k=Math.min(9,B.cards||0);if(k)pre.push(["MOMO",k])}
+   if(zOn("MIO"))pre.push(["MIO",5]);
+   if(zOn("KAEDE")&&e.zBigNext){e.zBigNext=0;pre.push(["KAEDE",15])}
+   e.zAct=(e.zAct||0)+1;if(zOn("NANA")&&e.zAct%3===0)pre.push(["NANA",9])}catch(x){}
+  let act=null;try{act=curAct(e)}catch(x){}
+  const r=f.apply(this,arguments);
+  try{if(!r){pre.forEach(([c,v])=>zBlk(v,c));if(zOn("KURO")&&e.zGl)zBlk(e.zGl,"KURO");
+    const dm=p=>p[0]==="atk"||p[0]==="prc"?p[1]:p[0]==="multi"?p[1]*p[2]:0;if(zOn("KAEDE")&&act&&dm(act)>0){const mx=Math.max(...e.pat.map(dm));if(dm(act)>=mx)e.zBigNext=1}/* その形のいちばん大きい攻撃（攻撃・貫通・連撃の合計） */}}catch(x){}
+  return r});
+W("hitEnemy",f=>function(d){try{if(B&&B.key==="zero"&&d>0){const e=B.e,t=B.pTurns-(e.zfT0||0);
+   if(zOn("HINA")&&t<2){d=Math.ceil(d/2);addLog("ひなの全開：ダメージ半分")}
+   if(zOn("LUNA")&&B.pTurns%4===3){d=Math.ceil(d/2);addLog("るなの月：ダメージ半分")}
+   if(zOn("RIN")&&t<3){d=Math.max(0,d-5);addLog("りんの間合い：ダメージ −5")}}}catch(x){}return f.call(this,d)});
+W("playCard",f=>function(i){const c=B&&B.hand&&B.hand[i];const r=f.apply(this,arguments);try{if(B&&B.key==="zero"&&c&&B.playUid===c.uid&&!B.over){const e=B.e,t=CD(c).t;
+   if(zOn("KURO")){e.zCards=(e.zCards||0)+1;if(e.zCards%3===0&&(e.zGl||0)<5){e.zGl=(e.zGl||0)+1;addLog(`クロのグリッチ：ZERO のグリッチ ${e.zGl}`)}}
+   if(zOn("SORA")){const L=(B.zTypes&&B.zTypeT===B.pTurns)?B.zTypes:[];L.push(t);B.zTypes=L.slice(-3);B.zTypeT=B.pTurns;
+     if(B.zTypes.length===3&&B.zTypes.every(x=>x===t)&&B.zSoraT!==B.pTurns){B.zSoraT=B.pTurns;zBlk(12,"SORA")}}}}catch(x){}return r});
 /* ---- 図鑑：ボスに ZERO ---- */
 W("cdxEnemies",f=>function(boss){const L=f.apply(this,arguments);if(boss&&!L.some(x=>x.key==="zero")){const a=Math.max(0,L.findIndex(x=>x.key==="boss3"));const it={key:"zero",a:(L[a]||{}).a||0,final:1};it.id=typeof cdxEKey==="function"?cdxEKey("zero"):"zero";L.push(it)}return L});
 W("cdxEnemyHint",f=>function(x){if(x&&x.final)return"最後の夜（NIGHT 11）で、零号のあと";return f.apply(this,arguments)});
 
-window.ZERO={VERSION:"0.5.24",ZF,ZREC,RECN,zForm,allTen,zeroStart,mostWx,cap:r=>r>=11&&!allTen()?10:r};
+window.ZERO={VERSION:"0.5.26",ZF,ZREC,RECN,zForm,allTen,zeroStart,mostWx,cap:r=>r>=11&&!allTen()?10:r};
 })();
