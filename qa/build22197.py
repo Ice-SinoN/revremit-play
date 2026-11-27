@@ -19,7 +19,7 @@ with sync_playwright() as p:
     if o["build"]!=build:ng("build",build,o["build"])
     if "KAEDE" not in o["saved"]:ng("save lost",build)
     if o["old"]!="undefined" or o["ghN"]!="undefined":ng("①の夜の顔が残っている",build)
-    if o["av"]!="0.35" or o["se"]!=[1,1,1]:ng("audio",o["av"],o["se"])
+    if float(o["av"])<0.35 or o["se"]!=[1,1,1]:ng("audio",o["av"],o["se"])
     if build=="full":
       if o["bn"] is not None or o["mx"]<10:ng("full nights",o["bn"],o["mx"])
       if len(o["marks"])!=10 or o["marks"][-1]!=5000:ng("full marks",o["marks"])

@@ -88,11 +88,14 @@ if(typeof SND!=="undefined"&&typeof SND.bgm==="function"){const b0=SND.bgm;SND.b
 
 /* ---- 開き方：10人そろって NIGHT 10 をクリア ---- */
 const allTen=()=>{try{const u=PRF().unlock.chars||[];return TEN.every(c=>u.includes(c))}catch(e){return false}};
-/* v0.5.26 QA：BETA_NIGHTS（① 4・③ 9）で止まって NIGHT 10・11 に行けない → 全員で遊べる版は NIGHT 1〜11（window.NIGHT_CAP で上限を変えられる。β の版は 4 にする） */
-W("nightMaxAvail",f=>function(){let r;try{const cap=+window.NIGHT_CAP||NIGHTS.length;r=Math.max(1,Math.min(cap,NIGHTS.length,(PRF().unlock.nightMax||0)+1))}catch(e){r=f.apply(this,arguments)}return r>=11&&!allTen()?10:r});
+/* v0.5.27 design 26-7 ①：版の切りかえ BUILD＝"beta"（公開β：4人・NIGHT 1〜4＝①の BETA_NIGHTS のまま）｜"full"（全員で遊べる版：10人・NIGHT 1〜11・ZERO）。
+   ①と同じ形：const BUILD か window.BUILD。どちらもなければ "full"（試作・QA・LD・母艦）。revremit-play は BUILD="beta"。セーブは共通（beta で開いても鍵の表示になるだけで消さない）。 */
+const buildOf=()=>{try{if(typeof BUILD!=="undefined"&&BUILD)return String(BUILD)}catch(e){}return String(window.BUILD||"full")};
+const isFull=()=>buildOf()!=="beta";window.buildOf=buildOf;
+W("nightMaxAvail",f=>function(){if(!isFull())return f.apply(this,arguments);let r;try{r=Math.max(1,Math.min(NIGHTS.length,(PRF().unlock.nightMax||0)+1))}catch(e){r=f.apply(this,arguments)}return r>=11&&!allTen()?10:r});
 /* 上限をこえた夜のクリアでも「夜：NIGHT n が開いた」の行（①は BETA_NIGHTS までしか出さない） */
 W("runEnd",f=>function(clear,rank){const was=(()=>{try{return PRF().unlock.nightMax||0}catch(e){return 0}})(),g=G;const r=f.apply(this,arguments);
-  try{const cap=+window.NIGHT_CAP||NIGHTS.length,bn=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99,n=g&&g.night;if(clear&&n>was&&n>=bn&&n<Math.min(cap,NIGHTS.length)&&Array.isArray(S.runGot)){const t="夜："+TEXT.ui.night_open.replace("{n}",n+1);
+  try{const bn=typeof BETA_NIGHTS==="number"?BETA_NIGHTS:99,n=g&&g.night;if(isFull()&&clear&&n>was&&n>=bn&&n<NIGHTS.length&&Array.isArray(S.runGot)){const t="夜："+TEXT.ui.night_open.replace("{n}",n+1);
     if(!(n+1===11&&!allTen())&&!S.runGot.includes(t))S.runGot.push(t)}}catch(e){}return r});
 window.zeroOpen=()=>allTen()&&((PRF().unlock.nightMax||0)>=10);
 
@@ -126,7 +129,7 @@ W("startBattleState",f=>function(key){const r=f.apply(this,arguments);try{if(key
 function zForm(f){const e=B.e;e.zf=f;e.mi=f;e.pat=ZF[f].pat;e.pi=0;e.spd=ZF[f].spd;
   const wx=f===2?"dawn":mostWx();B.wx=wx;B.wx2On=true;
   if(TEXT.wx)TEXT.wx.boss2=Object.assign({},TEXT.wx.boss2,{zero:f===2?{n:"夜明け",l:"ROAD に、初めて朝が来る"}:{n:(TEXT.wx[wx]&&TEXT.wx[wx].n)||wx,l:(TEXT.wx[wx]&&TEXT.wx[wx].l)||""}});
-  const bor=pickBorrow(3);B.zBor=(B.zBor||[]).concat(bor);B.zRec=bor;e.zfT0=B.pTurns;e.zAct=0;e.zLow=0;e.zBigNext=0;e.zGl=0;e.zCards=0;e.zSkip=1;try{const S0=window.AUDIO&&AUDIO.SE_IDS;if(S0&&(S0.includes("zero_form")||S0.includes("se_zero_form")))SND.se(S0.includes("zero_form")?"zero_form":"se_zero_form",{lv:f+1})}catch(x){}
+  const bor=pickBorrow(3);B.zBor=(B.zBor||[]).concat(bor);B.zRec=bor;e.zfT0=B.pTurns;e.zAct=0;e.zLow=0;e.zBigNext=0;e.zGl=0;e.zCards=0;e.zSkip=1;/* 形の音 zero_form {n}・bgmPhase は audio v0.35 の cue（zero_phase2 #0・zero_phase3 #2） */
   addLog(`ZERO の形が変わった（${["剣","槍","盾"][f]}）`);bor.forEach(c=>addLog((TEXT.ui.zero_borrow||"").replace("{name}",RECN[c])+`：${ZREC[c].d}`));
   ev({k:"phase",pal:"f_zero"+(f+1),glitch:true});ev({k:"wx2",wx,boss:"zero"});ev({k:"zform",f,bor})}
 W("checkPhase",f=>function(){const r=f.apply(this,arguments);try{const e=B&&B.e;if(B&&B.key==="zero"&&e&&e.hp>0){const want=e.hp<=e.maxhp*0.33?2:e.hp<=e.maxhp*0.67?1:0;while((e.zf||0)<want)zForm((e.zf||0)+1)}}catch(x){}return r});
@@ -136,7 +139,7 @@ W("afterAct",f=>function(r,rpm0){let zf=null;try{if(B&&B.key==="zero"){const z=B
   const out=f.apply(this,arguments);
   try{if(L){const sc=TEXT.scenes[key]||{lines:[]};S.toastQ=L;
     sc.lines.forEach((l,i)=>setTimeout(()=>{try{window.AUDIO&&AUDIO.cue(key,i)}catch(e){}},i*2500));
-    bor.forEach((c,i)=>setTimeout(()=>{try{SND.se("zero_borrow",{who:c.toLowerCase()})}catch(e){}},400+i*800));
+    bor.forEach((c,i)=>setTimeout(()=>{try{SND.se("zero_borrow",{who:c.toLowerCase()})}catch(e){}},400+i*1100));/* audio v0.35：勝ち曲の頭が重ならないよう 1.1秒ずつ */
     L.forEach((l,i)=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},i*2500+2530))}}catch(e){}
   return out});
 /* 戦闘の画面：連戦の札（N11）と、借りた記録の札（資源の帯の上） */
@@ -177,5 +180,5 @@ W("playCard",f=>function(i){const c=B&&B.hand&&B.hand[i];const r=f.apply(this,ar
 W("cdxEnemies",f=>function(boss){const L=f.apply(this,arguments);if(boss&&!L.some(x=>x.key==="zero")){const a=Math.max(0,L.findIndex(x=>x.key==="boss3"));const it={key:"zero",a:(L[a]||{}).a||0,final:1};it.id=typeof cdxEKey==="function"?cdxEKey("zero"):"zero";L.push(it)}return L});
 W("cdxEnemyHint",f=>function(x){if(x&&x.final)return"最後の夜（NIGHT 11）で、零号のあと";return f.apply(this,arguments)});
 
-window.ZERO={VERSION:"0.5.26",ZF,ZREC,RECN,zForm,allTen,zeroStart,mostWx,cap:r=>r>=11&&!allTen()?10:r};
+window.ZERO={VERSION:"0.5.27",ZF,ZREC,RECN,zForm,allTen,zeroStart,mostWx,cap:r=>r>=11&&!allTen()?10:r};
 })();

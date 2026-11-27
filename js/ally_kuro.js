@@ -60,7 +60,7 @@ A3.register({id:"KURO",night:9,treeBase:"ku_koumori",
   {id:"ku_t3",n:"撃つ",d:"積んで大技で撃つ型",entry:["ku_akaikusari","ku_kodou"],cards:["ku_bagurase","ku_akaikusari","ku_kodou","ku_kusariwana"],parts:["pacenote","hook","dashcam","ku_display"],top:"バグらせちゃえ ×6 → ×7",tip:"バグらせちゃえのグリッチ1つあたりのダメージが 1 多い。"}],
  style:["ギアも回転もない自転車のトリックスター。カードは心拍で払い、グリッチを積んで大技で使う。200 をこえると転倒して、積んだグリッチが消える。","ねらい：ダンシング・抜け道で一気に積み、息継ぎ・フリーホイール・裏返しで心拍を下げ、グリッチ・トリックやバグらせちゃえでドーン。"],
  ops:{
-  kGl:(x,n)=>{const v=B.kCur==="ku_dancing"&&A3.treeTopIs("ku_t1")?n+1:n;const k=K.gl(v);if(k)addLog(`グリッチ ${k>0?"+":""}${k}（${B.gl}）`)},
+  kGl:(x,n)=>{const v=B.kCur==="ku_dancing"&&A3.treeTopIs("ku_t1")&&!A3.kuTree2?n+1:n;const k=K.gl(v);if(k)addLog(`グリッチ ${k>0?"+":""}${k}（${B.gl}）`)},
   kDraft:x=>{const L=B.draw.length;if(!L)return;const a=B.draw[L-1],b=B.draw[L-2];if(!b){drawN(1);return}const sc=c=>{const d=CD(c);return(d.t==="atk"?2:1)*(d.v||0)+(d.r==="E"?20:0)};
    const pk=B.kPick;B.kPick=null;const take=pk===b.uid?b:pk===a.uid?a:(sc(a)>=sc(b)?a:b),other=take===a?b:a;B.draw.splice(B.draw.indexOf(other),1);B.draw.unshift(other);B.draw.splice(B.draw.indexOf(take),1);B.draw.push(take);drawN(1);addLog(`ドラフティング：「${CD(take).n}」を引き、「${CD(other).n}」を下へ`)},
   kChain:(x,k)=>{const a=(B.gl||0)*k;B.atkAdd=(B.atkAdd||0)+a;addLog(`鎖罠：次のアタック +${a}`)},
@@ -73,7 +73,7 @@ A3.register({id:"KURO",night:9,treeBase:"ku_koumori",
    if(bj<0){addLog("空振り誘い：すりかえる行動がない");return}e.pi=e.pi-cur+bj;addLog("空振り誘い：敵の次の行動をすりかえた");ev({k:"onset"})},
   kBeat:(x,v)=>x.attack(Math.floor((B.hr||0)/v)),
   kUseAtk:(x,n,v)=>{if(K.use(n)<n){addLog("赤い鎖：グリッチが足りない");return}x.attack(v)},
-  kBug:(x,v)=>{const per=v+(A3.treeTopIs("ku_t3")?1:0);if(RULE().bugOnce)A3.turnVal("bugOnce",1);B.a3bugN=(B.a3bugN||0)+1;/* qa の数え（AI の読みでは B ごともどる） */if(RULE().bugHalf){/* ★v0.87 design 16-24：全部は使わない。グリッチ ×v（0 なら bugZero）を打ってから、グリッチを半分に（切り捨て）＝使うのは残りの半分。打つときは今のグリッチのまま（刃もかかる） */const k=B.gl||0;if(k)x.attack(k*per);else if(RULE().bugZero)x.attack(RULE().bugZero);const u=k-Math.floor(k/2);if(u)K.use(u);return}
+  kBug:(x,v)=>{const per=v+(A3.treeTopIs("ku_t3")&&!A3.kuTree2?1:0);if(RULE().bugOnce)A3.turnVal("bugOnce",1);B.a3bugN=(B.a3bugN||0)+1;/* qa の数え（AI の読みでは B ごともどる） */if(RULE().bugHalf){/* ★v0.87 design 16-24：全部は使わない。グリッチ ×v（0 なら bugZero）を打ってから、グリッチを半分に（切り捨て）＝使うのは残りの半分。打つときは今のグリッチのまま（刃もかかる） */const k=B.gl||0;if(k)x.attack(k*per);else if(RULE().bugZero)x.attack(RULE().bugZero);const u=k-Math.floor(k/2);if(u)K.use(u);return}
    const k=K.use(99);if(k)x.attack(k*per);else if(RULE().bugZero)x.attack(RULE().bugZero)/* ★v0.67 design 16-14 の2：グリッチ 0 なら bugZero ダメージ */},
   kTrick:(x,v)=>{K.use(99);x.attack(v);const rs=[["half","カードの心拍が半分"],["noFall","転倒を1回なしに"],["gl15","グリッチの上限 15"],["pick2","引くときはいつも2枚から選ぶ"]];B.kRule=B.kRule||{};
    const pk=B.kPick;B.kPick=null;const r=(pk&&rs.find(q=>q[0]===pk))||(B.hr>=140&&!B.kRule.half?rs[0]:null)||rs.find(q=>!B.kRule[q[0]])||rs[0];A3.se("kuro_trick",{rule:rs.indexOf(r)+1});A3.fx&&A3.fx("kuro_trick_sheet",320,180,8,0,0,2,900,4);try{AUDIO.bgmDuck&&AUDIO.bgmDuck(2,.3)}catch(e){}B.kRule[r[0]]=1;addLog(`グリッチ・トリック：この戦闘「${r[1]}」`);ev({k:"onset"})}},
@@ -98,7 +98,7 @@ A3.register({id:"KURO",night:9,treeBase:"ku_koumori",
 /* グリッチ・トリック ④：引くときは山札の上2枚から良いほうを（③の自動） */
 A3.drawHook=(prev=>function(){if(prev)prev();if(!B||!A3.isChar("KURO")||!(B.kRule&&B.kRule.pick2))return;const L=B.draw.length;if(L<2)return;const a=B.draw[L-1],b=B.draw[L-2];if(A3.human()){(B.kPend=B.kPend||[]).push({d:a.uid,alt:b.uid});return}/* 人：引いたあと「2枚から選ぶ」小窓（ally3_ui） */const s=c=>(CD(c).v||0)+(CD(c).t==="atk"?3:0);if(s(b)>s(a)){B.draw[L-1]=b;B.draw[L-2]=a}})(A3.drawHook);
 /* 息継ぎ：ツリー「引く」で3枚 */
-{const d0=OPS.draw;OPS.draw=(x,n)=>{if(B&&A3.isChar("KURO")&&B.kCur==="ku_ikitsugi"&&A3.treeTopIs("ku_t2"))n=(n||0)+1;return d0(x,n)}}
+{const d0=OPS.draw;OPS.draw=(x,n)=>{if(B&&A3.isChar("KURO")&&B.kCur==="ku_ikitsugi"&&A3.treeTopIs("ku_t2")&&!A3.kuTree2)n=(n||0)+1;return d0(x,n)}}
 {const fi=finish;finish=function(){const r=fi.apply(this,arguments);try{if(G&&G.char==="KURO")K.heart(null)}catch(e){}return r}}
 /* ★v0.38 KURO の AI（design 16 の答え：③が作る。LD・QA はこれで測る・②はフルオートで呼ぶだけ）。ALLY3.policy.kuro({weak}) → {t:"play",i,shift:false}｜{t:"end"}
    1手ずつ「ためしに打って」点をつける（心拍・グリッチ・転倒を見る）。weak＝オート用の少し弱い形（心拍の線を低く・グリッチの値うちを小さく・たまに早めに終える） */

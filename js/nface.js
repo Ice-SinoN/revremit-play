@@ -55,7 +55,7 @@ W("startBattleState",f=>function(key){const r=f.apply(this,arguments);try{if(!B|
    /* 11 最後の夜：エリアのボスは第2形態から */
    if(fc.bossP2&&AREAS.some(a=>a.boss===key)){const e=B.e;if(e.phase&&!e.phased){e.phased=true;e.spd=e.phase.spd;if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}addLog(`${e.n} は、はじめから第2形態`)}
      if(e.wx2&&!B.wx2On){B.wx2On=true;B.wx=e.wx2}}}catch(e){}return r});
-W("startPlayerTurn",f=>function(first){const r=f.apply(this,arguments);try{const s=B&&B.storm;if(s&&!s.done&&B.pTurns>=s.at-1&&!B.over){s.done=1;B.wx=s.wx;addLog(`嵐：天候が変わった：${wxN(s.wx)}`);ev({k:"wx2",wx:s.wx,storm:1});try{const I=window.AUDIO&&AUDIO.SE_IDS;if(I&&!auto()){const id=I.includes("storm_shift")?"storm_shift":I.includes("se_storm_shift")?"se_storm_shift":null;if(id)SND.se(id)}}catch(e){}/* design 26-5 ⑥（サウンド班の音が入ったら鳴る） */
+W("startPlayerTurn",f=>function(first){const r=f.apply(this,arguments);try{const s=B&&B.storm;if(s&&!s.done&&B.pTurns>=s.at-1&&!B.over){s.done=1;B.wx=s.wx;addLog(`嵐：天候が変わった：${wxN(s.wx)}`);ev({k:"wx2",wx:s.wx,storm:1});try{if(!auto())SND.se("storm_shift")}catch(e){}/* audio v0.35：合図を鳴らしてから新しい天候の weather()（afterAct の wxPhase） */
    if(typeof window.nightStormHit==="function")window.nightStormHit();
    if(!auto())setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`嵐：天候が「${wxN(s.wx)}」に変わった`,120,2600)},350)}}catch(e){}return r});
 /* 戦闘の画面：天候の札の右に「3ターン目 ○○」（変わったら消える） */
@@ -80,5 +80,5 @@ W("showWinBody",f=>function(w){const r=f.apply(this,arguments);try{if(!F().fuseH
 
 try{const st=document.createElement("style");st.textContent=`.stormtag{position:absolute;background:#1a1030;color:#e6d8ff;border:1px dashed #b08cff;font-size:10px;line-height:12px;padding:0;text-align:center;white-space:nowrap;overflow:hidden}.fusehint{position:absolute;text-align:center;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(10,8,18,.85);border:1px solid #6a5a2a;color:#e8e2cf}`;document.head.appendChild(st)}catch(e){}
 W("renderReady",f=>function(){const r=f.apply(this,arguments);try{const el=document.querySelector("#ui .nface");const n=curNight(),fl=TEXT.ui["night_face_"+n+"_f"];if(el&&fl&&!el.title.includes(fl))el.title=el.title+"\n"+fl}catch(e){}return r});
-window.NFACE={VERSION:"0.5.26",ADD,fuseHint};
+window.NFACE={VERSION:"0.5.27",ADD,fuseHint};
 })();

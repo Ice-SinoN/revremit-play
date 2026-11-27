@@ -202,6 +202,37 @@ A3.dig12=()=>{
  {const te=turnEnd;turnEnd=function(){try{if(B&&!B.over&&B.dgLog&&A3.isChar("MIO")){const r=cvt();if(r&&B.rpm>=r.lo&&B.rpm<=r.hi){B.block+=B.dgLog;addLog(`試作ロガー：防御 +${B.dgLog}`);ev({k:"pblk",v:B.dgLog})}}}catch(e){}return te.apply(this,arguments)}}
  A3.pickAlias=Object.assign(A3.pickAlias||{},{ku_dig2:"ku_kakushifuda"});A3.pickTtl=Object.assign(A3.pickTtl||{},{ku_dig2:"「グリッチ +2」に変える手札をえらぶ"});/* 題の字は写すのまま（文はシナリオ班のあとで） */
 };
+/* ★v2.0 スキルツリーの枝の決め直し（design 25-2・ld 67・4段目の数は仮＝LD が測る）。
+   KURO：積む／引く／撃つ → 電脳（ku_t1）／道化（ku_t2）／鼓動（ku_t3）。枝の id と並びはそのまま（保存の lv は並びで持つので、今までの振り方は 積む＝電脳・引く＝道化・撃つ＝鼓動 に読みかわる・奥義の枝と同じ）。
+   SORA：余韻の4段目を「五線が 10 まで」→「白の音符の防御」に（25-2：余韻＝白の音符の防御 +）。 */
+A3.tree25=()=>{
+ const T=typeof TREE!=="undefined"?TREE:null;if(!T)return;const K=A3.kuro,top=id=>A3.treeTopIs&&A3.treeTopIs(id);
+ const W={ku_t1:{n:"電脳",d:"グリッチで守って刺す型",entry:["ku_akaikusari","ku_kusariwana"],cards:["ku_akaikusari","ku_kusariwana","ku_koumori","ku_nukemichi","ku_bagurase"],parts:["pacenote","hook","dashcam","ku_bat"],top:"グリッチの盾 +5・刃 +2（上限）",tip:"番の終わりのグリッチの盾の上限が 5、アタックに足す刃の上限が 2 多い。"},
+  ku_t2:{n:"道化",d:"作戦を入れかえる型",entry:["ku_doukefuda","ku_uragaeshi"],cards:["ku_doukefuda","ku_kakushifuda","ku_uragaeshi","ku_karaburi","ku_drafting"],parts:["grip","cage","jack","ku_display"],top:"ドラフティングは3枚から・グリッチ・トリックの書きかえ +1",tip:"ドラフティングで見る山札が3枚になる。グリッチ・トリックで書きかえるルールが2つになる。"},
+  ku_t3:{n:"鼓動",d:"心拍を上げて走る型",entry:["ku_kodou","ku_dancing"],cards:["ku_kodou","ku_dancing","ku_freewheel","ku_ikitsugi","ku_shoukei","ku_kurosystem"],parts:["turbo","nitro","limiter","ku_crank"],top:"心拍の帯の倍率 +0.2・すまし顔 +2",tip:"心拍の帯で倍率が上がっているとき、さらに +0.2。番の終わりのすまし顔の防御が 2 多い。"}};
+ (T.KURO||[]).forEach(b=>{if(W[b.id])Object.assign(b,W[b.id])});
+ (T.SORA||[]).forEach(b=>{if(b.id==="s_yoin")Object.assign(b,{top:"白の音符1つにつき、番の終わりに防御 +2（最大 6）",tip:"番の終わり、並んでいる白の音符1つにつき防御 +2（6 まで）。耐久の回復はそのまま。"})});
+ A3.kuTree2=1;A3.soraTree2=1;
+ if(A3._trHooked)return;A3._trHooked=1;
+ if(K){const ga=K.glAtk,gb=K.glBlk,hm=K.hrMul,rb=K.restBlk;
+  K.glAtk=function(g){if(!top("ku_t1"))return ga.apply(this,arguments);const r=RULE().glitchAtk;if(!r)return 0;return Math.min((r.max||5)+2,Math.floor((g||0)/(r.per||2))*(r.add||1))};
+  K.glBlk=function(g){if(!top("ku_t1"))return gb.apply(this,arguments);const r=RULE().glitchBlk;if(!r)return 0;return Math.min((r.max||10)+5,Math.floor((g||0)/(r.per||1)))};
+  K.hrMul=function(){const m=hm.apply(this,arguments);return top("ku_t3")&&m>1?m+0.2:m};
+  K.restBlk=function(){const b=rb.apply(this,arguments);return top("ku_t3")&&b>0?b+2:b}}
+ // 道化：ドラフティング3枚・書きかえ2つ
+ {const kd=OPS.kDraft;OPS.kDraft=function(x){if(!(top("ku_t2")&&A3.isChar("KURO"))||B.draw.length<3)return kd.apply(this,arguments);const L=B.draw.length,t=[B.draw[L-1],B.draw[L-2],B.draw[L-3]];const sc=c=>{const d=CD(c);return(d.t==="atk"?2:1)*(d.v||0)+(d.r==="E"?20:0)};
+   const pk=B.kPick;B.kPick=null;const take=t.find(c=>c.uid===pk)||t.slice().sort((a,b)=>sc(b)-sc(a))[0],oth=t.filter(c=>c!==take);oth.forEach(c=>{B.draw.splice(B.draw.indexOf(c),1);B.draw.unshift(c)});B.draw.splice(B.draw.indexOf(take),1);B.draw.push(take);drawN(1);addLog(`ドラフティング：「${CD(take).n}」を引き、「${oth.map(c=>CD(c).n).join("・")}」を下へ`)}}
+ {const kt=OPS.kTrick;OPS.kTrick=function(x,v){const two=top("ku_t2")&&A3.isChar("KURO"),pk=B.kPicks;if(two&&pk&&pk.length)B.kPick=pk[0];const r=kt.apply(this,arguments);
+   if(two){B.kRule=B.kRule||{};const rs=[["half","カードの心拍が半分"],["noFall","転倒を1回なしに"],["gl15","グリッチの上限 15"],["pick2","引くときはいつも2枚から選ぶ"]];const k2=(pk&&pk[1]&&!B.kRule[pk[1]]&&pk[1])||(rs.find(q=>!B.kRule[q[0]])||[])[0];
+    if(k2){B.kRule[k2]=1;addLog(`道化：もう1つ「${rs.find(q=>q[0]===k2)[1]}」`)}}return r}}
+ A3.pickPre=A3.pickPre||[];A3.pickPre.push(i=>{if(!top("ku_t2"))return undefined;const c=B.hand[i];if(!c)return undefined;const card=x=>cardSmall(x,{cost:0,gas:gasOf(x),gasNow:B.gas,attrs:'style="position:relative;display:inline-block"'});
+   if(c.id==="ku_drafting"){const L=B.draw.length;if(L<3)return undefined;const t=[B.draw[L-1],B.draw[L-2],B.draw[L-3]];return{ttl:"山札の上3枚：手札にする1枚をえらぶ（ほかは山札の下へ）",opts:t.map(x=>({v:x.uid,h:card(x)}))}}
+   if(c.id==="ku_glitch"){const rs=[["half","心拍が半分"],["noFall","転倒を1回なしに"],["gl15","グリッチ 15 まで"],["pick2","引くときは2枚から選ぶ"]],TX=TEXT.ui||{},done=B.kRule||{};const n=Math.min(2,rs.filter(r=>!done[r[0]]).length);if(n<2)return undefined;
+     return{multi:2,ttl:"ルールを書きかえる（2つえらぶ・道化）",opts:rs.map(([k,nm],j)=>({v:k,dis:!!done[k],h:`<div class="kpi">${esc(TX["kuro_rule_"+(j+1)]||nm)}</div>`}))}}
+   return undefined});
+ // SORA 余韻：白の音符の防御
+ {const te=turnEnd;turnEnd=function(){try{if(B&&G&&!B.over&&A3.isChar("SORA")&&top("s_yoin")&&B.staff){const w=Math.min(6,2*A3.notes.cnt("w"));if(w){B.block+=w;addLog(`余韻：白の音符で防御 +${w}`);ev({k:"pblk",v:w})}}}catch(e){}return te.apply(this,arguments)}}
+};
 A3.ougi18=()=>{
  const C6=["SORA","KAEDE","RIN","LUNA","KURO","MIO"];if(!C6.some(has))return;
  const T=(typeof TEXT!=="undefined"&&TEXT)||null,cap=(n,k)=>Math.min(k,Math.round(n));
@@ -386,6 +417,7 @@ const STEPS=[
  ["v1.8 合成36組（design 26-6）：6人 × 枝ごとに2組。名前は仮・数は表の仮（強いほうの材料とくらべる）",()=>A3.fuse36()],
  ["v1.8 ディグのカード12枚（design 26-6）：6人 × 2枚・フルオートでだけ見つかる。名前は仮",()=>A3.dig12()],
  ["v1.9 赤い鎖罠の強化 4→5（design 26-8：グリッチ ×{v} は主の数なので ×1.5。次のアタック +グリッチ ×2 は変えない）",()=>card("f_ku_akaikusariwana",{vu:5})],
+ ["v2.0 スキルツリーの枝（design 25-2）：KURO 電脳・道化・鼓動（4段目＝盾 +5・刃 +2／ドラフティング3枚・書きかえ +1／帯の倍率 +0.2・すまし顔 +2）・SORA 余韻の4段目＝白の音符1つにつき防御 +2（最大 6）",()=>A3.tree25()],
 ];
 /* "pending" の版（準備だけ）は、ALLY3_LD_STEP でその番号まで指したときだけ入る */
 const lim=Number.isInteger(globalThis.ALLY3_LD_STEP)?globalThis.ALLY3_LD_STEP:STEPS.reduce((a,s0,i)=>s0[2]==="pending"?a:i,0);
@@ -398,3 +430,8 @@ if(has("MIO")){const n=(CHARS.MIO.rule||{}).lowDraw;if(n!=null&&!/もう1枚引�
 if(has("KURO")){const C=CHARS.KURO,U=(typeof TEXT!=="undefined"&&TEXT.ui)||{},R=C.rule||{};if(C.ruleTxt0==null)C.ruleTxt0=C.ruleTxt;C.ruleTxt=[C.ruleTxt0,R.glitchAtk&&U.rule_kuro_blade,R.restBlk&&U.rule_kuro_rest,R.glitchBlk&&U.rule_kuro_shield].filter(Boolean).join("・")}
 A3.chars.forEach(ch=>(CHARS[ch].deck||[]).forEach(([id])=>{const d=CARDS[id];if(!d)return;/* ★v1.3 BUG-63：①の持ち方＝その子の名前の配列（d.starter.includes(ch)） */if(!Array.isArray(d.starter))d.starter=d.starter&&d.own&&d.own!=="N"?[d.own]:[];if(!d.starter.includes(ch))d.starter.push(ch)}));
 A3.ldDone=true})();
+
+/* ★v2.0 枝の名前と一行（text 25章 v0.22.62）：文だけ（強さは変えない） */
+try{if(typeof TREE!=="undefined"){const NM={SORA:{s_tempo:["強音","同じ色を重ねる型"],s_waon:["和音","色をそろえる型"],s_yoin:["余韻","白の音で守る型"]},RIN:{r_nui:["間合い","遠くから射る型"],r_qmove:["成り駒","駒を育てる型"],r_fuku:["女王の一手","最後に詰める型"]},LUNA:{l_seizu:["満ち欠け","月で決める型"],l_ryusei:["流れ星","星を灯す型"],l_shin:["星座","夜空を満たす型"]},KURO:{ku_t1:["電脳","グリッチで守って刺す型"],ku_t2:["道化","作戦を入れかえる型"],ku_t3:["鼓動","心拍を上げて走る型"]}};
+ const YM={s_tempo:"フォルテ",s_waon:"わおん",s_yoin:"よいん",r_nui:"まあい",r_qmove:"なりごま",r_fuku:"じょおうのいって",l_seizu:"みちかけ",l_ryusei:"ながれぼし",l_shin:"せいざ",ku_t1:"でんのう",ku_t2:"どうけ",ku_t3:"こどう"};
+ Object.entries(NM).forEach(([ch,o])=>(TREE[ch]||[]).forEach(b=>{if(!o[b.id])return;if(ch==="KURO"&&!A3.kuTree2)return;/* KURO は ld 67 から（中身が変わるため） */b.n=o[b.id][0];b.d=o[b.id][1];b.yomi=YM[b.id]}))}}catch(e){}

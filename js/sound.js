@@ -8,7 +8,7 @@ const SND={on:true,
   ok(){return SND.on&&window.AUDIO},
   call(f){if(!SND.ok())return;try{f(AUDIO)}catch(e){}},
   unlock(){if(window.AUDIO){try{AUDIO.unlock();AUDIO.setEngineType("real");AUDIO.mute(!SND.on)}catch(e){}}},
-  car(){const C=G?G.car:CHARS.YUKI.car,b=G&&B?bandRange():{lo:C.band[0],hi:C.band[1]};return{idle:C.idle,bandLo:b.lo,bandHi:b.hi,red:G&&B?redLo():C.red,limit:G?limit():C.limit,cvt:!!(G&&G.char==="MIO")}},/* ★v0.22.194 audio v0.32 23-1：MIO は CVT のエンジン音（β にはいない＝今は何も変わらない） */
+  car(){const C=G?G.car:CHARS.YUKI.car,b=G&&B?bandRange():{lo:C.band[0],hi:C.band[1]};return{idle:C.idle,bandLo:b.lo,bandHi:b.hi,red:G&&B?redLo():C.red,limit:G?limit():C.limit,cvt:!!(G&&G.char==="MIO"),voice:((G&&G.char)||"YUKI").toLowerCase()}/* ★v0.22.200 audio v0.36：車ごとのエンジン音 */},/* ★v0.22.194 audio v0.32 23-1：MIO は CVT のエンジン音（β にはいない＝今は何も変わらない） */
   setCar(){SND.call(A=>A.setCar(SND.car()))},
   se(id,o){SND.call(A=>A.se(id,o))},
   attack(v){SND.call(A=>A.attack(v))},

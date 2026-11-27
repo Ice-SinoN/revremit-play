@@ -27,7 +27,7 @@ const NIGHTS=[
    セーブは共通：beta で開いても、出していない子と夜は charsOpen／nightMaxAvail で見えないだけ（セーブの中身は消さない）。 */
 var BUILD=(typeof window!=="undefined"&&(window.RR_BUILD==="beta"||window.RR_BUILD==="full"))?window.RR_BUILD:"full";
 const BETA_CHARS=["YUKI","HINA","MOMO","NANA"];
-const BETA_NIGHTS=BUILD==="beta"?4:null;if(BUILD==="beta"&&typeof window!=="undefined")window.NIGHT_CAP=4;/* ★v0.22.198 ②v0.5.26 の nightMaxAvail は NIGHT_CAP で止める *//* full では null（数でない＝夜の上限なし・NIGHT 4 のあとのβの終わりも出ない） */
+const BETA_NIGHTS=BUILD==="beta"?4:null;/* full では null（数でない＝夜の上限なし・NIGHT 4 のあとのβの終わりも出ない） */
 if(BUILD==="full"&&NIGHTS[3]&&NIGHTS[3].open&&!(NIGHTS[3].open.chars||[]).length)NIGHTS[3].open.chars=["SORA"];/* full：NIGHT 4 の初クリアで SORA が加わる（β は予告だけ） */
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）

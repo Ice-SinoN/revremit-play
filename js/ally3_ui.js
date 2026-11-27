@@ -14,7 +14,8 @@ const _playJoins=playJoins;playJoins=function(q,done){
     const join=()=>{SND.jingle("ally_join",{who:lc});if(TEXT.scenes["join_"+lc])showScene("join_"+lc,next);else _playJoins([c],next)};
     const pre=(CHARS[c].preJoin||[]).filter(k=>!seenGet()[k]&&TEXT.scenes[k]);
     /* ★v0.6 β の線（BETA_NIGHTS が 4 まで）：SORA が夜の初クリアで加わったときは、そのあと①の「β の締め」（showBetaEnd）へ */
-    const beta=c==="SORA"&&pre.length&&typeof BETA_NIGHTS==="number"&&BETA_NIGHTS<=4&&typeof showBetaEnd==="function";
+    const full=typeof BUILD!=="undefined"&&BUILD==="full";/* ★v2.0 全員で遊べる版：β の締めは出さない（次の仲間の話→ join_sora → NIGHT 5 へ） */
+    const beta=!full&&c==="SORA"&&pre.length&&typeof BETA_NIGHTS==="number"&&BETA_NIGHTS<=4&&typeof showBetaEnd==="function";
     const nx=beta?()=>showBetaEnd(next):next,join2=()=>{SND.jingle("ally_join",{who:lc});if(TEXT.scenes["join_"+lc])showScene("join_"+lc,nx);else _playJoins([c],nx)};
     if(pre.length){SND.jingle("ally_next");const run=i=>i<pre.length?showScene(pre[i],()=>run(i+1)):join2();run(0)}else join();return}
   return _playJoins(q,done)};
@@ -144,6 +145,7 @@ A3.kuroPickFor=function(i){const c=B.hand[i],id=(A3.pickAlias&&A3.pickAlias[c.id
     const n=Math.min(c.up?CD(c).vu||CD(c).v:CD(c).v,rs.filter(r=>!done[r[0]]).length);if(n<=0)return null;
     return{multi:n,ttl:`ルールを書きかえる（${n} つえらぶ）`,opts:rs.map(([k,nm],j)=>({v:k,dis:!!done[k],h:`<div class="kpi">${esc(T["kuro_rule_"+(j+1)]||nm)}</div>`}))}}
   return null};
+{const kp0=A3.kuroPickFor;A3.kuroPickFor=function(i){for(const f of(A3.pickPre||[])){const R=f(i);if(R!==undefined)return R}return kp0.apply(this,arguments)}}/* ★v2.0 ld から選ぶ画面を足す所（pickPre：undefined ならいつもの画面） */
 A3.kuroModal=function(R,go){modal(`<div class="rotp"><div class="h">${R.ttl}</div>${R.top?`<div class="small">山札の上</div><div class="rotcards">${R.top}</div>`:""}<div class="rotcards kpk">${R.opts.map((o,k)=>`<button class="kpb${o.dis?" dis":""}" ${o.dis?"disabled":`onclick="A3K(${k})"`}>${o.h}</button>`).join("")}</div></div>`);
   window.A3K=k=>{closeModal();SND.se("ui_ok");go(R.opts[k].v)};const m=$("#modal .modal .box");if(m)m.classList.add("wide");SND.se("ui_ok")};
 if(typeof doPlay==="function"){const _dpk=doPlay;doPlay=function(i,shift,ok){try{const c=B&&B.hand[i];

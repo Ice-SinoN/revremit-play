@@ -74,7 +74,7 @@ A3.register({id:"SORA",night:4,treeBase:"s_kizami",
 });
 /* ★v0.30 音色のスタック（17-2）：B.staff＝五線（左が古い）。白は並び・締めでどの色にも数える */
 const N=A3.notes={
- cap:()=>((RULE().notes||{}).cap||8)+(A3.treeTopIs("s_yoin")?2:0),
+ cap:()=>((RULE().notes||{}).cap||8)+(A3.treeTopIs("s_yoin")&&!A3.soraTree2?2:0),
  cnt:c=>(B.staff||[]).filter(x=>x===c).length,
  push(c){if(!B.staff)B.staff=[];const L=N.cap(),was=B.staff.length,p0=N.pats();B.staff.push(c);
    {const t=Date.now(),dl=t-(N.seT||0)<80?80:0;N.seT=t+dl;A3.se("sora_note",{color:c},dl);const p1=N.pats();if((p1.up&&!p0.up)||(p1.strong&&p1.strong!==p0.strong))A3.fx&&A3.fx("sora_melody_flash_sheet",24,24,5,184+Math.min(196,30+22*(B.staff.length-1)-6)-6,236+3,1,400);if(p1.up&&!p0.up)A3.se("sora_rise",null,dl+200);else if(p1.strong&&p1.strong!==p0.strong)A3.se("sora_strong",{color:p1.strong},dl+200)}while(B.staff.length>L)B.staff.shift();

@@ -8,7 +8,8 @@ with sync_playwright() as p:
   q=pg.evaluate
   q("()=>{qaSetProgress({slot:1,nightMax:11,tutorial:true});OPTS.banter=false;window.__L={se:[],bgm:[],cue:[]};const s=SND.se,bg=SND.bgm;SND.se=(id,o)=>{__L.se.push(id);return s.call(SND,id,o)};SND.bgm=id=>{__L.bgm.push(id);return bg.call(SND,id)};const c=AUDIO.cue;AUDIO.cue=(k,i)=>{__L.cue.push(k+'#'+i);return c(k,i)}}")
   R["ver"]=q("()=>AUDIO.VERSION")
-  if R["ver"]!="0.35":R["ng"].append(["版",R["ver"]])
+  if float(R["ver"])<0.35:  # ★v0.22.200 0.36 から車ごとのエンジン音
+   R["ng"].append(["版",R["ver"]])
   # ①③④ 会話
   r=q("""async()=>{const out={};const sc=TEXT.scenes;
     const fake=k=>{if(!sc[k])sc[k]={lines:[['','…'],['','…']]}};['zero_link','zero_ed','roadlog_harbor','harbor_area'].forEach(fake);

@@ -26,10 +26,10 @@ with sync_playwright() as p:
     s0=q("()=>window.SCREEN");pg.keyboard.press("ArrowDown");pg.keyboard.press("Escape");pg.wait_for_timeout(600);s1=q("()=>window.SCREEN")
     R["65"]=[s0,s1]
     if s0==s1:R["ng"].append(["BUG-65",s0,s1])
-    # zero_form は SND.se からは鳴らない（会話の行の音が鳴らす）
-    z=q("()=>{const L=[];const o=AUDIO.se;AUDIO.se=(id)=>{L.push(id)};SND.se('zero_form',{n:2});SND.se('ui_ok');AUDIO.se=o;return L}")
+    # ★v0.22.200：zero_form の二重は ②v0.5.27 で②側から外れた（①のつなぎも外した）。② の版だけ見る
+    z=q("()=>[window.ZERO&&ZERO.VERSION]")
     R["zf"]=z
-    if "zero_form" in z:R["ng"].append(["zero_form",z])
+    if not z[0] or z[0]<"0.5.27":R["ng"].append(["zero.js",z])
     pg.close()
   b.close()
 R["errs"]=errs[:5]

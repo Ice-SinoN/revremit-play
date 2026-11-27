@@ -205,7 +205,7 @@ async function preloadAll(have,onProg){const lz=new Set(LAZY_ART()),list=[...hav
   let i=0;const worker=async()=>{while(i<list.length){const f=list[i++];try{if(/\.png$/i.test(f))PRE.img[f]=await loadImg0(f);else PRE.json[f]=await loadJSON0(f)}catch(e){}done++;onProg&&onProg(done,n)}};
   await Promise.all(Array.from({length:6},worker))}
 /* 置いてある絵の一覧：1ファイル版は ART_EMBED、分けた版は assets/manifest.json（build.py が作る）。どちらもなければ仮のドットだけ */
-async function artList(){if(window.ART_EMBED)return new Set(Object.keys(ART_EMBED));
+async function artList(){if(window.ART_EMBED)return new Set(Object.keys(ART_EMBED));if(window.RR_BUNDLE_READY){await RR_BUNDLE_READY;if(window.RR_BUNDLE)return new Set(Object.keys(RR_BUNDLE.files))}/* ★v0.22.200 絵の束（js/bundle.js） */
   try{const r=await fetch("assets/manifest.json");if(r.ok)return new Set((await r.json()).map(f=>"assets/"+f))}catch(e){}return new Set()}
 async function loadSpr(k,have){const a=ART_SRC[k];have=have||window.ART_HAVE||new Set();
     const need=a.layers?a.layers:a.grid?[a.sheet]:[a.sheet,a.json];if(!need.every(f=>have.has(f)))return false;
