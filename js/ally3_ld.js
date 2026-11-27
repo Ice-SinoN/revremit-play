@@ -423,6 +423,7 @@ const STEPS=[
  ["v2.0 スキルツリーの枝（design 25-2）：KURO 電脳・道化・鼓動（4段目＝盾 +5・刃 +2／ドラフティング3枚・書きかえ +1／帯の倍率 +0.2・すまし顔 +2）・SORA 余韻の4段目＝白の音符1つにつき防御 +2（最大 6）",()=>A3.tree25()],
  ["v2.2 SORA：初期デッキのサウンドチェック 1→0・音階 1→2（design 26-9・引く数は同じ）",()=>{if(has("SORA")){const D=CHARS.SORA.deck,k=D.findIndex(x=>x[0]==="s_soundcheck");if(k>=0){D[k][1]--;if(D[k][1]<=0)D.splice(k,1);const o=D.find(x=>x[0]==="s_onkai");if(o)o[1]++;else D.push(["s_onkai",1])}}}],
  ["v2.3 MIO：CVT の芯の倍率 ×1.4→×1.5・最適解の4段目 ×1.6→×1.7（design 26-9）",()=>{if(has("MIO")){rule("MIO",{cvt:Object.assign({},CHARS.MIO.rule.cvt,{cm:1.5})});A3.mioTopCm=1.7}}],
+ ["v2.5 夜紅葉（k_nt2）20→15・強化 30→23（design 26-12：1枚で +26.5）",()=>card("k_nt2",{v:15,vu:23})],
 ];
 /* "pending" の版（準備だけ）は、ALLY3_LD_STEP でその番号まで指したときだけ入る */
 const lim=Number.isInteger(globalThis.ALLY3_LD_STEP)?globalThis.ALLY3_LD_STEP:STEPS.reduce((a,s0,i)=>s0[2]==="pending"?a:i,0);
