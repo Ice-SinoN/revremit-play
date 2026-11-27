@@ -53,7 +53,7 @@ const flowMode=()=>(S.flow&&S.flow.mode)||PRF().lastMode||"MT";
 function flowToMode(bring){S.flowBring=(bring||[]).slice();showReady()}/* ★v0.22.156 ミニカーの画面のあとは、いつも準備の画面へ */
 function runGo(){const mode=flowMode(),bring=S.flowBring||[],tk=S.flowTicket||null;closeModal();if(window.FARM&&FARM.on){FARM.on=false;FARM.snap=null}/* ★v0.22.67 自分で走るランはフルオートの「ラン前にもどす」を通さない */S.flow=null;S.flowTicket=null;
   if(tk&&typeof farmData==="function"){const d=farmData(),i=d.tickets.indexOf(tk);if(i>=0){d.tickets.splice(i,1);try{SAVE.auto()}catch(e){}}else tk=null}
-  bootSeq(()=>{newRun(mode,bring);if(tk&&G){G.ticket={k:tk};if(tk==="money")G.money+=30}},mode,bring)}
+  bootSeq(()=>{newRun(mode,bring);if(tk&&G){G.ticket={k:tk};if(tk==="money")G.money+=20/* ★② v0.5.20 design v0.11.153 */}},mode,bring)}
 /* ★v0.22.65 design 10-22-6・②の H19：ランの前の小窓で整備チケットを1枚えらぶ（使わなくてもよい）。持ち物は②の farmData().tickets */
 const TICKET_TXT={discount:"最初のショップが 30% 引き",partPick:"最初のパーツの候補が4つ",money:"はじめのお金 +30",cardPick:"最初の戦闘のカードを4枚から"};
 function ticketRow(){if(typeof farmData!=="function")return"";const t=farmData().tickets||[];if(!t.length)return"";const c={};t.forEach(k=>c[k]=(c[k]||0)+1);const nm=k=>(typeof FARM_TICKET_JP!=="undefined"&&FARM_TICKET_JP[k])||k;

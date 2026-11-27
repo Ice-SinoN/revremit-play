@@ -36,10 +36,10 @@ TEXT.ui.rank_loss_cap=TEXT.ui.mc_cap_lose.replace("、","、<br>").replace("{ran
 /* 28-2（★天翔 B・ティータイムの予告は、今の試作のカードにその仕組みがない＝字だけ。誇りの印 hokori_icon は①が入れずみ） */
 TEXT.icon=Object.assign({},TEXT.icon,{tenshou_icon:"ためる ×{n}（次のアタック1枚）"});
 TEXT.prev=Object.assign({},TEXT.prev,{tenshou_prev:"次のアタック ×{n}",teatime_prev_draw:"1枚引く",teatime_prev_nodraw:"引かない（手札 {n} 枚）"});
-/* 33-2 整備チケットの名前と1行（★割合と額は今の試作の数＝最初のショップ 30% 引き・お金 +30。text は 20%・+20 ＝デザイン班に確認） */
+/* 33-2 整備チケットの名前と1行（v0.5.20：design v0.11.153＝20% 引き・+20 が正しい。engine.js・flow.js の数も直した） */
 const TK_NAME={discount:"割引チケット",partPick:"パーツカタログ",money:"暖機運転",cardPick:"作戦メモ"};
 if(typeof FARM_TICKET_JP!=="undefined")Object.assign(FARM_TICKET_JP,TK_NAME);
-if(typeof TICKET_TXT!=="undefined")Object.assign(TICKET_TXT,{discount:"最初のチューニングショップが 30% 引き（ほかの割引と合わせて 50% まで）",partPick:"最初のパーツの候補が、4つになる",money:"ランのはじめのお金 +30",cardPick:"最初の戦闘の報酬のカードを、4枚から選べる"});
+if(typeof TICKET_TXT!=="undefined")Object.assign(TICKET_TXT,{discount:"最初のチューニングショップが 20% 引き（ほかの割引と合わせて 50% まで）",partPick:"最初のパーツの候補が、4つになる",money:"ランのはじめのお金 +20",cardPick:"最初の戦闘の報酬のカードを、4枚から選べる"});
 
 /* 26-1 ROAD LOG の続き（β の4人）。出す所：その子で NIGHT 6 以上を初めてクリア（β は NIGHT 4 まで＝正式版で出る） */
 const RL_B={
@@ -81,6 +81,7 @@ function rlList(){const R=RL(),seen=typeof seenGet==="function"?seenGet():{},L=[
   BETA4.forEach((C,i)=>{const no=("00"+(i+1)).slice(-3),k1=C==="YUKI"?"roadlog_001":"roadlog_001_"+C.toLowerCase(),kb="roadlog_"+C.toLowerCase()+"_b";
     L.push({k:k1,g:"pz",n:`No.${no}　${(TEXT.names||{})[C]||C}`,on:!!seen[k1]&&!!TEXT.scenes[k1]});
     L.push({k:kb,g:"pz",n:`No.${no}-B　${(TEXT.names||{})[C]||C}`,on:R.got.includes(kb)})});
+  (window.RL_EXTRA||[]).forEach(x=>{if(TEXT.scenes[x.k]&&(R.got.includes(x.k)||seen[x.k]))L.push(Object.assign({},x,{on:true}))});/* v0.5.20 night2.js の港など（開いたものだけ） */
   REMIT_MARKS().forEach(n=>{const k="roadlog_remit_"+n;if(TEXT.scenes[k])L.push({k,g:"remit",n:`${n}`,on:R.got.includes(k),left:Math.max(0,n-delivCount())})});return L}
 {const st=document.createElement("style");st.textContent=".modal .box.rlbox{width:380px}.modal .rlshelf{max-height:250px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px 4px;align-content:start}.modal .rlshelf .small{grid-column:1/-1;margin-top:2px}.modal .rlshelf button.nrow{min-height:22px;margin:0;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}";document.head.appendChild(st)}
 window.rr2RoadLog=function(){SND.se("ui_ok");const L=rlList(),U=TEXT.ui,row=x=>x.on?`<button class="nrow" onclick="rr2RlRead('${x.k}')">${E(x.n)}</button>`

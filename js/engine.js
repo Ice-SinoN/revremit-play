@@ -241,7 +241,7 @@ function fuseCards(o){const a=G.deck[o.ia],b=G.deck[o.ib];if(!a||!b||a.id!==o.a|
   try{const p=SAVE.cur.profile;p.codex=p.codex||{};p.codex.fuse=p.codex.fuse||{};p.codex.fuse[o.id]=1}catch(e){}return c}
 function upgradeTargets(){return G.deck.map((c,i)=>[c,i]).filter(([c])=>canUpgrade(c)).map(([,i])=>i)}
 function tunePrice(k,shop,useTicket){const lv=G.tune[k];if(lv>=5)return null;return shopPrice(TUNE_PRICE[lv],shop,useTicket)}
-function shopPrice(x,shop,useTicket){let v=x;if(shop&&shop.sale)v=Math.round(v*RULES.sale);if(has("etc"))v=Math.round(v*0.8);if(useTicket)v=Math.round(v*RULES.ticket);const T=G&&G.ticket;if(T&&T.k==="discount"&&shop&&T.shop===shop)v=Math.max(Math.round(x*0.5),Math.round(v*0.7));/* ★v0.22.65 整備チケット：最初のショップ 30% 引き（ほかと重ねて最大 50% 引き） */return v}
+function shopPrice(x,shop,useTicket){let v=x;if(shop&&shop.sale)v=Math.round(v*RULES.sale);if(has("etc"))v=Math.round(v*0.8);if(useTicket)v=Math.round(v*RULES.ticket);const T=G&&G.ticket;if(T&&T.k==="discount"&&shop&&T.shop===shop)v=Math.max(Math.round(x*0.5),Math.round(v*0.8));/* ★② v0.5.20 design v0.11.153：整備チケットの割引は 20%（ほかと重ねて最大 50%） *//* ★v0.22.65 整備チケット：最初のショップ 30% 引き（ほかと重ねて最大 50% 引き） */return v}
 function buyTune(k,price,useTicket){if(G.tune[k]>=5||G.money<price)return false;G.money-=price;if(useTicket&&G.tickets>0)G.tickets--;G.tune[k]++;
   if(k==="engine"){G.maxhp+=10;G.hp+=10}return true}
 /* 目玉商品：お金はパーツが本当に入ったときだけ払う（BUG-01） */
