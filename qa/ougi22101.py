@@ -11,7 +11,7 @@ with sync_playwright() as p:
     return{pre,n:ids.length,spr,imgs}}""")
   ng=[]
   if r["pre"]: ng.append("起動で読んでいる")
-  if r["n"]!=12: ng.append("12件でない")
+  if r["n"]!=30: ng.append("30件でない")  # ★v0.22.201 SORA〜MIO の18本を足した
   for k,v in r["spr"].items():
     if not v or v[0]!=12: ng.append(["12コマでない",k,v])
   for k,v in r["imgs"].items():
