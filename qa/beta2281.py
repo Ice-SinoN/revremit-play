@@ -12,6 +12,7 @@ with sync_playwright() as p:
   b=p.chromium.launch()
   for vw,vh in [(1280,720),(667,375),(956,440)]:
     pg=b.new_page(viewport={"width":vw,"height":vh});pg.on("pageerror",lambda e:errs.append(str(e)))
+    pg.add_init_script('window.RR_BUILD="beta"')  # ★v0.22.197 β の夜の上限（4）を見るので beta の版で
     pg.goto(html);pg.wait_for_function("window.SCREEN==='data'||window.SCREEN==='title'",timeout=120000)
     pg.evaluate("qaSetProgress({slot:1,nightMax:4,tutorial:1});showTitle();closeModal()")
     pg.evaluate("S.__seen=[];const o=showScene;window.showScene=(k,d)=>{S.__seen.push(k);d&&d()};playJoins(['__next'],()=>{S.__after=1;showTitle()})")

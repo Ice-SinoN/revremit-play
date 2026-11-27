@@ -557,7 +557,7 @@ button.rdgo{font-size:18px}
 .csdesc{position:absolute}.csdesc button.csgo{position:absolute;right:6px;bottom:6px;width:140px;height:40px}
 .csdesc .csline{max-height:54px;overflow:hidden}
 .csdesc{text-align:left;align-items:flex-start}
-.csrow.csnights{max-width:226px;row-gap:3px}
+.csrow.csnights{max-width:226px;row-gap:3px}.csrow.csnights .csn{overflow:hidden}/* ★v0.22.197 文字（大）で 2px はみ出ていた（②qa_beta2 の ovf） */
 /* ★v0.22.109 キャラ選択の部品（graphics-hq 23-20） */
 .csboard{position:absolute;background:var(--bd) no-repeat 0 0/100% 100%;image-rendering:pixelated}
 button.csimg{background:var(--bn) no-repeat 0 0/100% 100%;image-rendering:pixelated;border:none;box-shadow:none;border-radius:0;padding:0 0 2px;min-height:0;color:#111;font-family:PM12B,PM12,monospace}

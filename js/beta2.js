@@ -121,5 +121,24 @@ function cityImg(k){const base=window.IMG&&IMG[`assets/c2/bg/c2/revremit_bg_${k}
   const key=k+"|"+ls.length;if(CITY[key])return CITY[key];const cv=document.createElement("canvas");cv.width=base.width;cv.height=base.height;const g=cv.getContext("2d");g.imageSmoothingEnabled=false;
   g.drawImage(base,0,0);ls.forEach(im=>g.drawImage(im,0,0,cv.width,cv.height));return CITY[key]=cv}
 W("setBg",f=>function(k){const r=f.apply(this,arguments);try{if((k==="garage"||k==="title")&&typeof A!=="undefined"){const c=cityImg(k);if(c)A.bgImg=c}}catch(e){}return r});
-window.BETA2={VERSION:"0.5.19",rlList,cityImg};
+/* ===== v0.5.22 タコメーターのアイドリング（graphics B-6）：revremit_ui_meter_c2_idle.json＋_sheet.png（180×108 を6コマ）
+   名前だけで読む（絵が無ければ今までのゆれのまま）。アイドリングのとき：コマを (0,252)＝メーターの位置に重ね、回転にコマの +0/+150/+300/+120/−130/−260 を足して LED を点け、
+   打ちごろの帯の外側の弧（中心 (60,57)・半径 47）を 明るい水色 → CYAN → 暗い水色 → CYAN で回す */
+const MI={st:0,ms:[120,120,140,120,120,140],off:[0,150,300,120,-130,-260],fr:[],comp:[]},MI_J="assets/c2/ui/c2/revremit_ui_meter_c2_idle.json",MI_S="assets/c2/ui/c2/revremit_ui_meter_c2_idle_sheet.png";
+const MI_COL=["#B8F6FF","#46E6FF","#1C93A8","#46E6FF"];
+async function miLoad(){MI.st=1;try{if(typeof artHave!=="function"||!artHave(MI_S)){MI.st=3;return}
+   const j=artHave(MI_J)?await loadJSON(MI_J):null;if(j){const m=j.frame_ms||j.frameMs||(j.anim&&j.anim.frame_ms);if(Array.isArray(m)&&m.length)MI.ms=m.map(x=>+x||120);if(j.loop===false)MI.once=1}
+   const im=await loadImg(MI_S);if(!im){MI.st=3;return}const fw=(j&&(j.frame_w||(j.frame&&j.frame.w)))||180,fh=(j&&(j.frame_h||(j.frame&&j.frame.h)))||im.height,n=Math.max(1,Math.min(MI.ms.length,Math.floor(im.width/fw)));
+   for(let i=0;i<n;i++){const c=mkCanvas(fw,fh);c.getContext("2d").drawImage(im,i*fw,0,fw,fh,0,0,fw,fh);MI.fr.push(c)}MI.ms=MI.ms.slice(0,n);MI.tot=MI.ms.reduce((a,b)=>a+b,0);MI.st=2}catch(e){MI.st=3}}
+function miIdle(){try{if(MI.st!==2||!B||!G||busy()||(A.mq&&A.mq.length))return false;const C=car();return B.rpm<=C.idle+300&&!(A.pv&&A.pv.band)}catch(e){return false}}
+function miFrame(){let t=(A.now||0)%MI.tot;for(let i=0;i<MI.ms.length;i++){t-=MI.ms[i];if(t<0)return i}return 0}
+W("tachWobble",f=>function(){if(miIdle())return MI.off[miFrame()]||0;return f.apply(this,arguments)});
+W("meterC2",f=>function(g,x0,y0){const M=typeof METER!=="undefined"?METER:null;if(!M||!M.blank)return f.apply(this,arguments);if(!MI.st)miLoad();
+  if(!miIdle()||!M.frame)return f.apply(this,arguments);
+  const i=miFrame(),fr=MI.fr[i];if(fr&&fr.width===M.W&&fr.height===M.H){if(!MI.comp[i]){const c=mkCanvas(M.W,M.H),cg=c.getContext("2d");cg.drawImage(M.blank,0,0);cg.drawImage(fr,0,0);MI.comp[i]=c}
+    const b0=M.blank;M.blank=MI.comp[i];try{f.apply(this,arguments)}finally{M.blank=b0}}else f.apply(this,arguments);
+  try{const b=bandRange(),top=M.segs*M.segRpm,lo=Math.max(0,b.lo),hi=Math.min(top,b.hi);if(hi>lo){const R=M.arcR,q=Math.floor(((A.now||0)%MI.tot)/MI.tot*4)%4;g.fillStyle=MI_COL[q];
+    const n=Math.ceil((hi-lo)/top*270*R*Math.PI/180*1.5);let last="";for(let k=0;k<=n;k++){const t=(lo+(hi-lo)*k/n)/top,a=(-135+270*t)*Math.PI/180,px=Math.round(x0+M.cx+R*Math.sin(a)),py=Math.round(y0+M.cy-R*Math.cos(a)),kk=px+","+py;if(kk!==last){g.fillRect(px,py,1,1);last=kk}}}}catch(e){}});
+window.METER_IDLE=MI;
+window.BETA2={VERSION:"0.5.22",rlList,cityImg};
 })();

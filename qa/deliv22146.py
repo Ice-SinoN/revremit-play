@@ -1,4 +1,4 @@
-# ★v0.22.146 B5 送り届けた記録の数：雑魚 1・エリート 3・裏道 3・ゴースト 3・ボス 10／負けても入る／練習・フルオートは数えない／ガレージの見出しの下・「このランで」に出る／スロットごと・セーブに残る／街の段・次の節目。python qa/deliv22146.py <html>
+# ★v0.22.146 B5 送り届けた記録の数：雑魚 1・エリート 3・裏道 3・ゴースト 3・ボス 10／負けても入る／練習・フルオートは数えない／ガレージの見出しの下・「このランで」に出る／スロットごと・セーブに残る／街の段・次の節目。python qa/deliv22146.py <html>  ★v0.22.197：試作は full（節目10か所）なので 1000 の次は 1500
 import sys,json,pathlib
 from playwright.sync_api import sync_playwright
 html=pathlib.Path(sys.argv[1]).resolve().as_uri();R={"ng":[]};errs=[]
@@ -18,7 +18,7 @@ with sync_playwright() as p:
       o.hubHit=[...document.querySelectorAll('#ui > button,#ui > .hdr')].some(x=>{const q=x.getBoundingClientRect();return r.left<q.right&&q.left<r.right&&r.top<q.bottom&&q.top<r.bottom&&x!==e});
       SAVE.use(2);o.slot2=delivCount();SAVE.use(1);o.slot1=delivCount();return o}""")
     R[str(vw)]=o
-    exp=dict(a=1,b=4,c=7,d=17,g=17,prac=17,farm=17,runDeliv=17,saved=17,city=[0,1,5],next=[50,100,None],slot2=0,slot1=17)
+    exp=dict(a=1,b=4,c=7,d=17,g=17,prac=17,farm=17,runDeliv=17,saved=17,city=[0,1,5],next=[50,100,1500],slot2=0,slot1=17)
     for k,v in exp.items():
       if o.get(k)!=v:R["ng"].append([vw,k,o.get(k)])
     if "届けた記録 +17（合計 17）" not in o["modal"]:R["ng"].append([vw,"modal",o["modal"][:120]])

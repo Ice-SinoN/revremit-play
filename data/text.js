@@ -307,3 +307,10 @@ Object.assign(TEXT.ui,{fog_map_name:"夜霧《よぎり》",fog_map_help:"霧の
 Object.assign(TEXT.ui,{fog_intent_buff:"強化？",fog_intent_rot:"回転？"});
 /* ★v0.22.161 text v0.22.54 37-3：図鑑の手に入れ方の1行（②の図鑑で使う） */
 Object.assign(TEXT.ui,{dex_how_start:"はじめから（報酬・ショップに出る）"});
+/* ★v0.22.197 text v0.22.70 48-2：送り届けた記録の数の ROAD LOG 本番の5本（design 10-20・full だけ節目に足す＝engine.js DELIV.marks） */
+Object.assign(TEXT.scenes,{
+ roadlog_remit_1500:{title:"ROAD LOG ― 送り届けた記録 1500",file:1,lines:[["FILE","湾岸の高速の記録。<br>夜明け前の、空港への道。"],["REC","〈……間に合わなかった便、<br>あのあと、ちゃんと乗れたんだ〉"],["REC","〈向こうで、手をふってくれた〉"],["MIO","1500です。<br>急いでいた夜も、ちゃんと着いてます。","smile"]]},
+ roadlog_remit_2000:{title:"ROAD LOG ― 送り届けた記録 2000",file:1,lines:[["FILE","港の記録。<br>夜の岸壁で、荷を待ったトラック。"],["REC","〈最後の荷、届いてたってさ。<br>だれかが、運んでくれたって〉"],["REC","〈……じゃあ、今夜は早く帰るか〉"],["MIO","2000になりました。<br>港の灯りが、ひとつずつ消えていきます。","normal"]]},
+ roadlog_remit_3000:{title:"ROAD LOG ― 送り届けた記録 3000",file:1,lines:[["FILE","自転車の記録。<br>初めて、坂の上まで登った日。"],["REC","〈足、つかなかった。<br>……一回も、つかなかったよ〉"],["REC","〈だれかに、言いたかったんだ〉"],["MIO","3000です。<br>……おめでとうございます、って言いたいです。","smile"]]},
+ roadlog_remit_4000:{title:"ROAD LOG ― 送り届けた記録 4000",file:1,lines:[["FILE","免許をとった日の記録。<br>近所を、一周だけ。"],["REC","〈助手席で、ずっと<br>「前見て」って言われてた〉"],["REC","〈……今は、私が言う番〉"],["MIO","4000になりました。<br>はじめての道も、ちゃんと帰ってきます。","normal"]]},
+ roadlog_remit_5000:{title:"ROAD LOG ― 送り届けた記録 5000",file:1,lines:[["FILE","送り先の一覧。<br>五千の道と、五千の帰り道。"],["REC","〈ただいま〉"],["REC","〈……ただいま〉"],["MIO","5000、です。<br>ROAD の夜が、こんなに明るくなりました。","normal"],["MIO","今夜も、送りましょう。<br>……みおたち、10人で。","smile"]]}});

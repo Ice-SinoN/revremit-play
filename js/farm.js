@@ -57,7 +57,9 @@ function farmBossWin(key){const E=ENEMIES[key];if(!E||E.rank!=="boss"||E.ally)re
 function farmDigPool(ch){const L=(window.DIG_CARDS&&DIG_CARDS[ch])||Object.keys(CARDS).filter(id=>CARDS[id].dig&&(CARDS[id].own===ch||CARDS[id].own==="N"));const u=PRF().unlock;return L.filter(id=>CARDS[id]&&!(u.cards||[]).includes(id))}
 function farmDigGet(){const ch=G.char,L=farmDigPool(ch);const d=farmData();d.dig[ch]=0;if(!L.length)return;const id=L[Math.floor(Math.random()*L.length)];
   const add=()=>{const u=PRF().unlock;u.cards=u.cards||[];if(!u.cards.includes(id))u.cards.push(id)};add();if(FARM.snap){FARM.snap.unlock=FARM.snap.unlock||{};FARM.snap.unlock.cards=(FARM.snap.unlock.cards||[]).concat([id])}
-  FARM.sum.dig.push(id);farmFeed("めずらしいカードを見つけた！「"+CARDS[id].n+"」","dig");SAVE.auto()}
+  FARM.sum.dig.push(id);farmFeed(((TEXT.ui&&TEXT.ui.dig_log)||"★ {card}を、見つけた！").replace("{card}",CARDS[id].n),"dig");
+  try{const k="rr_dig_title",L=JSON.parse(localStorage.getItem(k)||"[]");if(!L.includes(id))L.push(id);localStorage.setItem(k,JSON.stringify(L))}catch(e){}/* v0.5.22 次のタイトルで1回（text 41 dig_title） */
+  SAVE.auto()}
 function farmDigCeil(){const ch=G.char,d=farmData();d.dig[ch]=(+d.dig[ch]||0)+1;if(d.dig[ch]>=FARM_RULE.dig.ceil)farmDigGet()}
 RRHOOK.on("battle_win",o=>{if(FARM.on){farmBossWin(o.key);if(ENEMIES[o.key])farmFeed(`${ENEMIES[o.key].n} に勝った`,"win")}});
 RRHOOK.on("battle_start",o=>{if(FARM.on&&ENEMIES[o.key])farmFeed(`${G?`エリア${G.map[Math.min(G.row,G.map.length-1)][0].a+1} `:""}${o.hidden?"裏道の":""}${ENEMIES[o.key].n}`,"head")});

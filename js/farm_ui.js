@@ -108,13 +108,14 @@ function fuiUiFeedScroll(){const f=$("#fu-feed");if(f)f.scrollTop=f.scrollHeight
 /* ---------- ④ 結果まとめ ---------- */
 function farmUiResult(){if(!document.getElementById("farmui")||!FUI.view){showTitle();FUI.view="result";fuiOpen("result");return}fuiOpen("result")}
 window.farmUiResult=farmUiResult;
+function fuiDigD(id){try{return descOf({id})}catch(e){return(CARDS[id].d||"").replace(/\{v\}/g,CARDS[id].v)}}
 function fuiResult(){const s=FARM.sum,min=Math.round((Date.now()-(FARM.t0||Date.now()))/60000),d=farmData();
   const runs=(typeof rlList==="function"?rlList():[]).filter(x=>x.farm&&x.at>=(FARM.t0||0)).slice(0,FARM.n).reverse();
   const tix={};s.tix.forEach(k=>tix[k]=(tix[k]||0)+1);
   return`<div class="fhead"><b>周回の結果</b></div>
+  ${s.dig.length?`<div class="fbox fdig"><b>${esc((TEXT.ui&&TEXT.ui.dig_head)||"フルオートで見つけた！")}</b>${s.dig.map(id=>`<div class="fdc"><b class="gold">${esc(CARDS[id].n)}</b> <span class="small">${esc(fuiDigD(id))}</span></div>`).join("")}<div class="fn">${esc((TEXT.ui&&TEXT.ui.dig_sub)||"自分で走るときも、使えます。")}</div></div>`:""}
   <div class="fbox"><div>${FARM.n}回 走りました</div><div>全クリア <b class="lime">${s.clear}</b>・負け <b class="red">${s.lose}</b></div><div>ログ <b class="gold">+${FARM.log}</b><span class="dim small">（今日 ${d.dayLog}/${FARM_RULE.softCap}）</span></div>
    ${d.dayLog>=FARM_RULE.softCap?`<div class="fn red">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}<div>型のポイント +${s.pts}</div><div class="dim small">かかった時間 ${min}分</div></div>
-  ${s.dig.length?`<div class="fbox fdig"><b>めずらしいカードを見つけた！</b><div>${s.dig.map(id=>esc(CARDS[id].n)).join("・")}</div><div class="fn">自分で走るときも使えます</div></div>`:""}
   <div class="fbox"><div class="fl">整備チケット</div><div>${s.tix.length?Object.entries(tix).map(([k,n])=>`${esc(FARM_TICKET_JP[k])}×${n}`).join("・"):"なし"}</div><div class="fn dim">持っている数 ${d.tickets.length}／${FARM_RULE.ticket.max}（自分で走るランの前に1枚使える）</div></div>
   <div class="fbox fruns"><div class="fl">1回ずつ</div>${runs.map((x,i)=>`<div class="fl1 ${x.res==="clear"?"win":"lose"}">${i+1}　${x.res==="clear"?"全クリア":x.res==="giveup"?"あきらめ":"負け（エリア"+x.area+"）"}　${x.rank||"－"}　ログ +${x.log}</div>`).join("")||`<div class="dim">－</div>`}</div>
   <div class="fn dim">ミニカーは作っていません。中身は「ランの記録」にあります（オートの印）。</div>

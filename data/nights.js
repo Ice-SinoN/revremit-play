@@ -5,15 +5,7 @@
 /* ★v0.22.77 design 10-23：夜ごとの敵の体力（10-2 の ×1.15 の上にかける。9-4 の「NIGHT 4 +10%」を置きかえ。N5 以降は仮） */
 const NIGHT_HP={1:1.0,2:2.0,3:2.0,4:2.0,/* ★v0.22.88 LD balance 11-46 A：N2〜N4 を ×2.0 に（B＝もどすなら 2:2.2,3:2.2,4:2.3） */5:2.7,6:2.9,7:3.1,8:3.3,9:3.5,10:3.7,11:3.9};
 /* ★v0.22.139 夜の顔（design 12-3・NIGHT 1〜4＝β）：その夜だけ（次の夜に持ちこさない）。wx＝その天候のマスの割合（ほかは今の抽選）・splash＝エリートが「スプラッシュ」・fogView＝マップは n 段先まで・frzReward＝凍結のカードが報酬に出やすい */
-const NIGHT_FACE={1:{n:"はじめての夜",l:"いつもの ROAD"},2:{n:"雨の夜",l:"雨のマスが多い・エリートは「スプラッシュ」（泥はね）",wx:{rain:0.5},splash:1},3:{n:"霧の夜",l:"霧のマスが多い・マップは3段先まで",wx:{fog:0.4},fogView:3},4:{n:"雪の夜",l:"雪のマスが多い・凍結のカードが報酬に出やすい",wx:{snow:0.5},frzReward:1.5},
- /* ★v0.22.195 design 12-3 夜の顔 NIGHT 5〜11（その夜だけ）。名前と1行は仮（シナリオ班が整える）。数は仮（LD が測る） */
- 5:{n:"湾岸の夜",l:"高速が入る・夜明けのマスが多い",wx:{dawn:0.3}},
- 6:{n:"影の夜",l:"ライバルのゴーストが2回まで・ゴーストの報酬が4つから",ghostMax:2,ghostOpts:4},
- 7:{n:"嵐の夜",l:"戦闘の3ターン目に天候が変わる（はじめに知らせる）",storm:2},
- 8:{n:"閉店の夜",l:"ショップが半分・ラッキーとシムが多い",nodeMul:{shop:0.5,lucky:1.5,sim:1.5}},
- 9:{n:"港の夜",l:"港が入る・エリートのマスでヒート +1",eliteHeat:1},
- 10:{n:"混線の夜",l:"敵の攻撃に混線が入ることがある・報酬で合成の組み合わせが1つ見える",jamP:0.25,jamId:"crosstalk",fuseHint:1},
- 11:{n:"最後の夜",l:"全部の天候が出る・エリアのボスが第2形態から",wxAll:1,bossP2:1}};
+const NIGHT_FACE={1:{n:"はじめての夜",l:"いつもの ROAD"},2:{n:"雨の夜",l:"雨のマスが多い・エリートは「スプラッシュ」（泥はね）",wx:{rain:0.5},splash:1},3:{n:"霧の夜",l:"霧のマスが多い・マップは3段先まで",wx:{fog:0.4},fogView:3},4:{n:"雪の夜",l:"雪のマスが多い・凍結のカードが報酬に出やすい",wx:{snow:0.5},frzReward:1.5}};
 function nightFace(n){return NIGHT_FACE[n]||null}
 const NIGHTS=[
  {n:1, add:"（基準）ブローなし",                         open:{chars:["HINA"],story:["n1"]}},
@@ -29,7 +21,14 @@ const NIGHTS=[
  {n:11,add:"エンジン耐久の最大 −10・敵の体力 ×3.9",                     open:{story:["n11"]}},
 ];
 /* ★v0.22 β は NIGHT 4 まで（design 9-10・チーフ 11-18 10:26）。NIGHT 4 のクリアで「次の仲間は……？」だけ見せる */
-const BETA_NIGHTS=4;
+/* ★v0.22.197 design 26-7 ①：版の切りかえ BUILD＝"beta"（公開β：YUKI・HINA・MOMO・NANA・NIGHT 1〜4）／"full"（全員で遊べる版：10人・NIGHT 1〜11・ZERO）。
+   決め方：ページが先に window.RR_BUILD を置いていればそれ（revremit-play は build_play.py が "beta" を書く）、なければ "full"（試作・QA・LD・母艦）。
+   ②へ：BUILD は①がここで var で作る（②の側で const／let で作らないで、読むだけにしてください）。
+   セーブは共通：beta で開いても、出していない子と夜は charsOpen／nightMaxAvail で見えないだけ（セーブの中身は消さない）。 */
+var BUILD=(typeof window!=="undefined"&&(window.RR_BUILD==="beta"||window.RR_BUILD==="full"))?window.RR_BUILD:"full";
+const BETA_CHARS=["YUKI","HINA","MOMO","NANA"];
+const BETA_NIGHTS=BUILD==="beta"?4:null;/* full では null（数でない＝夜の上限なし・NIGHT 4 のあとのβの終わりも出ない） */
+if(BUILD==="full"&&NIGHTS[3]&&NIGHTS[3].open&&!(NIGHTS[3].open.chars||[]).length)NIGHTS[3].open.chars=["SORA"];/* full：NIGHT 4 の初クリアで SORA が加わる（β は予告だけ） */
 function nightRules(n){n=n||0;return{
   noBlow:n>0&&n<3,            // NIGHT 1・2：最大ギアでリミットをこえてもオーバーレブ（n=0 は夜なし＝α・チュートリアル：ブローあり）
   eliteW:n>=2?20:null,        // エリートの重み 12 → 20

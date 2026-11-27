@@ -1,4 +1,4 @@
-/* js/night2.js（プログラム班② v0.5.20）
+/* js/night2.js（プログラム班② v0.5.20・v0.5.21）
    夜の周回 案1「夜で道がのびる」（design 25-4 ①・progression 1-38）と、高速・港のエリア（design 13-2・25-4 ②）。
    ①のファイルは書きかえない（関数を包むだけ）。①の本体に入れるときは、下の「データ」をそのまま data/ に、「つなぎ」を engine.js・screens.js に移せばよい。
    - NIGHT 1〜4＝3エリア（β のまま・何も変わらない）／5〜8＝4エリア（高速）／9〜11＝5エリア（高速・港）。最後はいつもサーキットの零号。
@@ -39,16 +39,14 @@ const AREA_X={
  harbor:{key:"harbor",n:"港",rows:11,pool:["hb_crane","hb_forklift","hb_container","hb_fog"],easy:["hb_crane","hb_forklift"],elite:"hb_quay",boss:"hb_boss",mid:5,hpMul:1.78,bossMul:1.0,atkMul:1.2}};
 const NIGHT_AREAS={};for(let n=1;n<=11;n++)NIGHT_AREAS[n]=n<=4?["street","touge","circuit"]:n<=8?["street","touge","highway","circuit"]:["street","touge","highway","harbor","circuit"];
 const AREA_STEPS={3:[13,14,15],4:[12,12,12,13],5:[10,11,11,11,12]};
-const AREA_HEAL={3:0.30,4:0.25,5:0.25};
 if(typeof WX_W!=="undefined")Object.assign(WX_W,{highway:{dry:45,rain:15,snow:5,fog:10,dawn:25},harbor:{dry:35,rain:20,snow:5,fog:30,dawn:10}});
-window.NIGHT_AREAS=NIGHT_AREAS;window.AREA_STEPS=AREA_STEPS;window.AREA_HEAL=AREA_HEAL;window.AREA_X=AREA_X;
+window.NIGHT_AREAS=NIGHT_AREAS;window.AREA_STEPS=AREA_STEPS;window.AREA_X=AREA_X;
 
 /* ===== その夜の並びに AREAS を入れかえる ===== */
-const BASE=AREAS.map(a=>Object.assign({},a)),BYKEY={};BASE.forEach(a=>BYKEY[a.key]=a);Object.assign(BYKEY,AREA_X);
-const HEAL0=RULES.areaHeal;
+const BASE=AREAS.map(a=>Object.assign({},a)),BYKEY={};BASE.forEach(a=>BYKEY[a.key]=a);Object.assign(BYKEY,AREA_X);window.AREA_BYKEY=BYKEY;
 function applyAreas(night){const ks=NIGHT_AREAS[night|0]||NIGHT_AREAS[1],st=AREA_STEPS[ks.length]||ks.map(k=>BYKEY[k].rows);
   const list=ks.map((k,i)=>{const a=Object.assign({},BYKEY[k]);a.rows=st[i];a.mid=Math.min(a.mid,a.rows-3);return a});
-  AREAS.length=0;list.forEach(a=>AREAS.push(a));RULES.areaHeal=AREA_HEAL[ks.length]!=null?AREA_HEAL[ks.length]:HEAL0;return AREAS}
+  AREAS.length=0;list.forEach(a=>AREAS.push(a));return AREAS}/* v0.5.21 design 26-3 ①：ボスのあとの回復は夜の決まりのまま（N1〜4 30%・N5〜11 10%・エリアの数によらない） */
 window.applyAreas=applyAreas;
 W("newRunState",f=>function(mode,charId,bring,dk,opt){applyAreas(opt&&opt.night);return f.apply(this,arguments)});
 W("continueRun",f=>function(){try{const r=loadRun();if(r&&r.G)applyAreas(r.G.night)}catch(e){}return f.apply(this,arguments)});
@@ -63,7 +61,7 @@ if(typeof SND!=="undefined"&&typeof SND.bgm==="function"){const b0=SND.bgm;SND.b
 function wrapWeather(){if(!window.AUDIO||!AUDIO.weather||AUDIO.weather.__n2)return;const w0=AUDIO.weather;AUDIO.weather=function(wx,opt){try{if(!opt&&G&&G.map&&curArea().key==="harbor")opt={area:"harbor"}}catch(e){}return w0.call(this,wx,opt)};AUDIO.weather.__n2=1}
 wrapWeather();
 
-/* ===== 文（text 38章 港。高速の文はまだない＝エリアの札だけ） ===== */
+/* ===== 文（text 38章 港・40章 高速） ===== */
 TEXT.scenes=TEXT.scenes||{};
 const HA=[[null,"霧の向こうで、クレーンが首をふる。<br>波の音と、遠い汽笛。"],["MIO","港です。船を待った夜や、<br>荷を運んだ夜の記録が集まってます。","normal"],["MIO","守りの固い記録が多いです……<br>ギアを落として、立ち上がってください。","serious"]];
 const HA_C={YUKI:["YUKI","……港。うちの前と、少し似てる。","normal"],HINA:["HINA","うわ、コンテナでっか！<br>迷子にならないようにしないと！","normal"],MOMO:["MOMO","夜の港って、写真に撮りたくなるね。","smile"],
@@ -81,16 +79,64 @@ TEXT.scenes.hb_boss_post={bg:"hb_boss_after|fx:win",lines:HBP};
 TEXT.scenes.harbor_boss_pre=TEXT.scenes.hb_boss_pre;TEXT.scenes.harbor_boss_post=TEXT.scenes.hb_boss_post;/* text の key でも引ける */
 TEXT.scenes.roadlog_harbor={title:"PROJECT ZERO - ROAD LOG ― 港",file:1,lines:[["FILE","走行の記録。毎晩、同じ道を<br>港の岸壁まで。"],["FILE","着く時刻は、いつも最終便の5分前。"],["FILE","最後の日付のあとに、一行。<br>「便は、今月で終わり」"],["FILE","記録を集めた人の欄：PROJECT ZERO"],["MIO_IN","……この記録も、ずっと前のもの。<br>港にも、集められていたんですね。","normal"]]};
 if(TEXT.wk){Object.assign(TEXT.wk.hint,{hb_boss:"固くて、重たい……低いギアで、押し上げてください！"});Object.assign(TEXT.wk.found,{hb_boss:"弱点です！　低いギアで、守りがくずれてます！"})}
-if(TEXT.wx){TEXT.wx.boss2=Object.assign({},TEXT.wx.boss2,{hb_boss:{n:"汽笛の霧",l:"霧笛が鳴るたび、港が白くかすむ"},hw_boss:{n:"スコール",l:"雨が強くなる（仮）"}})}
-window.RL_EXTRA=(window.RL_EXTRA||[]).concat([{k:"roadlog_harbor",g:"pz",n:"港"}]);
+if(TEXT.wx){TEXT.wx.boss2=Object.assign({},TEXT.wx.boss2,{hb_boss:{n:"汽笛の霧",l:"霧笛が鳴るたび、港が白くかすむ"},hw_boss:{n:"トンネルの雨",l:"トンネルの出口で、音が雨にまじる"}/* text 40-3 */})}
+window.RL_EXTRA=(window.RL_EXTRA||[]).concat([{k:"roadlog_highway",g:"pz",n:"高速"},{k:"roadlog_harbor",g:"pz",n:"港"}]);
+/* ===== v0.5.22 text 40章 高速 ===== */
+const WA=[[null,"海ぞいの高架が、夜の向こうまでのびる。<br>オレンジの灯りが、等間隔に流れていく。"],["MIO","高速です。どこかへ急いだ夜の記録が、<br>たくさん走ってます。","normal"],["MIO","敵が速いです……<br>ギアは高いまま、置いていかれないで！","serious"]];
+const WA_C={YUKI:["YUKI","……直線。ZC だと、ちょっと長い。","normal"],HINA:["HINA","モンキーで高速は、ちょっとこわいっス……！<br>でも、ここなら走れる！","normal"],MOMO:["MOMO","夜の高速って、なんだか遠くまで<br>行けそうな気がするね。","smile"],
+ NANA:["NANA","長い直線は、わたくしの得意ですわ。<br>8段、きれいに積みますわよ。","normal"],SORA:["SORA","風の音がずーっと鳴ってる〜。<br>いいループだね。"],KAEDE:["KAEDE","ええ直線や。<br>Z の出番やな。"],RIN:["RIN","合流が多いわね。<br>流れを読んで、入りましょう。"],
+ LUNA:["LUNA","……灯りが流れ星みたい。<br>止まらない夜。"],KURO:["KURO","自転車で高速！<br>くひひっ♪ 現実じゃ、ぜったいムリ。"],MIO:["YUKI","……みお、速い。ついていって。","normal"]};
+const WB=[[null,"ジャンクションの真ん中。<br>何台ぶんもの排気音が、重なって鳴っている。"],[null,"音だけが残って、車の形はない。"],["MIO","名前は……「残響」。<br>急いだ夜の、音だけの記録です。","serious"],["MIO","走り去ったあとの音が、<br>トンネルの中で鳴りつづけてる……。","normal"],["MIO","速いです……！<br>回転を下げられても、すぐ上げて！","serious"]];
+const WB_C={YUKI:["YUKI","……音だけ、置いていかれたんだ。<br>送る。","serious"],HINA:["HINA","音だけでも、ちゃんと帰れますよ！<br>ひなが送ります！","normal"],MOMO:["MOMO","だれかに、聞いてほしかったのかな。<br>ももが、聞くね。","normal"],
+ NANA:["NANA","置き去りの音……。<br>わたくしが、終わらせて差しあげます。","serious"],SORA:["SORA","いい音なのに、ずっと同じとこ回ってる〜。<br>出口、教えてあげよ。"],KAEDE:["KAEDE","音だけで走っとるんか。<br>ほな、ウチが追い越したる。"],
+ RIN:["RIN","音の出どころを探せば、<br>送り先も見つかるはずよ。"],LUNA:["LUNA","……音が、流れ星みたいに残ってる。<br>落としてあげる。"],KURO:["KURO","くひひっ♪ エコーのかくれんぼ？<br>み〜つけた。"],MIO:["MIO","トンネルの中だけ、ずっと夜……。<br>出口まで、行きます。","normal"]};
+const WBP=[[null,"重なっていた音が、ひとつずつほどける。"],[null,"最後のひとつが、トンネルの出口へ走っていって、<br>夜の向こうで、聞こえなくなった。"],["MIO","届きました……。<br>急いでいた先に、ちゃんと着いたんだと思います。","smile"],["MIO","この先は、サーキットです。","normal"]];
+Object.entries(WA_C).forEach(([c,l])=>{const k=c==="YUKI"?"highway_area":"highway_area_"+c.toLowerCase();TEXT.scenes[k]={title:"高速",lines:WA.concat([l])}});
+Object.entries(WB_C).forEach(([c,l])=>{const k=c==="YUKI"?"hw_boss_pre":"hw_boss_pre_"+c.toLowerCase();TEXT.scenes[k]={bg:"fx:boss_intro",lines:WB.concat([l])}});
+TEXT.scenes.hw_boss_post={bg:"hw_boss_after|fx:win",lines:WBP};
+TEXT.scenes.highway_boss_pre=TEXT.scenes.hw_boss_pre;TEXT.scenes.highway_boss_post=TEXT.scenes.hw_boss_post;
+TEXT.scenes.roadlog_highway={title:"PROJECT ZERO - ROAD LOG ― 高速",file:1,lines:[["FILE","走行の記録。湾岸の高速、<br>同じジャンクションを何度も。"],["FILE","速度の欄だけが、<br>ずっと上限のまま。"],["FILE","メモの欄：「間に合え」"],["FILE","記録を集めた人の欄：PROJECT ZERO"],["MIO_IN","……何に間に合いたかったのかは、<br>書いてありません。","normal"]]};
+if(TEXT.wk){Object.assign(TEXT.wk.hint,{hw_boss:"速いです……高いギアのまま、追いついてください！"});Object.assign(TEXT.wk.found,{hw_boss:"弱点です！　高いギアで、追いついてます！"})}
+/* 図鑑の1行（text 40-2・38-2） */
+TEXT.edesc=Object.assign({},TEXT.edesc,{hw_trailer:"夜どおし荷を運んだ記録。重くて固い。",hw_booster:"急ぎすぎた記録。すばやく何度も撃つ。",hw_shadow:"追い越し車線の記録。いつも先に動く。",hw_lane:"車線を変えつづけた記録。だんだん速くなる。",hw_long:"終わらない直線の記録。怒ると強い。",
+ hb_crane:"夜どおし荷を吊った記録。腕が長い。",hb_forklift:"倉庫の中を行き来した記録。泥をはね上げる。",hb_container:"箱の中は、からっぽ。守りだけが残った記録。",hb_fog:"霧の中で鳴りつづける記録。音で混線させる。",hb_quay:"最後の荷を降ろせなかった記録。怒ると強い。"});
 
 /* エリアの入り口：①は "area"+(番号+1) で引くので、エリアの key で引く形に（ストリート・峠・サーキット＝area1〜3、ほか＝{key}_area）。見出しは「エリア n　名前」 */
 W("areaIntro",f=>function(ai,done){const a=AREAS[ai];if(!a)return f.apply(this,arguments);const k={street:"area1",touge:"area2",circuit:"area3"}[a.key]||(a.key+"_area"),tt=`エリア${ai+1}　${a.n}`;
   const sc=TEXT.scenes[k];if(!sc){TEXT.scenes.__t.title=tt;showScene("__t",done);return}
   const k2=sceneKey(k);[k,k2].forEach(x=>{if(x&&TEXT.scenes[x])TEXT.scenes[x].title=tt});
   if(!k2||seenGet()[k2]){TEXT.scenes.__t.title=tt;showScene("__t",done);return}showScene(k,done)});
-/* 埠頭の初撃破：後の会話のあとに ROAD LOG（キャラ共通） */
-W("showScene",f=>function(key,done){if(key==="hb_boss_post"&&!(seenGet()||{}).roadlog_harbor){const d=done;done=()=>{try{const p=PRF();p.rlog=p.rlog||{got:[]};if(!(p.rlog.got||[]).includes("roadlog_harbor")){(p.rlog.got=p.rlog.got||[]).push("roadlog_harbor")}}catch(e){}
-   window.showScene("roadlog_harbor",d)};return f.call(this,key,done)}return f.apply(this,arguments)});
-window.NIGHT2={VERSION:"0.5.20",applyAreas};
+/* 残響・埠頭の初撃破：後の会話のあとに ROAD LOG（キャラ共通・text 40-4・38-4） */
+const POST_LOG={hb_boss_post:"roadlog_harbor",hw_boss_post:"roadlog_highway"};
+W("showScene",f=>function(key,done){const rl=POST_LOG[key];if(rl&&!(seenGet()||{})[rl]){const d=done;done=()=>{try{const p=PRF();p.rlog=p.rlog||{got:[]};if(!(p.rlog.got||[]).includes(rl)){(p.rlog.got=p.rlog.got||[]).push(rl)}}catch(e){}
+   window.showScene(rl,d)};return f.call(this,key,done)}return f.apply(this,arguments)});
+
+/* ===== v0.5.21 夜のパーツ4つ（design 26-3 ⑥・v0.5.22 名前と説明は text 42。その夜を初めて全クリアで開く＝NIGHTS の open.parts） ===== */
+if(typeof PARTS!=="undefined"){Object.assign(PARTS,{
+ p_night_bay:{own:"N",n:"ナイトビジョン",d:"霧と夜霧の悪い所が半分",night:5},
+ p_night_storm:{own:"N",n:"撥水コーティング",d:"天候が変わった番に防御 +8",night:7},
+ p_night_harbor:{own:"N",n:"牽引フック",d:"ボスの第2形態に入った番に防御 +10・回転を帯の真ん中に",night:9},
+ p_night_dawn:{own:"N",n:"サンバイザー",d:"夜明けの悪い所が効かない・レッドの帯がもっと広がる",night:11}});
+ [["p_night_bay",5],["p_night_storm",7],["p_night_harbor",9],["p_night_dawn",11]].forEach(([id,n])=>{const N=NIGHTS[n-1];if(!N)return;N.open=N.open||{};N.open.parts=N.open.parts||[];if(!N.open.parts.includes(id))N.open.parts.push(id)})}
+const hasP=id=>typeof has==="function"&&has(id);
+/* ナイトビジョン：霧の予告は数字まで（種類だけ → いつもの予告）・夜霧の見える段 +1 */
+W("intentFog",f=>function(e){if(hasP("p_night_bay")&&typeof intent==="function")return intent(e);return f.apply(this,arguments)});
+W("nightFace",f=>function(n){const r=f.apply(this,arguments);if(r&&r.fogView&&G&&G.parts&&hasP("p_night_bay"))return Object.assign({},r,{fogView:r.fogView+1});return r});
+/* ストームバッフル：天候が変わった番（ボスの第2形態の天候・嵐の夜の3ターン目＝①の夜の顔が入ったら ev "wx2" か "wxchange" を出す所）に防御 +8 */
+function partBlock(v,nm){B.block+=v;addLog(`${nm}：防御 +${v}`);ev({k:"pblk",v})}
+W("checkWx2",f=>function(){const was=B&&B.wx2On;const r=f.apply(this,arguments);if(B&&!was&&B.wx2On&&hasP("p_night_storm"))partBlock(8,PARTS.p_night_storm.n);return r});
+/* v0.5.23 audio v0.31：埠頭の第2形態「汽笛の霧」で futou_phase（フルオートでは鳴らさない） */
+W("checkWx2",f=>function(){const was=B&&B.wx2On;const r=f.apply(this,arguments);try{if(B&&!was&&B.wx2On&&B.key==="hb_boss"&&!(G&&G.fullAuto)&&!(window.FARM&&FARM.on))SND.se("futou_phase")}catch(e){}return r});
+/* v0.5.23 audio v0.31 の cue は text の key（harbor_boss_pre など・キャラの版なし）。②の場面の key（hb_boss_pre_hina など）からも引けるように読みかえる */
+{const CHR=/_(yuki|hina|momo|nana|sora|kaede|rin|luna|kuro|mio)$/,AL={hb_boss_pre:"harbor_boss_pre",hb_boss_post:"harbor_boss_post",highway_boss_pre:"hw_boss_pre",highway_boss_post:"hw_boss_post"};
+ const wrapCue=()=>{const A=window.AUDIO;if(!A||typeof A.cue!=="function"||A.cue.__n2)return;const c0=A.cue;A.cue=function(k,i){if(c0.call(A,k,i))return true;let b=String(k||"").replace(CHR,"");b=AL[b]||b;return b!==k?c0.call(A,b,i):false};A.cue.__n2=1};
+ wrapCue();window.addEventListener("load",wrapCue)}
+window.nightStormHit=function(){if(B&&hasP("p_night_storm"))partBlock(8,PARTS.p_night_storm.n)};/* ①の嵐の夜（天候が変わる番）から呼ぶ口 */
+/* 係船ロープ：ボスの第2形態に入った番、防御 +10・回転を帯の真ん中に */
+W("checkPhase",f=>function(){const was=B&&B.e&&B.e.phased;const r=f.apply(this,arguments);try{if(B&&B.e&&!was&&B.e.phased&&B.e.rank==="boss"&&hasP("p_night_harbor")){partBlock(10,PARTS.p_night_harbor.n);const br=bandRange();B.rpm=Math.round((br.lo+br.hi)/2);addLog(`${PARTS.p_night_harbor.n}：回転 ${B.rpm}`)}}catch(e){}return r});
+/* 夜明けのライト：夜明けの悪い所が効かない・レッドの帯がさらに 250 下から */
+W("wxMinus",f=>function(){if(hasP("p_night_dawn")&&typeof wxNow==="function"&&wxNow()==="dawn")return false;return f.apply(this,arguments)});
+W("redLo",f=>function(){const r=f.apply(this,arguments);return hasP("p_night_dawn")&&B&&!B.over&&typeof wxNow==="function"&&wxNow()==="dawn"?r-250:r});
+/* 仮のアイコン：グラフィック班の絵（items\c2\revremit_item_part_p_night_＊.png）が来るまで、夜の4つは月のしるし（assets/c2/items/c2/revremit_item_part_p_night_＊.png を同梱） */
+window.NIGHT2={VERSION:"0.5.23",applyAreas};
 })();

@@ -32,9 +32,15 @@ function cdxCards(){const o=["N"].concat(typeof CHAR_ORDER!=="undefined"?CHAR_OR
   return Object.keys(CARDS).filter(id=>{const d=CARDS[id];return!d.gen&&d.t!=="jam"}).sort((a,b)=>{const A=CARDS[a],B_=CARDS[b];
     return(o.indexOf(A.own)-o.indexOf(B_.own))||((CDX_RORD[A.r]||0)-(CDX_RORD[B_.r]||0))})}
 function cdxParts(){const o=["N"].concat(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]);return Object.keys(PARTS).sort((a,b)=>o.indexOf(PARTS[a].own)-o.indexOf(PARTS[b].own))}
-function cdxEnemies(boss){const L=[];AREAS.forEach((A_,i)=>{if(!boss){A_.pool.forEach(k=>L.push({key:k,a:i}));L.push({key:A_.elite,a:i,elite:1})}else L.push({key:A_.boss,a:i})});
-  if(boss)Object.keys(ENEMIES).filter(k=>ENEMIES[k].ally).forEach(k=>L.push({key:k,a:2,ally:ENEMIES[k].ally}));
-  else AREAS.forEach((A_,i)=>L.push({key:A_.elite,a:i,hidden:1}));/* 裏道（エリートの ×1.1） */
+/* v0.5.22 夜の周回（night2.js）：AREAS はその夜の並びに入れかわるので、図鑑は決まった並び（ストリート・峠・サーキット＋開いた夜の高速・港）で見る */
+const AREA_XK={highway:1,harbor:1};
+function cdxAreaList(){const BY=window.AREA_BYKEY;if(!BY)return AREAS.map((a,i)=>Object.assign({},a,{lab:`エリア${i+1}（${a.n}）`}));
+  let mx=4;try{mx=typeof nightMaxAvail==="function"?nightMaxAvail():4}catch(e){}
+  const ks=["street","touge"].concat(mx>=5?["highway"]:[],mx>=9?["harbor"]:[],["circuit"]),NO={street:1,touge:2,circuit:3},FROM={highway:5,harbor:9};
+  return ks.map(k=>Object.assign({},BY[k],{lab:NO[k]?`エリア${NO[k]}（${BY[k].n}）`:`${BY[k].n}（NIGHT ${FROM[k]} から）`}))}
+function cdxEnemies(boss){const L=[],AL=cdxAreaList();AL.forEach((A_,i)=>{if(!boss){A_.pool.forEach(k=>L.push({key:k,a:i}));L.push({key:A_.elite,a:i,elite:1})}else L.push({key:A_.boss,a:i})});
+  if(boss)Object.keys(ENEMIES).filter(k=>ENEMIES[k].ally).forEach(k=>L.push({key:k,a:AL.findIndex(a=>a.key==="circuit"),ally:ENEMIES[k].ally}));
+  else AL.forEach((A_,i)=>{if(!AREA_XK[A_.key])L.push({key:A_.elite,a:i,hidden:1})});/* 高速・港には裏道なし *//* 裏道（エリートの ×1.1） */
   return L.map(x=>Object.assign(x,{id:cdxEKey(x.key,x.hidden)}))}
 const CDX_RANKS=()=>typeof RANKS!=="undefined"?RANKS:["E","D","C","B","A","S","SS","SSS"];
 function cdxMinis(){const L=[];(typeof CHAR_ORDER!=="undefined"?CHAR_ORDER:["YUKI"]).forEach(ch=>CDX_RANKS().forEach(r=>L.push({id:ch+"|"+r,ch,r})));return L}
@@ -58,6 +64,7 @@ function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p
 
 /* ---- ヒント（手に入れ方の1行。仮の文：シナリオ班の文が来たら TEXT.ui.cdx_* で差しかえ）---- */
 function cdxCardHint(id){const U=UNLOCK,nm=rr2Name;if(CARDS[id]&&CARDS[id].r==="OG")return cdxOgHint(id);
+  if(CARDS[id]&&CARDS[id].dig){let got=(PRF().unlock.cards||[]).includes(id);try{const c=RR2.cx();if(c&&c.c&&c.c[id])got=true}catch(e){}return(TEXT.ui&&TEXT.ui[got?"dex_how_dig_got":"dex_how_dig"])||(got?"フルオートで見つけた":"フルオートで見つかる（ごくまれ）")}/* v0.5.21 design 10-22-5 */
   if(U.startCards.includes(id))return(TEXT.ui&&TEXT.ui.dex_how_start)||"はじめから（報酬・ショップに出る）";/* v0.5.17 design 16-29・text 37-3 */
   const ar={a1:"エリア1 を初めて突破",a2:"エリア2 を初めて突破",clear:"初めての全クリア"};
   for(const k in U.area)if(U.area[k].includes(id))return ar[k];
@@ -71,7 +78,7 @@ function cdxPartHint(id){const U=UNLOCK,nm=rr2Name;if(U.startParts.includes(id))
   try{for(let i=0;i<NIGHTS.length;i++){const o=NIGHTS[i].open||{};if((o.parts||[]).includes(id))return`NIGHT ${i+1} をクリア`}}catch(e){}
   for(const ch in U.chars||{}){const P=U.chars[ch].parts||{};for(const k in P)if(P[k].includes(id))return k==="start"?`${nm(ch)}が加わると出る`:`${nm(ch)}で${ar[k]}`}
   return"？"}
-function cdxEnemyHint(x){const A_=AREAS[x.a],a=`エリア${x.a+1}（${A_.n}）`;if(x.hidden)return`${a}の裏道（NIGHT 1 クリアのあと）`;if(x.ally)return`${rr2Name(x.ally)}で走る（サーキットのボスの前）`;
+function cdxEnemyHint(x){const A_=cdxAreaList()[x.a]||{n:"",lab:""},a=A_.lab;if(x.hidden)return`${a}の裏道（NIGHT 1 クリアのあと）`;if(x.ally)return`${rr2Name(x.ally)}で走る（サーキットのボスの前）`;
   if(ENEMIES[x.key].rank==="boss")return`${a}のボス`;return x.elite?`${a}のエリート`:`${a}で出る`}
 
 /* ---- 絵 ---- */
@@ -156,15 +163,15 @@ function cdxDetailHTML(t,L){const x=L.find(y=>y.id===CDX.sel);
   if(t==="card"&&CARDS[x.id].r==="OG")return cdxOgDetail(x.id);
   if(t==="card"){const d=CARDS[x.id],up=CDX.up;let desc=d.d||"";try{desc=descOf({id:x.id,up},up,0)}catch(e){}let du="";try{if(!up&&canUpgradeId(x.id))du=descOf({id:x.id,up:true},true,0)}catch(e){}
     const cost=d.costGear?`${d.costGear[0]}〜${d.costGear[2]}`:(up&&d.cu!=null?d.cu:d.c),gas=up&&d.gasu!=null?d.gasu:d.gas;
-    return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",x.id,true,50)}</span><div><div class="cdxh">${cdxRuby(d.n,cdxYomi(x.id))}${up?"+":""}${cdxStarter(x.id)?'<i class="cdxst">はじめから</i>':""}</div>
+    return`<div class="cdxtop"><span class="cdxa big"${d.dig?' style="box-shadow:0 0 0 2px #FFD34D"':""}>${cdxArt("card",x.id,true,50)}</span><div><div class="cdxh">${cdxRuby(d.n,cdxYomi(x.id))}${up?"+":""}${cdxStarter(x.id)?'<i class="cdxst">はじめから</i>':""}</div>
       <div class="small">${TYPE_JP[d.t]||""}・${RARITY_JP[d.r]||""}・${d.own==="N"?"共通":rr2Esc(rr2Name(d.own))}</div><div class="small">回転 ${cost}　ガソリン ${gas}${d.band?`　帯 ${d.band}`:""}</div></div></div>
-      <div class="cdxd" data-gloss>${rr2Esc(desc)}</div>${du?`<div class="cdxd up" data-gloss><span class="gold">強化すると</span> ${rr2Esc(du)}</div>`:""}${cdxFlav(x.id)?`<div class="cdxflav">${rr2Esc(cdxFlav(x.id))}</div>`:""}
+      <div class="cdxd" data-gloss>${rr2Esc(desc)}</div>${du?`<div class="cdxd up" data-gloss><span class="gold">強化すると</span> ${rr2Esc(du)}</div>`:""}${cdxFlav(x.id)?`<div class="cdxflav">${rr2Esc(cdxFlav(x.id)).replace(/&lt;br&gt;/g,"<br>")}</div>`:""}
       <div class="small dim cdxfoot">解放：${rr2Esc(cdxCardHint(x.id))}　使った回数 ${RR2.num("use",x.id)}</div>`}
   if(t==="part"){const d=PARTS[x.id];return`<div class="cdxtop"><span class="cdxa big">${cdxArt("part",x.id,true,48)}</span><div><div class="cdxh">${rr2Esc(d.n)}</div><div class="small">${d.own==="N"?"共通":rr2Esc(rr2Name(d.own))+"の専用"}</div></div></div>
       <div class="cdxd" data-gloss>${rr2Esc(d.d)}</div><div class="small dim cdxfoot">解放：${rr2Esc(cdxPartHint(x.id))}</div>`}
   if(t==="enemy"||t==="boss"){const E=ENEMIES[x.key],gim=E.gimTxt||"";const hp=E.hp;
     return`<div class="cdxtop en"><span class="cdxa big">${cdxArt("enemy",x.key,true,96)}</span><div><div class="cdxh">${x.hidden?"裏道の":""}${rr2Esc(E.n)}</div><div class="small">${rr2Esc(cdxEnemyHint(x))}</div>
-      <div class="small">体力のもと ${hp}${x.hidden?"（×1.1）":""}・速さ ${E.spd}</div></div></div>${gim?`<div class="cdxd" data-gloss>${rr2Esc(gim)}</div>`:""}
+      <div class="small">体力のもと ${hp}${x.hidden?"（×1.1）":""}・速さ ${E.spd}</div></div></div>${gim?`<div class="cdxd" data-gloss>${rr2Esc(gim)}</div>`:""}${(E.desc||(TEXT.edesc&&TEXT.edesc[x.key]))?`<div class="cdxflav">${rr2Esc(E.desc||TEXT.edesc[x.key])}</div>`:""}
       <div class="small dim cdxfoot">倒した数 ${RR2.num("k",x.id)}</div>`}
   if(t==="mini"){const mc=(()=>{try{return loadMinicars().filter(m=>m.char===x.ch&&m.rank===x.r)}catch(e){return[]}})();
     return`<div class="cdxtop"><span class="cdxa big">${cdxArt("mini",x.ch,true,48)}</span><div><div class="cdxh">${rr2Esc(rr2Name(x.ch))}・${x.r} ランク</div><div class="small">ガレージにいま ${mc.length} 台</div></div></div>`}
@@ -208,7 +215,7 @@ function cdxOgDetail(id){const d=CARDS[id],T=(TEXT.og&&TEXT.og[d.og])||{},gold=c
   return`<div class="cdxtop"><span class="cdxa big">${cdxArt("card",id,true,50)}</span><div><div class="cdxh">${cdxRuby(d.n,cdxYomi(id))}${CDX.up?"+":""}${gold?'<i class="cdxgold">金</i>':""}</div>
     <div class="small">${rr2Esc(cdxOgT("og_tag"))}・${rr2Esc(rr2Name(d.own))}・ガソリン ${d.gas}</div></div></div>
     ${T.line?`<div class="cdxogline">「${rr2Esc(T.line)}」</div>`:""}<div class="cdxd" data-gloss>${rr2Esc(desc)}</div>
-    ${cdxFlav(id)?`<div class="cdxflav">${rr2Esc(cdxFlav(id))}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}<br>${gold?"金の縁：あり":rr2Esc(cdxOgT("og_hint_mt"))}　使った回数 ${RR2.num("use",id)}</div>`}
+    ${cdxFlav(id)?`<div class="cdxflav">${rr2Esc(cdxFlav(id)).replace(/&lt;br&gt;/g,"<br>")}</div>`:""}<div class="small dim cdxfoot">解放：${rr2Esc(cdxOgHint(id))}<br>${gold?"金の縁：あり":rr2Esc(cdxOgT("og_hint_mt"))}　使った回数 ${RR2.num("use",id)}</div>`}
 function cdxOgImgs(){if(typeof OUGI_ART==="undefined")return[];const L=[];
   cdxOgIds().forEach((id,ord)=>{const d=CARDS[id],A0=OUGI_ART[d.og];if(!A0||!A0.cutin)return;const T=(TEXT.og&&TEXT.og[d.og])||{};
     const b={p:A0.cutin,og:1,ord,card:id,n:d.n,ln:T.line||""};L.push(Object.assign({},b,{id:"og:"+d.og,g:"奥義"}),Object.assign({},b,{id:"ogg:"+d.og,g:"奥義（金の縁）",gold:1}))});return L}
