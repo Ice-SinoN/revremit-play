@@ -28,14 +28,21 @@ const AUTOBOT={
       const safe=acts.filter(a=>!(a.t==="play"&&preview(B.hand[a.i]).danger==="blow"&&!a.shift));
       return Math.random()<0.12?{t:"end"}:pick(safe.length?safe:acts);
     }
-    let best=null,bs=-Infinity;
+    let best=null,bs=-Infinity;const sc=[];
     for(const a of acts){
       const s0=AUTOBOT.snap(),hp0=G.hp,ehp0=B.e.hp,gear0=B.gear,hand0=B.hand.length;
       const r=AUTOBOT.run(a);let s=AUTOBOT.score(r,hp0,ehp0,gear0,hand0);
       if(a.t==="end")s-=5;if(a.t==="down")s-=12;if(a.t==="park")s-=10;
       AUTOBOT.load(s0);
       if(s>bs){bs=s;best=a}
+      sc.push([a,s]);
     }
+    /* 行き止まりよけ（②の調べ 11-27）：自分で1枚も打たずに終えた番が2回続いたら、3回目は「終える」以外でいちばん点の高い手にする。
+       手札が「打てないカード＋ローテーション」だけだと、終える 0 ＞ ローテーション −2 ＞ シフトダウン −12 で、手札が変わらないまま同じ番がくり返すため */
+    if(best&&best.t==="end"&&B.cards===0){B.botIdle=B.botIdleT===B.pTurns-1?(B.botIdle||0)+1:1;B.botIdleT=B.pTurns;
+      if(B.botIdle>=3){const alt=sc.filter(x=>x[0].t!=="end").sort((x,y)=>y[1]-x[1])[0];if(alt){B.botIdle=0;return alt[0]}
+        /* ほかの手がない（ローテーションは「捨てる先がない」で外されている）ときは、打てるカードを1枚（打てば手札が動き、①の救済の1枚引くにもつながる） */
+        const k=B.hand.findIndex(c=>{const p=preview(c);return p.ok&&p.danger!=="blow"});if(k>=0){B.botIdle=0;return{t:"play",i:k,shift:false}}}}
     return best;
   },
   run(a){return a.t==="play"?playCard(a.i,a.shift):a.t==="down"?downShift():a.t==="park"?parking():endTurn()},

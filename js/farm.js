@@ -186,3 +186,21 @@ function farmGo(o){if(!farmCleared(o.char,o.night)){toast2("自分で走って�
   const p=PRF();p.char=o.char;p.night=o.night;SAVE.auto();
   farmStart({mode:o.mode||"MT",bring:(o.bring||[]).slice()},o.limit>0?o.limit:0,o.stopLose);newRun(FARM.cfg.mode,FARM.cfg.bring);return true}
 window.farmGo=farmGo;window.farmAvailable=farmAvailable;window.farmChars=farmChars;window.farmNights=farmNights;
+/* ===== v0.5.28 オートの止まり（フルオート N11 の「同じ画面のまま止まった」の原因）=====
+   手札が「打てないカード（臨界氷華＝レッドのときだけ）」＋「ローテーション」だけになると、①の AUTOBOT は
+   ターン終了（点 0）＞ ローテーション（−2）＞ シフトダウン（−12）を選びつづけ、手札が変わらないまま番が回りつづける
+   （番のはじめに引かないので、引くにはシフトかカードが要る）。耐久が多いと終わらない（QA の god で 90秒止まり）。
+   ②の手当て：自分で打たずに終えた番が2回続いたら、次の番は「終える」のかわりに、打てるカード（引く・ローテーションを先に）かシフトダウン（AT はパーキング）を1つ選ぶ。
+   ①の bot.js（qa/policy.js）を直すときは、この手当ては外してよい。 */
+(function(){
+if(typeof AUTOBOT==="undefined"||!AUTOBOT.battle||AUTOBOT.battle.__stall)return;
+const b0=AUTOBOT.battle;
+AUTOBOT.battle=function(kind){const a=b0.apply(this,arguments);try{if(kind==="random"||!a||a.t!=="end"||!B||B.cards>0||(B.__noPlayT||0)<2)return a;
+  const L=B.hand.map((c,i)=>({c,i,p:preview(c)})).filter(x=>x.p.ok&&x.p.danger!=="blow");
+  const pr=x=>{const fx=CD(x.c).fx||[];return fx.some(f=>f[0]==="rotate"||f[0]==="draw")?0:1};L.sort((x,y)=>pr(x)-pr(y));
+  if(L.length){if(typeof rotTargets==="function"&&(CD(L[0].c).fx||[]).some(f=>f[0]==="rotate")&&typeof rotAutoPick==="function"&&!rotAutoPick(L[0].c,B.rpm+costOf(L[0].c),cardVal(L[0].c)).length){}else return{t:"play",i:L[0].i,shift:false}}
+  if(typeof canDraw==="function"&&canDraw()){if(G.mode==="MT"&&B.gear>0&&B.gas>=downCost())return{t:"down"};if(G.mode==="AT"&&typeof parkCost==="function"&&B.gas>=parkCost())return{t:"park"}}
+  if(L.length)return{t:"play",i:L[0].i,shift:false}}catch(e){}return a};
+AUTOBOT.battle.__stall=1;
+const d0=window.doEndTurn;if(typeof d0==="function"){window.doEndTurn=function(){try{if(B&&!B.over)B.__noPlayT=B.cards>0?0:(B.__noPlayT||0)+1}catch(e){}return d0.apply(this,arguments)}}
+})();

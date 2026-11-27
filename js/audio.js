@@ -89,12 +89,12 @@ function hold(p,t){if(p.cancelAndHoldAtTime){try{p.cancelAndHoldAtTime(t);return
 function tone(c,o,t,p){const{type='sine',f=440,f2=null,dur=.2,g=.5,a=.003,lin=false,wave=null,det=0,lp=null,hold=0}=p;
  const os=c.createOscillator();if(wave)os.setPeriodicWave(pulse(c,wave));else os.type=type;
  os.frequency.setValueAtTime(f,t);if(f2){lin?os.frequency.linearRampToValueAtTime(f2,t+dur):os.frequency.exponentialRampToValueAtTime(f2,t+dur);}os.detune.value=det;
- const gn=c.createGain();gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(g,t+a);if(hold)gn.gain.setValueAtTime(g,t+a+hold);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ const gn=c.createGain();gn.gain.value=0;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(g,t+a);if(hold)gn.gain.setValueAtTime(g,t+a+hold);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
  let n=os;if(lp){const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;os.connect(f);n=f;}
  n.connect(gn).connect(o);os.start(t);os.stop(t+dur+.03);return os;}
 function nz(c,o,t,p){const{dur=.2,g=.5,a=.002,ft='bandpass',f=1000,f2=null,q=1,hold=0}=p;
  const s=c.createBufferSource();s.buffer=noiseBuf(c);s.loop=true;const fl=c.createBiquadFilter();fl.type=ft;fl.Q.value=q;fl.frequency.setValueAtTime(f,t);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t+dur);
- const gn=c.createGain();gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(g,t+a);if(hold)gn.gain.setValueAtTime(g,t+a+hold);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ const gn=c.createGain();gn.gain.value=0;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(g,t+a);if(hold)gn.gain.setValueAtTime(g,t+a+hold);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
  s.connect(fl).connect(gn).connect(o);s.start(t,Math.random()*1.5);s.stop(t+dur+.03);}
 const click=(c,o,t,g=.5)=>{nz(c,o,t,{ft:'highpass',f:4000,dur:.025,g});tone(c,o,t,{type:'square',f:2200,dur:.015,g:g*.25});};
 
@@ -1260,6 +1260,8 @@ Object.assign(JINGLES,{credits_end:{dur:5,fn:(c,o,t)=>{[[0,69],[.3,72],[.6,76]].
  [57,61,64,69].forEach(m=>[-7,7].forEach(dt=>tone(c,o,t+1,{type:'sawtooth',f:mf(m),det:dt,dur:3.6,g:.03,a:.5,hold:1.4,lp:2000})));tone(c,o,t+1,{wave:.25,f:mf(81),dur:3,g:.1,hold:1,a:.05});tone(c,o,t+1,{f:mf(45),dur:3.4,g:.15,a:.3,hold:1});
  for(let k=0;k<6;k++)tone(c,o,t+1.6+k*.2,{f:mf(93+[0,4,7,12,16,19][k]),dur:1.2,g:.025});}}});
 Object.assign(LVJ,{credits_end:1.2});
+// v0.40：曲の上で急に大きく聞こえたジングルを下げた（スタッフロールの終わり・夜を選んだ・次の仲間は……？。曲より +3〜5 LU に）
+LVJ.credits_end*=.7;LVJ.night_select=(LVJ.night_select||1)*.7;LVJ.ally_next*=.7;
 
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
@@ -1325,7 +1327,7 @@ function gearParts(n,max){const mid=Math.ceil(max/2),hi=Math.max(mid+1,max-1);re
 const AMBBED={snow:[['highpass',6500,.7,.05],['lowpass',350,.7,.06]],rain:[['bandpass',2600,.5,.13],['lowpass',700,.7,.07]],downpour:[['bandpass',2000,.5,.22],['lowpass',600,.7,.14]],
  blizzard:[['bandpass',700,.6,.14],['highpass',4500,.7,.05]],wind:[['bandpass',450,.7,.06]],fog:[['bandpass',1100,.6,.07]],dawn:[['bandpass',600,.6,.08]],petals:[['bandpass',800,.6,.08]]};
 function ambBed(c,g,id,t){return (AMBBED[id]||[]).map(([ft,f,q,gg])=>{const s=c.createBufferSource();s.buffer=noiseBuf(c);s.loop=true;const fl=c.createBiquadFilter();fl.type=ft;fl.frequency.value=f;fl.Q.value=q;
- const gn=c.createGain();gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(gg,t+1);s.connect(fl).connect(gn).connect(g);s.start(t,Math.random()*1.5);return s;});}
+ const gn=c.createGain();gn.gain.value=0;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(gg,t+1);s.connect(fl).connect(gn).connect(g);s.start(t,Math.random()*1.5);return s;});}
 // 天候の環境音（v0.21）：A.t から先を少しずつ並べる（v0.22：床があるものは粒とうねりだけ）
 const AMBGEN={
  wave:(c,g,t,r)=>{const len=3.5+r()*2.5;waveSwell(c,g,t,len,.3,r);return len*.7;},
@@ -1352,9 +1354,11 @@ Object.assign(AMBGEN,{harbor:(c,g,t,r)=>{const len=4+r()*2;waveSwell(c,g,t,len,.
  futoufog:(c,g,t,r)=>{const len=7;waveSwell(c,g,t,len,.18,r);[43,50].forEach(m=>tone(c,g,t,{f:mf(m),dur:len+1,g:.05,a:2,hold:len-2}));SEFN('amb_horn')(c,g,t+.5+r()*2);nz(c,g,t+.5,{ft:'bandpass',f:700,f2:2000,dur:3,g:.06,a:1.5,q:.5});return len;},
  harborfog:(c,g,t,r)=>{const len=5;waveSwell(c,g,t,len,.18,r);[43,50].forEach(m=>tone(c,g,t,{f:mf(m),dur:len+1,g:.04,a:2,hold:len-2}));if(r()<.35)SEFN('amb_horn')(c,g,t+r()*2.5);return len*.8;}});
 function ambStop(f){if(!AMB||!C){AMB=null;return;}const A=AMB;AMB=null;clearInterval(A.timer);(A.beds||[]).forEach(s=>{try{s.stop(C.currentTime+f+.1)}catch(x){}});const t=C.currentTime;hold(A.g.gain,t);A.g.gain.linearRampToValueAtTime(0,t+f);setTimeout(()=>A.g.disconnect(),(f+7)*1000);}
+// v0.40：曲ごとの大きさをそろえる（E の仕上げ・ラウドネスを同じ種類の曲の目安に±1 LU）。bgm() の入口の大きさに掛ける。正本：revremit-audio-list.md 30章
+const BGMVOL={"map_street":1.16,"map_touge":0.84,"map_circuit":1.14,"shop":0.85,"result":1.19,"theme_momo":1.24,"boss_kuuten":0.86,"theme_sora":1.24,"theme_rin":1.36,"theme_luna":1.4,"theme_kuro":1.16,"boss_itebosi":1.22,"theme_yuki":1.17,"rest":1.45,"tree_yuki":1.19,"tree_hina":1.15,"tree_sora":1.19,"tree_kaede":1.15,"tree_luna":1.2,"tree_kuro":1.16,"map_highway":0.85,"map_harbor":1.17,"ending_nana":1.15,"ending_kaede":0.87,"ending_luna":1.19,"ending_kuro":1.15,"ending_mio":0.88};
 function bgm(id){if(FARMON&&id!=='farm')return;const c=ok();if(!c)return;if(!(P&&P.id===id))PHASE=1;if(!BGM[id]){console.warn('AUDIO: BGM がない',id);return;}
  if(P&&P.id===id)return;bgmStop(.4);
- const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.7,c.currentTime+.3);g.connect(bgmIn);
+ const g=c.createGain();g.gain.value=0;g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.7*(BGMVOL[id]||1),c.currentTime+.3);g.connect(bgmIn);
  const sg=SONGS[BGM[id].s];P={id,g,b:0,t:c.currentTime+.08,bd:barDur(sg)};
  const parts={};'DBHMXL'.split('').forEach(k=>{parts[k]=c.createGain();parts[k].gain.value=LAYERS.includes(k)?1:0;parts[k].connect(g);});P.parts=parts;
  const me=P;const tick=()=>{if(P!==me)return;while(me.t+me.bd<C.currentTime){me.t+=me.bd;me.b++;} /* v0.34：遅れた小節は飛ばす（まとめて鳴らない） */while(me.t<C.currentTime+1.0){renderBar(C,me.parts,id,me.b,me.t);me.t+=me.bd;me.b++;}};
@@ -1400,7 +1404,7 @@ CUES.harbor_area[0]=CUES.harbor_area[0].concat([S('crane_creak',{},1.2)]);
 CUES.harbor_boss_pre[1]=CUES.harbor_boss_pre[1].concat([S('fog_light',{},.4)]);
 CUES.zero_ed[9]=[S('shutter_light'),[1.6,'bgm','ending']];
 window.AUDIO={
- VERSION:'0.39',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.40',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
@@ -1429,7 +1433,7 @@ window.AUDIO={
   // v0.34：心拍を音の時計で予約する（setTimeout のゆれ・裏のタブで間が空くのをなくす）。速さが変わったら次の拍から
   if(KH.t)return;KH.n=c.currentTime+.02;KH.t=setInterval(()=>{if(KH.b==null||!C){clearInterval(KH.t);KH.t=null;return;}if(KH.n<C.currentTime-.2)KH.n=C.currentTime+.02;
    while(KH.n<C.currentTime+.35){const s=BYID.kuro_beat,g=C.createGain();g.gain.value=(LV.kuro_beat||1);g.connect(BUS.engine);s.fn(C,g,KH.n,{bpm:KH.b});const n0=KH.n;setTimeout(()=>g.disconnect(),Math.max(0,(n0-C.currentTime)*1000)+900);KH.n+=60/KH.b;}},90);}, heart(hp){clearTimeout(hbT);hbT=null;if(hp==null)return;hbHP=Math.max(0,Math.min(1,hp));const go=()=>{playSE('heartbeat',{hp:hbHP});hbT=setTimeout(go,60000/(70+(1-hbHP)*90));};go();},
- ambient(id,v,fade){ambStop(.3);const c=ok();if(!c||!AMBGEN[id])return;const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(v==null?.6:v,c.currentTime+(fade==null?2:fade));g.connect(BUS.amb);
+ ambient(id,v,fade){ambStop(.3);const c=ok();if(!c||!AMBGEN[id])return;const g=c.createGain();g.gain.value=0;g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(v==null?.6:v,c.currentTime+(fade==null?2:fade));g.connect(BUS.amb);
   const r=rng(17),A={g,t:c.currentTime+.05,id,beds:ambBed(c,g,id,c.currentTime+.05)};const gen=AMBGEN[id];A.timer=setInterval(()=>{if(A.t<C.currentTime-1)A.t=C.currentTime+.05;while(A.t<C.currentTime+2)A.t+=gen(C,g,A.t,r);},250);AMB=A;},
  ambientVol(v,fade){if(AMB&&C){const t=C.currentTime;hold(AMB.g.gain,t);AMB.g.gain.linearRampToValueAtTime(v,t+(fade==null?1:fade));}},
  ambientStop(fade){ambStop(fade==null?3:fade);},
@@ -1455,6 +1459,6 @@ window.AUDIO={
  mute(m){muted=!!m;applyVol();},
  get state(){return C?C.state:'none';},
  // 試聴ページ・書き出し用（ゲームからは使わない）
- _lab:{makeEngine,AMBGEN,ambBed,gearParts,LVJ,SE,LV,burst,ghostBurst,waveSwell,rng,renderBar,SONGS,BGM,JINGLES,barDur,YUKI,setPhase(n){PHASE=n||1;}}
+ _lab:{BGMVOL,makeEngine,AMBGEN,ambBed,gearParts,LVJ,SE,LV,burst,ghostBurst,waveSwell,rng,renderBar,SONGS,BGM,JINGLES,barDur,YUKI,setPhase(n){PHASE=n||1;}}
 };
 })();

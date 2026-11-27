@@ -28,7 +28,7 @@ if(typeof NIGHT_FACE!=="undefined")Object.keys(ADD).forEach(n=>{if(!NIGHT_FACE[n
   ["嵐の夜","戦闘の3ターン目に、天候が変わる（予告に出る）。","風向きが、急に変わる。"],["閉店の夜","ショップが半分。ラッキーとシムが多い。","灯りの消えた街を、走りぬける。"],["港の夜","港が入る（5エリア）。エリートのマスでヒート +1。","霧の向こうで、汽笛が鳴る。"],
   ["混線の夜","敵の攻撃に混線がまざる。合成の組み合わせが1つ見える。","通信に、知らない声がまじる。"],["最後の夜","全部の天候が出る。ボスは第2形態から。","夜の、いちばん奥へ。"]];
  TEXT.ui=TEXT.ui||{};T.forEach((r,n)=>{if(!r)return;TEXT.ui["night_face_"+n]=r[0];TEXT.ui["night_face_"+n+"_d"]=r[1];TEXT.ui["night_face_"+n+"_f"]=r[2];
-   const F=typeof NIGHT_FACE!=="undefined"&&NIGHT_FACE[n];if(F&&n>=5&&F===ADD[n]){F.n=r[0];F.l=r[1];F.f=r[2]}else if(F&&!F.f)F.f=r[2]})}
+   const F=typeof NIGHT_FACE!=="undefined"&&NIGHT_FACE[n];if(F){F.n=r[0];F.l=r[1];F.f=r[2]}})}/* v0.5.28 text 44章で決まり：NIGHT 1〜4 も見出し・1行を 44章に（①の文のかわり） */
 const F=()=>{try{return(G&&typeof nightFace==="function"&&nightFace(G.night))||{}}catch(e){return{}}};
 const auto=()=>!!((G&&G.fullAuto)||(window.FARM&&FARM.on));
 
@@ -80,5 +80,5 @@ W("showWinBody",f=>function(w){const r=f.apply(this,arguments);try{if(!F().fuseH
 
 try{const st=document.createElement("style");st.textContent=`.stormtag{position:absolute;background:#1a1030;color:#e6d8ff;border:1px dashed #b08cff;font-size:10px;line-height:12px;padding:0;text-align:center;white-space:nowrap;overflow:hidden}.fusehint{position:absolute;text-align:center;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(10,8,18,.85);border:1px solid #6a5a2a;color:#e8e2cf}`;document.head.appendChild(st)}catch(e){}
 W("renderReady",f=>function(){const r=f.apply(this,arguments);try{const el=document.querySelector("#ui .nface");const n=curNight(),fl=TEXT.ui["night_face_"+n+"_f"];if(el&&fl&&!el.title.includes(fl))el.title=el.title+"\n"+fl}catch(e){}return r});
-window.NFACE={VERSION:"0.5.27",ADD,fuseHint};
+window.NFACE={VERSION:"0.5.28",ADD,fuseHint};
 })();

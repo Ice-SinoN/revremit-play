@@ -1,8 +1,8 @@
 /* ★v0.22.201 スタッフロール（text-add 53章・audio v0.38 credits／credits_end・窓口 11-27 15:44）
    流れ：ZERO の1回目の終わりの話（zero_ed）→ スタッフロール → リザルト → 朝のタイトル（title_morning）。2回目からは showCredits(null,{replay:1}) で見返す（棚の口は②へ）。
    87秒：12枚を秒の表どおりにフェードで出す。地の色は黒い夜から朝の色へ。画面を1秒長押しで「とばす」の札（1回目もとばせる）。
-   10枚目「使った道具」は案A／案B の虎雪の返事待ち＝CREDITS_TOOLS（"A"|"B"）。決まるまで "B"（会社名・サービス名を書かない）。 */
-var CREDITS_TOOLS=window.CREDITS_TOOLS||"B";
+   10枚目「使った道具」は案A／案B の虎雪の返事待ち＝CREDITS_TOOLS（"A"|"B"）。★虎雪 11-27 16:39＝案A。 */
+var CREDITS_TOOLS=window.CREDITS_TOOLS||"A";/* ★v0.22.204 虎雪 11-27 16:39：案A（名前を書く）で決め */
 const CREDITS=[
  [0,"","Rev:Remit<br>― .50 CAL シリーズ ―"],
  [6,"プロデューサー","虎雪"],

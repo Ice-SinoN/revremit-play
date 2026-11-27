@@ -686,3 +686,5 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 
 /* ★v0.22.190 キーボード／筐体のボタン：今えらんでいる所（キーを押したときだけ・マウスやタッチで消える） */
 .kf{outline:2px solid var(--lime)!important;outline-offset:1px;box-shadow:0 0 0 3px rgba(0,0,0,.6),0 0 8px 2px rgba(197,255,69,.55)!important}/* z-index は付けない（小窓の上に出てしまう） */
+/* ★v0.22.204 BUG-71：文字「大」で段の下の行（とる・n ポイント）が枠の下に出た。段の高さは列（.tbr）で決まるので、説明（.tnt）のほうを縮めて中をスクロール（design 1-26 の 5 ②）。下の行は縮めない */
+.tnode{min-height:0;overflow:hidden}.tnode .tnt{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none}.tnode .tnt::-webkit-scrollbar{display:none}.tnode .tnc{flex:none}
