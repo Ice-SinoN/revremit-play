@@ -147,7 +147,8 @@ function genMap(){
       if(r===0)row=[{k:"battle"},{k:"battle"}];
       else if(r===a.rows-1)row=[{k:"garage"}];
       else{const n=rnd(2,4);row=[];let prevElite=false;
-        for(let i=0;i<n;i++){const ew=NR().eliteW,w=NODE_W.filter(x=>r>=x[2]).map(x=>x[0]==="elite"&&ew?[x[0],ew,x[2]]:x);const t=w.reduce((s,x)=>s+x[1],0);let q=Math.random()*t,k="battle";
+        const NM=(typeof nightFace==="function"&&G&&(nightFace(G.night)||{}).nodeMul)||null;/* ★v0.22.195 閉店の夜 */
+        for(let i=0;i<n;i++){const ew=NR().eliteW,w=NODE_W.filter(x=>r>=x[2]).map(x=>x[0]==="elite"&&ew?[x[0],ew,x[2]]:x).map(x=>NM&&NM[x[0]]!=null?[x[0],x[1]*NM[x[0]],x[2]]:x);const t=w.reduce((s,x)=>s+x[1],0);let q=Math.random()*t,k="battle";
           for(const x of w){q-=x[1];if(q<0){k=x[0];break}}row.push({k})}
         if(r===a.mid&&!row.some(n=>n.k==="shop"||n.k==="sim"))row[0]={k:Math.random()<0.5?"shop":"sim"};}
       row.forEach(n=>{n.a=ai;n.r=r;if(n.k==="shop"){n.feat=Math.random()<RULES.featRate;n.sale=Math.random()<RULES.saleRate}});
@@ -165,7 +166,7 @@ function genMap(){
 /* ★v0.22.126 天候（design 10-16-1）：戦闘・エリート・裏道のマスごとに1つ。同じ段はなるべくちがう天候。初めのランのエリア1 最初の3段はドライ */
 function wxPick(ak){return wxPick0(ak)}
 function wxPick0(ak){const W=(typeof WX_W!=="undefined"&&WX_W[ak])||{dry:1};let t=0;const ls=(typeof WX_ON!=="undefined"?WX_ON:["dry"]).map(k=>{const w=k==="dry"?Object.keys(W).filter(x=>!WX_ON.includes(x)).reduce((s,x)=>s+W[x],W.dry||0):(W[k]||0);t+=w;return[k,w]});let q=Math.random()*t;for(const[k,w]of ls){q-=w;if(q<0)return k}return"dry"}
-function wxRow(row,ak,dry){const used={},F=typeof nightFace==="function"&&G&&nightFace(G.night);row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}if(F&&F.wx){const fk=Object.keys(F.wx).find(k=>Math.random()<F.wx[k]);if(fk){n.wx=fk;used[fk]=(used[fk]||0)+1;return}}/* ★v0.22.139 夜の顔はそのまま（同じ段のちがいより先） */let w=wxPick0(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick0(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick0(ak);if(!used[alt])w=alt}if(used[w]>=2&&w!=="dry")w="dry";/* ★v0.22.144 分かれ道で4つの段がふえたので、同じ天候は1つの段に2つまで（夜の顔の天候は別） */used[w]=(used[w]||0)+1;n.wx=w})}
+function wxRow(row,ak,dry){const used={},F=typeof nightFace==="function"&&G&&nightFace(G.night);row.forEach(n=>{if(!/^(battle|elite|hidden)$/.test(n.k))return;if(dry){n.wx="dry";return}if(F&&F.wxAll){const L=(typeof WX_ON!=="undefined"?WX_ON:["dry"]);let w=L[Math.floor(Math.random()*L.length)];if(used[w]&&w!=="dry")w=L[Math.floor(Math.random()*L.length)];n.wx=w;used[w]=(used[w]||0)+1;return}/* ★v0.22.195 最後の夜：5つの天候を同じ割合 */if(F&&F.wx){const fk=Object.keys(F.wx).find(k=>Math.random()<F.wx[k]);if(fk){n.wx=fk;used[fk]=(used[fk]||0)+1;return}}/* ★v0.22.139 夜の顔はそのまま（同じ段のちがいより先） */let w=wxPick0(ak);for(let i=0;i<3&&used[w]&&w!=="dry";i++)w=wxPick0(ak);if(used[w]>=1&&w!=="dry"){const alt=wxPick0(ak);if(!used[alt])w=alt}if(used[w]>=2&&w!=="dry")w="dry";/* ★v0.22.144 分かれ道で4つの段がふえたので、同じ天候は1つの段に2つまで（夜の顔の天候は別） */used[w]=(used[w]||0)+1;n.wx=w})}
 function wxNow(){return(B&&!B.over&&B.wx)||"dry"}
 function wxDef(){return(typeof WEATHER!=="undefined"&&WEATHER[wxNow()])||{}}
 function wxMinus(){const w=wxNow();return w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w}
@@ -266,10 +267,16 @@ function startBattleState(key){
   G.st.battles++;
   if(hid){B.e.n="ロストライン";/* ★v0.22.5 text 12-5・17-2 #7 */addLog(`裏道：${UNLOCK.hiddenTurns}ターン以内に倒す（こえたら逃げられる）`)}
   addLog(`${B.e.n} があらわれた。${E.gimTxt?"（"+E.gimTxt+"）":""}`);
+  nightFaceBattle(E);/* ★v0.22.195 夜の顔（嵐の夜・最後の夜） */
   if(E.first){addLog(`${E.n} が先に動いた`);const r=enemyStep();if(r)return finish(r),B}
   startPlayerTurn(true);
   return B;
 }
+/* ★v0.22.195 夜の顔の戦闘の決まり。嵐の夜：はじめに「3ターン目に○○に変わる」を決めて知らせる（第2形態の天候があるボスはなし）。最後の夜：エリアのボスは第2形態から（体力はそのまま・形と行動と第2形態の天候） */
+function wxNameK(w){return(typeof TEXT!=="undefined"&&TEXT.wx&&TEXT.wx[w]&&TEXT.wx[w].n)||(typeof WEATHER!=="undefined"&&WEATHER[w]&&WEATHER[w].n)||w}
+function nightFaceBattle(E){const F=typeof nightFace==="function"&&nightFace(G.night);if(!F||B.sim)return;const e=B.e;
+  if(F.bossP2&&E.rank==="boss"&&!E.ally&&(e.phase||e.wx2)){if(e.phase&&!e.phased){e.phased=true;e.spd=e.phase.spd||e.spd;e.next=100/e.spd;if(e.phase.morph){e.morph=e.phase.morph;e.mi=0;e.pi=0}if(e.phase.pat){e.pat=e.phase.pat;e.pi=0}}if(e.wx2){B.wx2On=true;B.wx=e.wx2}B.p2Start=1;addLog(`最後の夜：${e.n} ははじめから第2形態`)}/* 第2形態＝形（phase）と第2形態の天候（wx2）。残光・白夜は天候だけ */
+  if(F.storm&&!B.hidden&&!e.wx2){const L=(typeof WX_ON!=="undefined"?WX_ON:[]).filter(w=>w!=="dry"&&w!==B.wx);if(L.length){B.stormWx=L[Math.floor(Math.random()*L.length)];B.stormAt=F.storm;addLog(`嵐の夜：3ターン目に天候が「${wxNameK(B.stormWx)}」に変わる`)}}}
 function addLog(s){B.log.push(s);if(B.log.length>60)B.log.shift()}
 function ev(o){B.ev.push(o);if(B.ev.length>200)B.ev.shift()}
 /* 画面が読む：たまったイベントを取り出して空にする */
@@ -653,6 +660,7 @@ function turnEnd(gasout){
   addLog(`ターン終わり：回転 ${B.rpm}`);
   let guard=0;
   while(B.e.next<B.pNext&&guard++<20){const r=enemyStep();if(r)return finish(r)}
+  if(B.stormWx&&!B.stormDone&&B.pTurns>=B.stormAt){B.stormDone=1;B.wx=B.stormWx;addLog(`嵐：天候が変わった（${wxName0()}）`);ev({k:"wxStorm",wx:B.wx})}/* ★v0.22.195 嵐の夜 */
   startPlayerTurn(false);ev({k:"turn"});
   return"turn";
 }
@@ -694,6 +702,7 @@ function enemyStep(){
   if(e.morph&&e.pi>=pat.length){e.pi=0;e.mi++}
   ev({k:"eact",p:p[0]});
   ENEMY_OPS[p[0]](e,...p.slice(1));
+  {const F=typeof nightFace==="function"&&nightFace(G.night);if(F&&F.jamP&&(p[0]==="atk"||p[0]==="multi")&&!B.sim&&Math.random()<F.jamP&&CARDS[F.jamId]){ENEMY_OPS.jam(e,F.jamId,1);addLog("混線！");ev({k:"jamx"})}}/* ★v0.22.195 混線の夜 */
   if(e.rage)e.atkUp+=e.rage;
   if(e.accel&&e.spdUp<6)e.spdUp+=e.accel;
   if(e.noise>0)e.noise--;
@@ -710,14 +719,14 @@ function timeline(){const out=[];let p=B.pNext,e=B.e.next;const pd=100/car().spd
 function heatSet(v,why){const H=RULES.heat;v=Math.max(0,Math.min(H.max,v|0));const was=G.heat||0;G.heat=v;G.heatMax=Math.max(G.heatMax||0,v);if(v!==was&&why)addLogSafe(why)}
 function addLogSafe(t){try{if(B&&!B.over)addLog(t)}catch(e){}}
 function heatMul(){return 1+(G&&G.heat||0)*RULES.heat.hpAtk}
-function heatGain(n){if(!n||n.k==="boss"||!/^(battle|elite|hidden)$/.test(n.k))return 0;const H=RULES.heat;let d=n.k==="battle"?H.win:H.elite;const w=n.wx||"dry";if(w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w)d+=H.badWx;return d}
+function heatGain(n){if(!n||n.k==="boss"||!/^(battle|elite|hidden)$/.test(n.k))return 0;const H=RULES.heat;let d=n.k==="battle"?H.win:H.elite;if(n.k==="elite")d+=((typeof nightFace==="function"&&nightFace(G.night))||{}).eliteHeat||0;/* ★v0.22.195 港の夜 */const w=n.wx||"dry";if(w!=="dry"&&(CHARS[G.char]||{}).wxFav!==w)d+=H.badWx;return d}
 function featCost(){return Math.round(RULES.featPrice*(1+(G&&G.heat||0)*RULES.heat.gold))}
 /* ★v0.22.137 ライバルのゴースト（design 10-17-2）：エリア2・3 に入ったとき 25% で、そのエリアのエリートのマス1つがゴースト（1ランに1回）。
    もと＝ランの記録（②の runlog.pickGhost・newRunState の opt.ghost）。体力＝そのエリアのエリート ×1.1、行動＝記録のアタック上位2枚（×0.8）とガード1枚、速さ＝そのキャラ、記録が全クリアなら rage */
 /* ★v0.22.139 雨の夜のエリート「スプラッシュ」（design 12-3）：そのエリアのエリートの色変え・行動に泥はね（mud）を1つ足す */
 function splashKey(ai){const k="splash"+ai;if(!ENEMIES[k]){const E=ENEMIES[AREAS[ai].elite];const pat=(E.pat||[]).slice();pat.splice(1,0,["jam","mud",1]);ENEMIES[k]=Object.assign({},E,{n:"スプラッシュ",pal:"splash",pat,splash:1,gimTxt:(E.gimTxt?E.gimTxt+"・":"")+"泥はねを山札に混ぜる"})}return k}
 const GHOST_P=0.25;
-function ghostRoll(ai){if(!G||G.ghostDone||!G.ghostRec||ai<1)return;G.ghostRolled=G.ghostRolled||{};if(G.ghostRolled[ai])return;G.ghostRolled[ai]=1;if(Math.random()>=(G.ghostP!=null?G.ghostP:GHOST_P))return;G.ghostDone=1;
+function ghostRoll(ai){const GM=(typeof nightFace==="function"&&G&&(nightFace(G.night)||{}).ghostMax)||1;/* ★v0.22.195 影の夜：2回まで */if(!G||(G.ghostDone||0)>=GM||!G.ghostRec||ai<1)return;G.ghostRolled=G.ghostRolled||{};if(G.ghostRolled[ai])return;G.ghostRolled[ai]=1;if(Math.random()>=(G.ghostP!=null?G.ghostP:GHOST_P))return;G.ghostDone=(G.ghostDone||0)+1;
   const ns=G.map.flatMap(r=>r).filter(n=>n.a===ai&&n.k==="elite");if(!ns.length)return;const n=pick(ns);n.ghost=1;G.ghostDef=ghostDef(G.ghostRec,ai);ENEMIES.__ghost=G.ghostDef}
 function ghostReady(){if(!ENEMIES.__ghost&&G&&G.ghostDef)ENEMIES.__ghost=G.ghostDef;return!!ENEMIES.__ghost}
 /* ★v0.22.150 A1（design 10-17-2・24-4）：ゴーストに「キャラの守りの仕組み」を敵の形で。HINA・NANA は design 10-17-2 の例どおり。YUKI・MOMO は design に形がないので①の仮（デザイン班に確かめ）
@@ -749,7 +758,7 @@ function winRewards(){
   const otk=!B.enemyActed;if(otk){gold+=gd.otk+(has("dashcam")?15:0);G.st.otk++}if(has("jack"))G.hp=Math.min(G.maxhp,G.hp+3);
   G.money+=gold;const ticket=Math.random()<RULES.ticketRate;if(ticket)G.tickets++;
   const h0=G.heat||0;let heal=0;if(E.rank!=="boss"&&RULES.heat.winHeal&&h0>0){heal=Math.max(0,Math.min(G.maxhp-G.hp,Math.round(G.maxhp*h0*RULES.heat.winHeal)));if(heal){G.hp+=heal;addLog(`ヒートで回復 +${heal}`)}}/* ★v0.22.153 勝つと回復（design 24-6） */
-  {const H=RULES.heat;let d=E.ally?0/* design 10-4b：連戦のボスの −2 は零号のあとに1回だけ */:E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
+  {const H=RULES.heat;let d=E.ally?0/* design 10-4b：連戦のボスの −2 は零号のあとに1回だけ */:E.rank==="boss"?H.boss:(E.rank==="elite"||B.hidden)?H.elite:H.win;if(E.rank==="elite"&&!B.hidden)d+=((typeof nightFace==="function"&&nightFace(G.night))||{}).eliteHeat||0;/* ★v0.22.195 港の夜 */if(E.rank!=="boss"&&wxMinus())d+=H.badWx;heatSet(h0+d)}/* ★v0.22.131 ヒート */
   return{ghost:!!E.ghost,key,rank:B.hidden?"hidden":(E.rank||"battle"),name:B.e.n,gold,otk,ticket,hidCard,heat:[h0,G.heat||0],heal};
 }
 /* ★v0.21 ログ（ラン後のマネー・design 9-7）。負けても突破したエリアのぶんは入る */

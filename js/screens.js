@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.194（β2）";
+const VERSION="試作 v0.22.195（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -296,11 +296,12 @@ function nextRow(){const prev=G.map[G.row][0],r=advanceRow();
 function enterBattle(){if(typeof sprTrim==='function'&&G)sprTrim(['YUKI',G.char]);/* ★v0.22.125 今のキャラ以外の仲間の戦闘シートを手放す（スマホのメモリ） */if(typeof charArtRetry==='function')charArtRetry();if(B&&B.e&&B.e.weakGear&&!B.sim&&!(G&&G.fullAuto)&&!weakKnown(B.e)){const t=TEXT.wk&&TEXT.wk.hint[B.key];if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2("みお："+t,250,3500)},1400)}/* ★v0.22.123 弱点のヒント（ボスの前・text 34-3） */{/* ★v0.22.102 デッキの奥義の絵を先に読む（あとで読む絵） */const og=[...new Set((G.deck||[]).filter(c=>rarityOf(c)==="OG").map(c=>CARDS[c.id].og))].map(k=>typeof OUGI_ART!=="undefined"&&OUGI_ART[k]).filter(Boolean);
   og.forEach(o=>{if(o.spr&&typeof ensureSpr==="function")ensureSpr([o.spr]);[o.cutin1||o.cutin].forEach(f=>f&&loadImg(f))})}
   setScreen("battle");setScene("battle");S.sel=-1;S.pending=null;
-  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();if(B.e.ghost&&!B.sim&&S.ghB!==B){S.ghB=B;const L=TEXT.ghost&&TEXT.ghost.lines[G.char],t=L&&(G.ghostRec&&G.ghostRec.result==="clear"?L.clear:L.line);if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`${(TEXT.names||{})[G.char]||G.char}：${t}`,120,3200)},700)}/* ★v0.22.137 ゴーストに出会った一言 */{const rk=(ENEMIES[B.key]||{}).rank;if(!B.sim&&(rk==="elite"||rk==="boss")&&!B.hidden&&!B.e.ghost&&S.duoB!==B){S.duoB=B;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow(rk==="boss"?"boss":"start")},rk==="boss"?400:1600)}}/* ★v0.22.132 掛け合い */
+  A.bgKey=B.hidden&&STAGE_C2.hidden?"hidden":AREA_BG[curArea().key]||"street";wxEnter();modeHelpAuto();if(B.stormWx&&!B.stormDone&&!B.sim&&!(G&&G.fullAuto)&&!(window.FARM&&FARM.on))setTimeout(()=>{if(window.SCREEN==="battle")toast2(`嵐の夜：3ターン目に天候が「${wxName(B.stormWx)}」に変わる`,120,3200)},700);/* ★v0.22.195 */if(B.e.ghost&&!B.sim&&S.ghB!==B){S.ghB=B;const L=TEXT.ghost&&TEXT.ghost.lines[G.char],t=L&&(G.ghostRec&&G.ghostRec.result==="clear"?L.clear:L.line);if(t)setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)toast2(`${(TEXT.names||{})[G.char]||G.char}：${t}`,120,3200)},700)}/* ★v0.22.137 ゴーストに出会った一言 */{const rk=(ENEMIES[B.key]||{}).rank;if(!B.sim&&(rk==="elite"||rk==="boss")&&!B.hidden&&!B.e.ghost&&S.duoB!==B){S.duoB=B;setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over)duoShow(rk==="boss"?"boss":"start")},rk==="boss"?400:1600)}}/* ★v0.22.132 掛け合い */
   const E=Object.assign({},ENEMIES[B.key]);if(B.e&&B.e.phased&&E.phase&&E.phase.art&&SPR[E.phase.art]&&!SPR[E.phase.art].proc){E.art=E.phase.art;E.pal=null}/* ★v0.22.9 */if(B.hidden&&SPR["lost_"+B.key]&&!SPR["lost_"+B.key].proc){E.art="lost_"+B.key;E.pal=null}/* ★v0.22.2 裏道のロストライン */
   if(E.ghost)ghostSpr(E.gchar);/* ★v0.22.137 */
   const own=E.art&&SPR[E.art]&&!SPR[E.art].proc,fb=ART_FALLBACK[E.art],fbOk=fb&&SPR[fb]&&!SPR[fb].proc;// 絵がまだない敵は C2 の絵の色変え（仮）
-  Object.assign(A.E,{glitch:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
+  if(B.p2Start&&E.phase&&!(E.phase.art&&E.art===E.phase.art)){if(E.phase.pal)E.pal=E.phase.pal}/* ★v0.22.195 最後の夜：第2形態の色 */
+  Object.assign(A.E,{glitch:B.p2Start&&E.phase&&E.phase.glitch?1:0,set:own?E.art:fbOk?fb:"van",pal:E.pal||(own?null:"f_"+E.art),scale:E.scale||(own||fbOk?(E.rank==="elite"&&!own?1.1:1):E.rank==="boss"?1.5:E.rank==="elite"?1.15:1)});
   /* ★v0.22.10 不具合（虎雪 19:04）：先に動く敵の一発・始まりの効果で耐久が 0 になったとき、負けの流れに入らず止まっていた
      → 戦闘の始まりで終わっていたら（または耐久がもう 0 以下なら）、ふつうの勝ち負けの流れ（afterAct）へ */
   if(!B.over&&G.hp<=0&&dead())finish("dead");
@@ -312,7 +313,7 @@ function onIdle(){if(S.pending&&!busy()){const f=S.pending;S.pending=null;f()}}
 setInterval(onIdle,50);
 /* 押したら、モーションの残りを飛ばす */
 function uiSkip(){flushAnim();onIdle()}
-function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="wx2"))wxPhase();/* ★v0.22.128 */const phK=B.key==="boss3"?sceneKey("boss3_phase"):ENEMIES[B.key]&&ENEMIES[B.key].ally?G.char.toLowerCase()+"_boss_phase":null;if(B.ev.some(e=>e.k==="phase")&&phK){S.toastQ=(TEXT.scenes[phK]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
+function afterAct(r,rpm0){A.pv=null;if(B.ev.some(e=>e.k==="wx2"))wxPhase();/* ★v0.22.128 */if(B.ev.some(e=>e.k==="wxStorm")){wxApply();if(!(G&&G.fullAuto)&&!(window.FARM&&FARM.on))toast2(`嵐：天候が「${wxName(B.wx)}」に変わった`,120,2600)}/* ★v0.22.195 嵐の夜 */const phK=B.key==="boss3"?sceneKey("boss3_phase"):ENEMIES[B.key]&&ENEMIES[B.key].ally?G.char.toLowerCase()+"_boss_phase":null;if(B.ev.some(e=>e.k==="phase")&&phK){S.toastQ=(TEXT.scenes[phK]||{lines:[]}).lines.slice();S.toastT=Date.now();[2500,5000].forEach(t=>setTimeout(()=>{if(window.SCREEN==="battle"&&B&&!B.over&&!busy())renderBattle()},t+30))}
   // エンジン音：回転数が変わったら約2秒だけ（★08:20）。ブローは SND.blow が鳴らす
   if(rpm0!=null&&B.rpm!==rpm0&&r!=="dead")SND.engineBurst(rpm0,B.rpm);
   playEvents(takeEvents());S.sel=-1;
@@ -488,7 +489,7 @@ function showWinBody(w){if(w.ghost){ghostReward(w);return}if(w.rank==="boss"&&S.
   if(w.rank==="hidden")h+=(w.hidCard?cardBig(w.hidCard,{art:true,cls:"lit",attrs:`${at(LAMP_X[1]-70,52,140,184)}`})+`<div class="sign" ${at(170,240,300,40)}><div class="h">裏道のカード「${esc(CARDS[w.hidCard].n)}」を開いた</div><div class="small"><span class="commk">通信</span>みお：${esc(TEXT.ui.hidden_win.replace(/<br>/g,""))}</div><div class="small">デッキに1枚入った（次のランからも報酬に出る）</div></div>`
     :`<div class="sign" ${at(170,120,300,40)}><div class="h">裏道のカードは全部開いている</div><div class="small">お金とログが多めに入る</div></div>`)+`<button class="main u9" ${at(484,300,120,32)} onclick="takeCard(null)">つぎへ</button>`;
   h+=S.rewards.map((id,i)=>cardBig(id,{art:true,cls:"lit",attrs:`${at(S.rewards.length>3?30+i*148:LAMP_X[i]-70,52,140,184)} onclick="takeCard('${id}')"`})).join("")+
-   (w.rank==="hidden"?"":backBtn("もらわない","takeCard(null)"))+/* ★v0.22.1 BUG-30：裏道は「つぎへ」だけ */
+   (w.rank==="hidden"?"":backBtn("もらわない","takeCard(null)"))+/* ★v0.22.1 BUG-30：裏道は「つぎへ」だけ */fuseHintHTML(w)+/* ★v0.22.195 混線の夜 */
    `<div class="gain sign" ${at(170,284,300,32)}>${itemIcon("money",32)}お金 +${w.gold}${w.ticket?`　${itemIcon("coupon",32)}割引券`:""}${w.heal?`　<b class="heatheal">熱 +${w.heal}</b>`:""}</div>`;/* ★v0.22.153 */
   ui().innerHTML=h;
 }
@@ -1012,11 +1013,18 @@ function ghostSpr(ch){const k="ghost_"+ch;if(SPR[k]&&!SPR[k].proc)return;const S
   tags.idle=tags.stand;const f=S0.foot||[112,220],w0=(S0.frames[0]||{width:224}).width;SPR[k]={frames,dur,tags,foot:[w0-f[0],f[1]]}}
 /* 報酬：3つから1つ（①自分の専用パーツ ②エピックのカード ③強化ずみのカード）＋お金 +20 */
 function ghostPartOpts(){const own=Object.keys(PARTS).filter(p=>PARTS[p].own===G.char&&!G.parts.includes(p)&&!(G.soldParts||[]).includes(p)&&!(typeof isMcPart==="function"&&isMcPart(p)));
-  return(own.length?shuffle(own):shuffle(partPool().filter(p=>PARTS[p].own==="N"))).slice(0,3)}
-function ghostEpicOpts(){const ul=G.ul?G.ul.cards:Object.keys(CARDS);return shuffle([...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&rarityOf(id)==="E"&&!CARDS[id].gen&&(!G.ul||ul.includes(id)))).slice(0,3)}
-function ghostUpOpts(){return shuffle([...new Set(G.deck.filter(c=>!c.gen&&CARDS[c.id]&&CARDS[c.id].t!=="jam"&&!["SK","OG"].includes(rarityOf(c))).map(c=>c.id))]).slice(0,3)}
+  return(own.length?shuffle(own):shuffle(partPool().filter(p=>PARTS[p].own==="N"))).slice(0,ghostN())}
+/* ★v0.22.195 影の夜：ゴーストの報酬は4つから */
+/* ★v0.22.195 混線の夜：報酬の画面で合成の組み合わせを1つ見せる（その子の組から。報酬のカード・デッキのカードが入っている組を先に） */
+function fuseHintHTML(w){const F=typeof nightFace==="function"&&G&&nightFace(G.night);if(!F||!F.fuseHint||w.rank==="hidden"||typeof FUSE==="undefined")return"";
+  const pre="f_"+({YUKI:"y",HINA:"h",MOMO:"m",NANA:"n"}[G.char]||String(G.char).charAt(0).toLowerCase())+"_",L=FUSE.filter(f=>f.id.startsWith(pre)&&CARDS[f.a]&&CARDS[f.b]&&CARDS[f.id]);if(!L.length)return"";
+  if(!S.fuseHintW||S.fuseHintW.w!==w){const own=new Set(G.deck.map(c=>c.id).concat(S.rewards||[]));const P=L.filter(f=>own.has(f.a)||own.has(f.b));S.fuseHintW={w,f:pick(P.length?P:L)}}const f=S.fuseHintW.f;
+  return`<div class="sign fhint small" ${at(130,240,380,20)}>合成のヒント：${esc(CARDS[f.a].n)}＋${esc(CARDS[f.b].n)} → <b class="gold">${esc(CARDS[f.id].n)}</b></div>`}
+function ghostN(){return(typeof nightFace==="function"&&G&&(nightFace(G.night)||{}).ghostOpts)||3}
+function ghostEpicOpts(){const ul=G.ul?G.ul.cards:Object.keys(CARDS);return shuffle([...new Set(CHARS[G.char].pool)].filter(id=>CARDS[id]&&rarityOf(id)==="E"&&!CARDS[id].gen&&(!G.ul||ul.includes(id)))).slice(0,ghostN())}
+function ghostUpOpts(){return shuffle([...new Set(G.deck.filter(c=>!c.gen&&CARDS[c.id]&&CARDS[c.id].t!=="jam"&&!["SK","OG"].includes(rarityOf(c))).map(c=>c.id))]).slice(0,ghostN())}
 function ghostReward(w){S.rewards=[];const L=TEXT.ghost&&TEXT.ghost.lines[G.char];if(L&&L.win)setTimeout(()=>{if(window.SCREEN==="win")toast2(`${(TEXT.names||{})[G.char]||G.char}：${L.win}`,286,3000)},300);
-  const C=[["part","専用パーツ","持っていない自分のパーツから3つ"],["epic","エピックのカード","解放ずみのエピックから3枚"],["up","強化ずみのカード","今のデッキのカードを、強化した形で3枚"]];
+  const gn=ghostN(),C=[["part","専用パーツ",`持っていない自分のパーツから${gn}つ`],["epic","エピックのカード",`解放ずみのエピックから${gn}枚`],["up","強化ずみのカード",`今のデッキのカードを、強化した形で${gn}枚`]];
   let h=hud()+`<div class="sign" ${at(170,20,300,30)}><div class="h">${esc(w.name)} をたおした！</div><div class="small">ゴーストの報酬：3つから1つ選ぶ（お金 +${w.gold}）</div></div>`;
   h+=C.map(([k,n,d],i)=>`<button class="pt lit ghr" ${at(LAMP_X[i]-70,52,140,184)} onclick="ghostPick('${k}')"><b>${esc(n)}</b><br><span class="small">${esc(d)}</span></button>`).join("");
   ui().innerHTML=h}
