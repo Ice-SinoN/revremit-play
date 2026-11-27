@@ -25,7 +25,9 @@ with sync_playwright() as p:
     B.e.hp=Math.floor(B.e.mhp*0.45);B.e.hpMax&&0;const r0=B.rpm;try{B.ev=[{k:'phase',art:'hb_boss_p2'}];playEvents(B.ev)}catch(e){};await new Promise(r=>setTimeout(r,800));
     return {se:__L.se.slice(),key:B.key}}""")
   R["phase"]=r
-  if "futou_phase" not in r["se"]:R["ng"].append(["futou_phase",r])
+  # ★v0.22.204：futou_phase は②の night2.js（checkWx2＝第2形態の天候が入った番）だけで鳴らす。①の phase の演出では鳴らさない（二重だった）
+  w=q("()=>typeof checkWx2==='function'&&checkWx2.toString().includes('futou_phase')")
+  if "futou_phase" in r["se"] or not w:R["ng"].append(["futou_phase",r,w])
   # 埠頭でないボスでは鳴らない
   r=q("""async()=>{qaNewRun({mode:'MT',night:2});startBattleState('boss1');enterBattle();await new Promise(r=>setTimeout(r,2500));__L.se=[];try{B.ev=[{k:'phase'}];playEvents(B.ev)}catch(e){};await new Promise(r=>setTimeout(r,800));return __L.se.slice()}""")
   if "futou_phase" in r:R["ng"].append(["ほかのボスでも鳴った",r])

@@ -35,9 +35,9 @@ with sync_playwright() as p:
   R["morning"]=m
   if not m[0] or str(m[1])<"0.39":R["ng"].append(["audio",m])
   # 敵の攻撃の形（formOf）
-  f=q("()=>{const b0=B;const t=(k,e)=>{B={key:k};return formOf(e)};let r;try{r=[t('zero',{zf:0}),t('zero',{zf:1}),t('boss3',{phased:1}),t('kei',{})]}finally{B=b0}return r}")
+  f=q("()=>{const b0=B;const t=(k,e)=>{B={key:k};return atkForm(e)};let r;try{r=[t('zero',{zf:0}),t('zero',{zf:1}),t('boss3',{morph:1,forms:['剣','槍','盾'],mi:1}),t('kei',{})]}finally{B=b0}return r}")
   R["form"]=f
-  if f!=[1,2,2,1]:R["ng"].append(["formOf",f])
+  if f!=[1,2,"槍",1]:R["ng"].append(["atkForm",f])  # ★v0.22.204 anim の formOf は atkForm に（engine の formOf の名前を使う）
   pg.close();b.close()
 R["errs"]=errs[:5]
 if errs:R["ng"].append(["errs",errs[:3]])

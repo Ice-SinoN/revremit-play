@@ -156,5 +156,5 @@ W("redLo",f=>function(){const r=f.apply(this,arguments);return hasP("p_night_daw
 /* v0.5.26 QA：「つづきから」の札のエリアの名前は、その夜の並び（N9〜11 の5つ目など）で */
 W("runLabel",f=>function(r){try{const g=r.G,ks=NIGHT_AREAS[g.night|0];if(ks&&g.map){const row=Math.min(g.row,g.map.length-1),a=g.map[row][0].a,start=g.map.findIndex(x=>x[0].a===a),AR=BYKEY[ks[a]];
   if(AR)return`${g.mode}・エリア${a+1} ${AR.n} ${row-start+1}段・耐久${g.hp}/${g.maxhp}`}}catch(e){}return f.apply(this,arguments)});
-window.NIGHT2={VERSION:"0.5.30",applyAreas};
+window.NIGHT2={VERSION:"0.5.31",applyAreas};
 })();

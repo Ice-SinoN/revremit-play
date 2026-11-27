@@ -16,7 +16,7 @@ const CREDITS=[
  [62,"使った道具",null],
  [70,"テストプレイ","β を走ってくれた、みなさん<br>感想を送ってくれた、みなさん"],
  [78,"","このゲームの絵・音・文・プログラムの多くは、<br>生成 AI を使って作りました。<br>キャラクターと世界、遊びの手ざわりは、<br>ひとつずつ人が決めています。<br><br>走ってくれて、ありがとう。<br>――また、次の夜に。"]];
-const CREDITS_TOOL_TXT={A:"開発チーム：Claude（Anthropic）<br>絵：PixAI ほか画像生成 AI ／ ドット絵：Aseprite<br>音楽・効果音：audio.js（Web Audio API で合成）／Claude（Anthropic）<br>公開：GitHub Pages",
+const CREDITS_TOOL_TXT={A:"開発チーム：Claude（Anthropic）<br>絵：PixAI ／ ChatGPT（OpenAI）／ ドット絵：Aseprite<br>音楽・効果音：audio.js（Web Audio API で合成）／ Claude（Anthropic）<br>フォント：PixelMplus（itouhiro・M+ FONT LICENSE）<br>公開：GitHub Pages",
  B:"開発チーム：対話型の生成 AI<br>絵：画像生成 AI ／ ドット絵の編集ソフト<br>声と音：音声・音楽の生成 AI<br>公開：Web の公開サービス"};
 const CREDITS_LEN=87;
 function showCredits(done,opt){opt=opt||{};const T=(TEXT.ui||{});closeModal();setScreen("credits");setScene("dim");SND.bgm("credits");

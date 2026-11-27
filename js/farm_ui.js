@@ -26,6 +26,7 @@ function farmChoiceFarm(){closeModal();if(!farmChars().length){SND.se("card_cant
   fuiPick();FUI.sel.mode=S.farmChoiceMode||PRF().lastMode||"MT";fuiOpen("setup")}
 /* v0.5.6 キャラと夜を、走れるものに合わせなおす（いなければ null のまま） */
 function fuiPick(){const cs=farmChars(),s=FUI.sel;if(!cs.includes(s.char))s.char=cs.includes(curChar())?curChar():(cs[0]||null);
+  if(s.char){const ms=farmModes(s.char);if(!ms.includes(s.mode))s.mode=ms[0]}
   const ns=s.char?farmNights(s.char):[];if(!ns.includes(s.night))s.night=ns.includes(curNight())?curNight():(ns.length?ns[ns.length-1]:null);return!!(s.char&&s.night)}
 
 /* ---------- 縦の画面の入れ物 ---------- */
@@ -49,7 +50,7 @@ function fuiSetup(){const can=fuiPick();const s=FUI.sel,d=farmData(),U=TEXT.name
   return`<div class="fhead"><b>フルオート周回</b><button class="fbtn sub" onclick="fuiClose();SND.se('ui_cancel')">◀ もどる</button></div>
   <div class="fscroll"><div class="fbox"><div class="fl">キャラ</div><div class="fcs">${all.map(ch=>chip(s.char===ch,esc(U[ch]||ch),`FUI.sel.char='${ch}';FUI.sel.night=farmNights('${ch}').slice(-1)[0];SND.se('ui_ok');fuiRender()`,!ok.includes(ch))).join("")}</div>${ok.length<all.length?`<div class="fn dim">暗いキャラ：${esc(FUI_TXT.lock)}</div>`:""}</div>
   <div class="fbox"><div class="fl">夜（クリアした夜だけ）</div><div class="fcs">${NIGHTS.slice(0,typeof BETA_NIGHTS==="number"?BETA_NIGHTS:NIGHTS.length).map((_,i)=>i+1).map(n=>chip(s.night===n,"N"+n,`FUI.sel.night=${n};SND.se('ui_ok');fuiRender()`,!ns.includes(n))).join("")}</div></div>
-  <div class="fbox"><div class="fl">走りかた</div><div class="fcs">${["MT","AT"].map(m=>chip(s.mode===m,m,`FUI.sel.mode='${m}';SND.se('ui_ok');fuiRender()`)).join("")}</div></div>
+  <div class="fbox"><div class="fl">走りかた</div><div class="fcs">${farmModes(s.char).map(m=>chip(s.mode===m,m==="BIKE"?"自転車":m,`FUI.sel.mode='${m}';SND.se('ui_ok');fuiRender()`)).join("")}</div></div>
   <div class="fbox"><div class="fl">回数</div><div class="fcs">${FUI_LIMITS.map(([v,n])=>chip(s.limit===v,n,`FUI.sel.limit=${v};SND.se('ui_ok');fuiRender()`)).join("")}</div>
    <div class="fcs" style="margin-top:3px">${chip(s.stopLose,`負けたら止める ${s.stopLose?"入":"切"}`,`FUI.sel.stopLose=!FUI.sel.stopLose;SND.se('ui_ok');fuiRender()`)}</div></div>
   <div class="fbox"><div class="fnum"><span>今日のログ</span><b class="gold">${d.dayLog}／${FARM_RULE.softCap}</b></div>${d.dayLog>=FARM_RULE.softCap?`<div class="fn red">今日の上限をこえました：ログ ×${FARM_RULE.overMul}</div>`:""}
