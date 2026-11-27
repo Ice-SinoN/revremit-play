@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.198（β2）";
+const VERSION="試作 v0.22.199（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -728,9 +728,9 @@ function renderScene(){const s=S.sc;if(!s||window.SCREEN!=="scene")return;const 
   let bgk=sc.bg;(sc.bgs||[]).forEach(([i,k])=>{if(s.i>=i)bgk=k});// 行ごとに絵を変える（エンディング：1〜4行 boss3_after・5行から ending）
   const bgp=storyBg(bgk);
   /* ★v0.20.1：キャラが描いてある一枚絵（opening_road・ending_garage）の上には立ち絵を出さない（2人が重なるため）。名前は帯に出る */
-  const bgHasChars=/revremit_story_(opening_road(_hina|_momo|_nana)?|ending_garage|ending_(hina|momo|nana)|join_morning|join_bar_night|join_bar_nana)\.png/.test(bgp);/* ★v0.22.9 加わる話の一枚絵にもキャラが描いてある */
+  const bgHasChars=/revremit_story_(opening_road(_[a-z]+)?|ending_[a-z]+|join_[a-z_]+)\.png/.test(bgp);/* ★v0.22.199 ③ キャラ名つきの一枚絵（opening_road_*・ending_*・join_*）はキャラが描いてある *//* ★v0.22.9 加わる話の一枚絵にもキャラが描いてある */
   const comm=mioComm(s,s.i);
-  const bwho=who&&who.replace(/_IN$/,""),bw0=!bgHasChars&&/^(YUKI|MIO|HINA|MOMO|NANA)$/.test(bwho||"")?STORY_ART.bust(bwho,faceOf(l)):null,/* ★v0.22.2 仲間の立ち絵（あれば） */bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
+  const bwho=who&&who.replace(/_IN$/,""),bw0=!bgHasChars&&(bwho==="MIO"||!!(bwho&&CHARS[bwho]))?/* ★v0.22.199 ③ 仲間はデータ（CHARS）から */STORY_ART.bust(bwho,faceOf(l)):null,/* ★v0.22.2 仲間の立ち絵（あれば） */bw=bw0&&artHave(bw0)?bw0:"",bx=who==="MIO"?360:24;
   const u=ui();let root=u.querySelector(":scope > .scroot");
   if(!root||root.dataset.key!==s.key){
     u.innerHTML=`<div class="scroot" data-key="${esc(s.key)}"><div class="scbgw"></div><div class="scbw"></div><div class="tap" ${at(0,0,640,360)} onclick="sceneTap()"></div>
