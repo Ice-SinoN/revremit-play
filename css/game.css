@@ -683,3 +683,6 @@ button.lpbtn{display:inline-block;font-size:10px;padding:0 6px;margin-left:4px;v
 /* ★v0.22.176 資源の行の帯の下地（絵）・天候のアイコンは 20×20（丸い枠つき） */
 .band.art{background-color:transparent;border:0;clip-path:none;image-rendering:pixelated;box-sizing:border-box}
 .node .wxt.ic img{width:20px;height:20px}.node .wxt.ic b{line-height:20px}
+
+/* ★v0.22.190 キーボード／筐体のボタン：今えらんでいる所（キーを押したときだけ・マウスやタッチで消える） */
+.kf{outline:2px solid var(--lime)!important;outline-offset:1px;box-shadow:0 0 0 3px rgba(0,0,0,.6),0 0 8px 2px rgba(197,255,69,.55)!important}/* z-index は付けない（小窓の上に出てしまう） */
