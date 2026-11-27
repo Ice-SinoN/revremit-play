@@ -31,7 +31,7 @@ const SND={on:true,
   /* 場面ごとの曲（audio-list 6章）。ショップ・会話などの曲がまだないところはマップの曲を流用 */
   areaBgm(kind){const a=G?curArea().key:"street",k={street:"street",touge:"touge",circuit:"circuit"}[a]||"street";
     if(kind==="battle"){const E=ENEMIES[B.key],ally=G.char&&G.char!=="YUKI"?"theme_"+G.char.toLowerCase():null;// ★v0.22.1 仲間のランはふつうの戦闘を3エリアともその子のテーマ・裏道は hidden（audio-list 6-2）
-      SND.bgm(B.hidden?"hidden":E.rank==="boss"?{boss1:"boss_zankou",boss2:"boss_byakuya",boss3:"boss_zerogou",kuuten:"boss_kuuten",sanka:"boss_sanka",miketsu:"boss_miketsu"}[B.key]:E.rank==="elite"?"elite":ally||"battle_"+k)}
+      SND.bgm(B.hidden?"hidden":E.rank==="boss"?(window.AUDIO&&AUDIO.bossBgm&&AUDIO.bossBgm(B.key))/* ★② v0.5.19 audio v0.29 20-1：新しい6体も */||{boss1:"boss_zankou",boss2:"boss_byakuya",boss3:"boss_zerogou",kuuten:"boss_kuuten",sanka:"boss_sanka",miketsu:"boss_miketsu"}[B.key]:E.rank==="elite"?"elite":ally||"battle_"+k)}
     else SND.bgm("map_"+k)},
   toggle(){SND.on=!SND.on;try{localStorage.setItem("revremit_sound",SND.on?"1":"0")}catch(e){}if(window.AUDIO)try{AUDIO.mute(!SND.on);if(!SND.on)AUDIO.engineStop()}catch(e){}},
 };

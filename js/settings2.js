@@ -42,7 +42,7 @@ document.addEventListener("pointerdown",e=>{if(window.SCREEN!=="battle"||window.
    ③数字・ガソリン・回転・HP のバーの字は変えない。
    やり方：#ui・#modal・#rr2v の文字のある所の font-size をその場で掛ける（元の大きさは data-f0 に）。字はドットのフォントなので 1px 単位に丸める。
    変えない所（FIX）：手札のカードの面（.cs＝回転・ガソリン・数字の板・名前は fitHandNames が合わせている）・メーター・HP（canvas）・数字の札。 */
-const FS_FIX=".cs,.cs *,.num,.gasn,.barn,.pvn,.rank,.price,.cv,.cc,.ca,canvas,.nl,.dr,.dr *,.shoprow .small";/* v0.5.18 大のとき重なった所：マップのマスの名前（.nl）・デッキの行（名前・札・種類・回転が1行に詰まっている）・ショップの行の説明（値段の下にもぐる）は元の大きさ */
+const FS_FIX=".cs,.cs *,.num,.gasn,.barn,.pvn,.rank,.price,.cv,.cc,.ca,canvas,.nl,.dr,.dr *,.shoprow .small,.lossc";/* v0.5.19 リザルトのランクの上限の札（幅 86）も元の大きさ *//* v0.5.18 大のとき重なった所：マップのマスの名前（.nl）・デッキの行（名前・札・種類・回転が1行に詰まっている）・ショップの行の説明（値段の下にもぐる）は元の大きさ */
 const FS_ONE="button,.cn,.bn,.dn,.hdr,.h,.cdxn,.sn,.nmtag,.cdxh";
 function fsK(){return FSZ[OPTS.fsz]||1}
 function fsApply(root){if(!root)return;const k=fsK();const els=[...root.querySelectorAll("*")].filter(e=>{if(e.matches(FS_FIX))return false;for(const n of e.childNodes)if(n.nodeType===3&&n.nodeValue.trim())return true;return false});

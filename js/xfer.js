@@ -111,7 +111,7 @@ async function xferCheck(code){xferMsg("確かめています…");const r=await
   S.xin.res=r;SND.se("ui_ok");xferPickSlot()}
 function xferPickSlot(){const r=S.xin.res,L=SAVE.list();
   modal(`<div class="xf"><div class="h">読み込むデータ</div>
-   <div class="small">${esc(SAVE.label(r.s))}</div><div class="small dim">${esc(SAVE.when(r.s))}${r.g?`・${esc(r.g)} で書き出し`:""}${r.old?"・今の版に直した":""}${r.a?"・オートセーブつき":""}</div>
+   <div class="small">${esc(SAVE.label(r.s))}</div><div class="small dim">${esc(SAVE.when(r.s))}${r.g?esc((TEXT.ui&&TEXT.ui.xfer_in_from||"・{日時} に書き出し").replace("{日時}",r.g)):""}${r.old?"・今の版に直した":""}${r.a?"・オートセーブつき":""}</div>
    <div class="small gold">どのスロットに入れますか？</div>
    ${L.map(x=>`<button class="${x.k===r.n?"main":""} xsl" onclick="xferConfirm(${x.k})">スロット${x.k}<span class="small dim">　${esc(x.broken?"読めないデータ":x.d?SAVE.label(x.d):"（空き）")}</span></button>`).join("")}
    <div class="row"><button onclick="xferImport(S.xferFrom)">もどる</button></div></div>`);const m=$("#modal .modal .box");if(m)m.classList.add("xfbox")}

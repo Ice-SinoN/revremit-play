@@ -1,4 +1,4 @@
-/* Rev:Remit audio.js v0.28（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
+/* Rev:Remit audio.js v0.29（サウンド班 2026-11-18。v0.11：SORA 編（β のあと）の音を貯めた。試作ではまだ呼ばない。v0.10.1：gate_boot {rec:true} の奥の旋律を起動音の旋律にそろえた。v0.9〜v0.5 も 2026-11-18、v0.4・v0.3 は 2026-11-07、v0.2 は 2026-11-05）
  * SE 26本・本物寄りの合成エンジン音・BGM（方向 B：チップ＋シンセ）・ジングル。音のファイルなし（WebAudio で合成）。ライブラリなし。
  * ★虎雪 08:19：音の方向 B／エンジン音は本物寄り／SE はこのまま。★08:20：エンジン音は回転が変わったときだけ約2秒。★07:31：ボイスなし。
  * 正本：revremit-audio-list.md（6章に使い方とつなぎ方の表）。
@@ -31,6 +31,7 @@
  * v0.13：design 11章の画面の音（試作には画面ができたときに）：SE card_toss・card_mod（{lv,br}）・mod_switch（{to}）・tree_cap・tree_reset。
  *       ほかは今の SE を使い回す（audio-list 11章）。
  * v0.14：SORA 編を text 18章と照らした分（β のあと）：SE amb_signal・amb_tire、AUDIO.quiet(level,fade)・AUDIO.bgmDuck(sec)・AUDIO.engineMuffle(bool)。
+ * v0.29：β のあとの組みこみ（窓口 11-27）：AUDIO.cue(key,i)（会話の行の音の表 CUES）・AUDIO.bossBgm(key)（新しいボス6体の曲）・SORA〜MIO の奥義の頭とツリーの曲 tree_その子。
  * v0.24：★虎雪 11-20 08:07：天候・環境音を別のつまみ（setVolume('amb')・初期 .4）にして、かすかに。エンジン音の初期を半分（.75 → .38）。
  * v0.23：スキルツリーの画面（試作 v0.22.48）：BGM tree_yuki・tree_hina・tree_momo・tree_nana（その子のテーマの静かな変奏）と tree（共通・新しいメロディ）、
  *       AUDIO.bgmFor('tree',who)（その子の版がなければ共通）。SE tree_up {lv,who}（段をとった）・tree_down（段を外した）、tree_cap {who}（4段目にテーマの頭）。
@@ -995,6 +996,50 @@ SE.push(
 Object.assign(LV,{sora_note:2.4,sora_strong:.75,sora_rise:2.2,sora_drop:.75,sora_sabi:1.3,sora_waon:1.4,sora_blue:.8,rin_bow:1,rin_first:1,rin_leap:1,rin_promote:2.2,rin_demote:3.5,rin_order:.9,
  luna_moon:2.4,luna_star:5,luna_line:.9,luna_tri:1.2,luna_full:.8,kuro_beat:1,kuro_glitch_add:4.5,kuro_glitch_use:1,kuro_fall:.8,kuro_trick:.7});
 
+// ---------- v0.29（2026-11-27）：β のあとの組みこみ（窓口 11-27 07:38）。正本：revremit-audio-list.md 20章 ----------
+// ①SORA〜MIO の6人にも、奥義のカットイン・ツリーの4段目のテーマの頭（OUGI）・ツリーの段の調（TREEKEY）・ツリーの曲（tree_その子＝テーマの静かな変奏）
+Object.assign(OUGI,{sora:{m:[69,72,76,74],lt:'pulse',ch:[60,64,67],hi:84},kaede:{m:[64,64,67,69],lt:'saw',ch:[64,68,71],hi:83},rin:{m:[62,67,70,69],lt:'organ',ch:[55,59,62],hi:79},
+ luna:{m:[70,79,77,75],lt:'pulse',ch:[63,67,70],hi:87},kuro:{m:[67,67,70,74],lt:'pulse',ch:[55,59,62],hi:79},mio:{m:[64,65,67,71],lt:'pulse',ch:[60,64,67],hi:84}});
+Object.assign(TREEKEY,{sora:60,kaede:64,rin:55,luna:63,kuro:55,mio:60});
+[['sora','theme_sora','bell'],['kaede','theme_kaede','pluck'],['rin','theme_rin','reed'],['luna','theme_luna','bell'],['kuro','theme_kuro','pluck'],['mio','theme_mio','soft']].forEach(([w,th,lt])=>{const t=SONGS[th];if(!t)return;
+ SONGS['tree_'+w]={bpm:Math.round(t.bpm/2),dr:'half',soft:true,lead:lt,ep:true,bells:true,ch:t.ch.slice(0,8),ld:t.ld.slice(0,8)};BGM['tree_'+w]={s:'tree_'+w};});
+// ②ボスの key → 曲（試作の sound.js の表と同じ形。新しいボスを足した）。AUDIO.bossBgm(key)
+const BOSSBGM={boss1:'boss_zankou',boss2:'boss_byakuya',boss3:'boss_zerogou',zankou:'boss_zankou',byakuya:'boss_byakuya',zerogou:'boss_zerogou',
+ kuuten:'boss_kuuten',sanka:'boss_sanka',miketsu:'boss_miketsu',muon:'boss_muon',kagesen:'boss_kagesen',ketsuban:'boss_ketsuban',itebosi:'boss_itebosi',uramen:'boss_uramen',shiosai:'boss_shiosai'};
+// ③会話の行の音（text の key と行の番号 0 から＝screens.js の s.i と同じ）。AUDIO.cue(key, i) を行を出すたびに呼ぶだけ。表にない行は何もしない。
+// 中身：[秒ずらし, 種類, 名前, 引数]。種類＝se／jingle／bgm／stop（bgmStop）／fn（AUDIO の関数を引数の配列で）。「起動音。白い光。」の行は今の screens.js の正規表現で鳴るので入れていない
+const S=(id,p,d)=>[d||0,'se',id,p||{}],F=(fn,a,d)=>[d||0,'fn',fn,a||[]];
+const CUES={
+ // SORA（audio-list 9-2）
+ join_sora:{2:[S('gate_boot',{part:'start'})],3:[S('gate_boot',{part:'melody'})],8:[S('gate_boot')]},
+ sora_op:{7:[S('rod_swing',{form:'three'})]},
+ sora_area1:{0:[S('amb_signal')]},sora_area2:{0:[S('amb_tire')]},sora_area3:{0:[F('bgmDuck',[1.5])]},
+ sora_boss_pre:{0:[F('quiet',[.15,1.5])],7:[F('quiet',[.4])],10:[F('quiet',[1,.3]),S('rod_swing',{form:'three'})]},
+ sora_boss_post:{0:[S('rod_swing'),F('engineMuffle',[false],.2),F('engineBurst',[900,2600],.3)]},
+ boss3_pre_sora:{5:[S('sora_hum'),F('bgmDuck',[2.2,.08])]},
+ sora_ed:{8:[[0,'stop'],S('gate_boot',{part:'start'},.3),S('gate_boot',{part:'melody'},2.3),[4.6,'bgm','ending']],19:[[0,'bgm','garage_sora']]},
+ // KAEDE（10-2・10-5）
+ kaede_op:{7:[S('turbo_swing')]},kaede_area1:{1:[S('amb_signal',{vol:.7})]},kaede_area3:{1:[S('amb_tire')]},
+ kaede_boss_post:{0:[F('engineGhost',[false])]},boss3_phase_kaede:{1:[S('turbo_swing')]},
+ // RIN
+ rin_op:{6:[S('bow_draw'),S('bow_shot',{},.45)]},rin_area1:{0:[S('amb_horn',{vol:.6})]},
+ rin_area3:{0:[S('num_tag'),S('num_tag',{miss:true},.25),S('num_tag',{},.5),S('num_tag',{miss:true},.75)]},
+ rin_boss_pre:{0:[S('page_flip')],1:[S('num_tag'),S('num_tag',{miss:true},.25)],8:[S('page_flip'),S('page_flip',{},.3)]},
+ rin_boss_post:{0:[0,1,2,3,4,5].map(k=>S('num_tag',{step:k},k*.22))},boss3_phase_rin:{1:[S('bow_draw'),S('bow_shot',{},.45)]},
+ rin_ed:{24:[S('amb_horn')]},
+ // LUNA
+ luna_op:{7:[S('pendulum')]},luna_area3:{0:[S('star_freeze'),F('bgmDuck',[2.6,.25])]},luna_boss_pre:{0:[S('star_freeze'),F('bgmDuck',[2.6,.25])]},
+ luna_boss_post:{0:[S('pendulum')],2:[S('shooting_star')]},boss3_phase_luna:{1:[S('shooting_star'),S('shooting_star',{},.35)]},
+ // KURO
+ join_kuro:{0:[S('kuro_glitch')],12:[F('quiet',[.08,.5])],13:[F('quiet',[1,1.2])]},kuro_op:{2:[S('heartbeat',{hp:1})]},
+ kuro_area3:{0:[S('rev_swell')],1:[F('bgmDuck',[2,.35])],2:[F('bgmDuck',[2,.35])]},kuro_boss_pre:{0:[S('rev_swell')]},kuro_boss_post:{0:[S('flip_back')]},
+ boss3_phase_kuro:{1:[S('kuro_glitch')]},
+ // MIO
+ mio_op:{1:[S('comm_open')],6:[S('belt_whip')]},mio_area1:{0:[S('amb_horn',{vol:.6})]},mio_area3:{0:[F('ambient',['wave',.25])]},
+ mio_boss_pre:{0:[F('ambientVol',[.8])]},mio_boss_post:{0:[F('ambientStop',[3])]},boss3_phase_mio:{1:[S('belt_whip'),S('chain_up',{lv:6},.1)]},
+ mio_ed:{5:[S('cup_set')],19:[S('mio_kit')]},
+};
+
 // ---------- ここから AUDIO ----------
 const ALIAS={ui_error:'card_cant',shop_cant:'card_cant'};['yuki_fubuki','yuki_shironeko','yuki_kousetsu','hina_zenkai','hina_hibana','hina_memo','momo_mankai','momo_hanaiyashi','momo_kaerizaki','nana_houyoku','nana_oukyuu','nana_taikan'].forEach(k=>ALIAS['og_ougi_'+k]='ougi_'+k);
 const BYID=Object.fromEntries(SE.map(s=>[s.id,s]));
@@ -1089,7 +1134,7 @@ function jingle(id,opt){if(FARMON)return;const c=ok();if(!c)return;const j=JINGL
  const g=c.createGain();g.gain.value=LVJ[id]||1;g.connect(bgmIn);j.fn(c,g,c.currentTime+.05,opt||{});}
 
 window.AUDIO={
- VERSION:'0.28',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
+ VERSION:'0.29',SE_IDS:SE.map(s=>s.id).concat(Object.keys(ALIAS)),BGM_IDS:Object.keys(BGM),JINGLE_IDS:Object.keys(JINGLES),
  unlock(){const c=ok();if(c){const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}return !!c;},
  se:playSE,
  attack(dmg){playSE(dmg>=20?'card_attack_l':dmg>=10?'card_attack_m':'card_attack_s');},
@@ -1106,6 +1151,10 @@ window.AUDIO={
  bgmPhase(n){PHASE=n||1;}, // v0.11：曲の後半へ（次の小節から）。bgm() で別の曲にすると 1 にもどる
  // v0.12（β のあと）：影線の2台目のエンジン（勝ったら false で1台にもどす）／KURO の心拍（耐久の割合 0〜1。null で止める）／場面の環境音（今は 'wave'＝潮騒の波）
  engineGhost(on){ghost=!!on;if(!on&&cur2&&C){cur2.fade?cur2.fade(C.currentTime,.4):0;}},
+ // v0.29：会話の行の音（key＝text の key・i＝行の番号 0 から）。表にない行は何もしない
+ cue(key,i){const L=CUES[key]&&CUES[key][i];if(!L)return false;L.forEach(([d,k,n,p])=>setTimeout(()=>{try{if(k==='se')playSE(n,p);else if(k==='jingle')jingle(n,p);else if(k==='bgm')bgm(n);else if(k==='stop')bgmStop(.4);else if(k==='fn'&&typeof window.AUDIO[n]==='function')window.AUDIO[n](...p);}catch(e){console.warn('AUDIO.cue',key,i,e)}},d*1000));return true;},
+ cueKeys(){return Object.keys(CUES);},
+ bossBgm(key){return BOSSBGM[key]||null;},
  // v0.28：KURO の心拍（エンジン音のかわり。エンジンのつまみで大きさが変わる）。bpm を渡すとその速さで鳴りつづけ、呼ぶたびに速さが変わる。null で止める
  kuroHeart(bpm){clearTimeout(KH.t);KH.t=null;if(bpm==null){KH.b=null;return;}KH.b=Math.max(40,Math.min(220,bpm));if(FARMON)return;const c=ok();if(!c)return;
   const go=()=>{if(KH.b==null||!C)return;const s=BYID.kuro_beat,g=C.createGain();g.gain.value=(LV.kuro_beat||1);g.connect(BUS.engine);s.fn(C,g,C.currentTime+.01,{bpm:KH.b});setTimeout(()=>g.disconnect(),800);KH.t=setTimeout(go,60000/KH.b);};go();},

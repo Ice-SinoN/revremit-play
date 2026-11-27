@@ -14,7 +14,7 @@
 const FARM_RULE={logMul:0.125,softCap:150,overMul:0.1,resetHour:4,treeClear:0.25,/* ★design 10-22（11-20 10:22）：150 をこえたら ×0.1・止まらない */
   ticket:{drop:0.08,max:5,kinds:["discount","partPick","money","cardPick"]},
   dig:{drop:0.013,nightAdd:0.001,ceil:60},speed:4};
-const FARM_TICKET_JP={discount:"割引チケット",partPick:"パーツの選びなおし",money:"スタートダッシュ",cardPick:"ひと声"};/* 名前はシナリオ班が整える */
+const FARM_TICKET_JP={discount:"割引チケット",partPick:"パーツカタログ",money:"暖機運転",cardPick:"作戦メモ"};/* v0.5.19 text 33-2 */
 const FARM={on:false,stopEnd:false,stopLose:false,n:0,limit:0,log:0,cfg:null,t:0,last:"",lastT:0,wl:null,ending:false,
   sum:{clear:0,lose:0,pts:0,tix:[],dig:[]},snap:null,feed:[],runGot:[]};
 window.FARM=FARM;
@@ -51,7 +51,7 @@ if(window.RR2&&RR2.mark){const f=RR2.mark;RR2.mark=function(){if(FARM.on)return;
 /* ---------- 整備チケット（10-22-6）・ディグ（10-22-5）：エリアのボスを倒すたび ---------- */
 function farmBossWin(key){const E=ENEMIES[key];if(!E||E.rank!=="boss"||E.ally)return;const d=farmData();
   if(d.tickets.length<FARM_RULE.ticket.max){if(Math.random()<FARM_RULE.ticket.drop){const k=FARM_RULE.ticket.kinds[Math.floor(Math.random()*FARM_RULE.ticket.kinds.length)];d.tickets.push(k);FARM.sum.tix.push(k);farmFeed("整備チケット："+FARM_TICKET_JP[k],"gold")}}
-  else if(!FARM.fullTold){FARM.fullTold=1;farmFeed("整備チケットがいっぱい（5枚）","dim")}
+  else if(!FARM.fullTold){FARM.fullTold=1;farmFeed((TEXT.ui&&TEXT.ui.ticket_full)||"チケットがいっぱい（5枚まで）","dim")/* v0.5.19 text 33-2 */}
   const pr=FARM_RULE.dig.drop+FARM_RULE.dig.nightAdd*Math.max(0,(G.night||1)-1);if(Math.random()<pr)farmDigGet()}
 /* フルオートでだけ見つかるカード：data の DIG_CARDS[キャラ]（デザイン班が cards.js に足す）か、CARDS の dig:1 */
 function farmDigPool(ch){const L=(window.DIG_CARDS&&DIG_CARDS[ch])||Object.keys(CARDS).filter(id=>CARDS[id].dig&&(CARDS[id].own===ch||CARDS[id].own==="N"));const u=PRF().unlock;return L.filter(id=>CARDS[id]&&!(u.cards||[]).includes(id))}

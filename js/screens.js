@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.191（β2）";
+const VERSION="試作 v0.22.192（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -701,7 +701,7 @@ function sceneKey(key){const ch=G&&G.char;if(!ch||ch==="YUKI")return key;const l
 function showScene(key,done){const bk=key,k0=sceneKey(key);if(k0!==key){if(!k0){done&&done();return}key=k0}
   const sc=TEXT.scenes[key];if(!sc){done&&done();return}
   setScreen("scene");setScene(A.mode==="battle"&&!sc.under?"battle":"dim");closeModal();if(sc.under)setBg(sc.under);
-  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(bk==="ed1"||bk==="ed1_after"?"ending":bk==="roadlog_001"?"pzlog":bk==="__t"||/^run_start/.test(bk)||bk==="rest_first"||/^area/.test(bk)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
+  S.sc={key,sc,i:0,shown:0,done,t:null};SND.bgm(bk==="ed1"||bk==="ed1_after"?"ending":/^roadlog_/.test(bk)?"pzlog":bk==="__t"||/^run_start/.test(bk)||bk==="rest_first"||/^area/.test(bk)?(G?"map_"+({street:"street",touge:"touge",circuit:"circuit"}[curArea().key]||"street"):"talk"):"talk");if(!sc.lines.length&&sc.title){S.sc.titleOnly=true}
   sceneLine()}
 function sceneText(){const s=S.sc,l=s.sc.lines[s.i];return l?l[1].replace(/<br>/g,"\n"):""}
 /* ★v0.22 QA の指摘：MIO が絵にいないのに話す場面（ROAD の中など）は、帯に「通信」の印と通信の音（audio.js v0.6 の comm_open・comm_blip）。
@@ -713,6 +713,7 @@ function mioComm(s,i){const l=s.sc.lines[i];if(!l||l[0]!=="MIO")return false;con
   if(/_op$/.test(s.key)){const r=at(/^ROAD。/);return r>=0&&i>=r}
   return!MIO_HERE.test(s.key)}
 function sceneLine(){const s=S.sc;clearInterval(s.t);s.shown=0;const full=sceneText(),comm=mioComm(s,s.i);
+  SND.call(A=>A.cue(s.key,s.i));/* ★② v0.5.19 audio v0.29（audio-list 20-1）：会話の行の音。表にない行は何もしない */
   if(comm&&!mioComm(s,s.i-1))SND.se("comm_open");if(!comm&&s.i>0&&mioComm(s,s.i-1))SND.se("comm_close");
   if(comm&&/^ボスです/.test(full))SND.se("comm_glitch");// ★v0.22.6 通信の「ボスです……」の行で1回（audio-list 6-0）
   if(/^カシャ/.test(full))SND.se("photo_shutter");// ★v0.22.2 MOMO 編の写真の音
