@@ -19,7 +19,7 @@ function kList(){const md=document.getElementById("modal"),st=(md&&md.children.l
   const big=innerWidth*innerHeight*0.5;const small=out.filter(o=>o.big<big);return small.length?small:out}/* 画面いっぱいの「タップで進む」は、ほかに押せる物がないときだけ */
 function kRing(){document.querySelectorAll(".kf").forEach(e=>{if(e!==KEYS.cur||!KEYS.on)e.classList.remove("kf")});if(KEYS.on&&KEYS.cur&&KEYS.cur.isConnected)KEYS.cur.classList.add("kf")}
 function kSet(el){KEYS.cur=el;if(el){const r=el.getBoundingClientRect();KEYS.last={x:r.left+r.width/2,y:r.top+r.height/2,s:window.SCREEN}}kRing()}
-function kDefault(L){if(window.SCREEN==="battle"&&!window.TUTORIAL_ON){const H=kHand(L);if(H.length){const sel=typeof S!=="undefined"&&S.sel>=0?H.find(o=>(o.el.getAttribute("onclick")||"")==="clickCard("+S.sel+")"):null;
+function kDefault(L0){let L=L0.filter(o=>!o.el.matches('[aria-disabled="true"],.off,.lock,.dis'));if(!L.length)L.push(...L0);/* ★v0.22.196 BUG-66：まだ使えない物（フルオート周回など）を最初にえらばない */if(window.SCREEN==="battle"&&!window.TUTORIAL_ON){const H=kHand(L);if(H.length){const sel=typeof S!=="undefined"&&S.sel>=0?H.find(o=>(o.el.getAttribute("onclick")||"")==="clickCard("+S.sel+")"):null;
     const md=document.getElementById("modal");if(!(md&&md.children.length)){const two=L.find(o=>/^doPlay\(/.test(o.el.getAttribute("onclick")||""));if(sel&&two){const sh=L.find(o=>/doPlay\([^)]*true\)/.test(o.el.getAttribute("onclick")||"")),st=L.find(o=>/doPlay\([^)]*false\)/.test(o.el.getAttribute("onclick")||""));return((sh&&/パーフェクト/.test(sh.el.textContent))?sh:(st||sh||two)).el}/* 2択の最初の位置：パーフェクトになるときだけ「シフトして打つ」（2-1） */let nb=null;if(!sel&&KEYS.last&&KEYS.last.s==="battle"){let bd=1e9;H.forEach(o=>{const d=Math.abs(o.x-KEYS.last.x)+Math.abs(o.y-KEYS.last.y)*0.2;if(d<bd){bd=d;nb=o}})}return(sel||nb||H[0]).el}}}/* 戦闘は手札から（かき直しのあとは前の位置に近いカード）（カードをえらんでいるときは「打つ」の2択から） */
 const go=L.find(o=>o.el.matches(".rdgo,.csgo:not(.off)"));if(go)return go.el;/* 「走る」「この子で走る」 */
   const mains=L.filter(o=>o.el.classList.contains("main")).sort((a,b)=>b.big-a.big);const pri=mains[0]||L.find(o=>o.el.classList.contains("sel")||o.el.classList.contains("on")||o.el.classList.contains("now")||o.el.classList.contains("pri"));
@@ -43,7 +43,7 @@ function kClick(el){if(!el)return;if(el.matches("input,textarea,select")){el.foc
 function kFind(re){return kList().find(o=>re.test((o.el.getAttribute("onclick")||"")+"|"+(o.el.textContent||"").trim()))}
 function kBack(){const m=document.getElementById("modal");if(m&&m.children.length){const b=kFind(/^[^|]*\|\s*(閉じる|とじる|もどる|戻る|やめる|キャンセル|いいえ|×)\s*$/);if(b){kClick(b.el)}else closeModal();KEYS.cur=null;return}
   if(window.SCREEN==="battle"&&typeof S!=="undefined"&&S.sel>=0){S.sel=-1;if(window.A)A.pv=null;renderBattle();return}
-  const b=kFind(/^[^|]*\|\s*(←\s*)?(戻る|もどる|閉じる|とじる|やめる|タイトルへ)/);if(b)kClick(b.el)}
+  const b=kFind(/^[^|]*\|\s*([←◀]\s*)?(戻る|もどる|閉じる|とじる|やめる|タイトルへ)/);if(b)kClick(b.el)}/* ★v0.22.196 BUG-65：「◀ もどる」「◀ タイトルへ」も */
 function kHelp(){const c=KEYS.cur;if(!c)return;const pd=c.getAttribute("onpointerdown")||"";const m=pd.match(/cardLP\((\d+)\)/);
   if(m&&typeof B!=="undefined"&&B&&B.hand&&B.hand[+m[1]]){const i=+m[1],c=B.hand[i];if(typeof lpOf==="function"&&lpOf(c)){lpShow(c);return}if(S.sel!==i&&typeof clickCard==="function")clickCard(i);return}/* 長押しの説明があればそれ、なければ予告を出す（打たない＝タッチの1回目と同じ） */
   if(c.title&&typeof toast2==="function")toast2(c.title,56,3000)}
