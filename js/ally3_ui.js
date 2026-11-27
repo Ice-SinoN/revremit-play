@@ -146,10 +146,11 @@ A3.kuroPickFor=function(i){const c=B.hand[i],id=(A3.pickAlias&&A3.pickAlias[c.id
     return{multi:n,ttl:`ルールを書きかえる（${n} つえらぶ）`,opts:rs.map(([k,nm],j)=>({v:k,dis:!!done[k],h:`<div class="kpi">${esc(T["kuro_rule_"+(j+1)]||nm)}</div>`}))}}
   return null};
 {const kp0=A3.kuroPickFor;A3.kuroPickFor=function(i){for(const f of(A3.pickPre||[])){const R=f(i);if(R!==undefined)return R}return kp0.apply(this,arguments)}}/* ★v2.0 ld から選ぶ画面を足す所（pickPre：undefined ならいつもの画面） */
-A3.kuroModal=function(R,go){modal(`<div class="rotp"><div class="h">${R.ttl}</div>${R.top?`<div class="small">山札の上</div><div class="rotcards">${R.top}</div>`:""}<div class="rotcards kpk">${R.opts.map((o,k)=>`<button class="kpb${o.dis?" dis":""}" ${o.dis?"disabled":`onclick="A3K(${k})"`}>${o.h}</button>`).join("")}</div></div>`);
+A3.kuroModal=function(R,go){modal(`<div class="rotp"><div class="h">${R.ttl}</div>${R.top?`<div class="small">山札の上</div><div class="rotcards">${R.top}</div>`:""}<div class="rotcards kpk">${R.opts.map((o,k)=>`<button class="kpb${o.dis?" dis":""}" ${o.dis?"disabled":`onclick="A3K(${k})"`}>${o.h}</button>`).join("")}</div><div class="row"><button class="sub" onclick="closeModal();SND.se('ui_cancel')">${esc((TEXT.ui&&TEXT.ui.cancel)||"やめる")}</button></div></div>`);/* ★v2.4 BUG-70：タッチでも閉じられる（打たずにもどる） */
   window.A3K=k=>{closeModal();SND.se("ui_ok");go(R.opts[k].v)};const m=$("#modal .modal .box");if(m)m.classList.add("wide");SND.se("ui_ok")};
 if(typeof doPlay==="function"){const _dpk=doPlay;doPlay=function(i,shift,ok){try{const c=B&&B.hand[i];
   if(c&&G.char==="KURO"&&A3.kuro&&!S.kuroPicked&&A3.human()&&preview(c).ok){const R=A3.kuroPickFor(i);
+    if(R&&R.opts&&R.opts.length&&R.opts.every(o=>o.dis))R=null;/* ★v2.4 BUG-70：選べる札がない（グリッチ・トリックのルールが4つとも入った）ときは小窓を出さない */
     if(R&&R.multi){const got=[],step=()=>{const R2=Object.assign({},R,{ttl:R.ttl+(got.length?`　あと ${R.multi-got.length}`:""),opts:R.opts.map(o=>Object.assign({},o,{dis:o.dis||got.includes(o.v)}))});
       A3.kuroModal(R2,v=>{got.push(v);if(got.length<R.multi&&R2.opts.some(o=>!o.dis&&o.v!==v))return step();B.kPicks=got;S.kuroPicked=true;try{doPlay(i,shift,ok)}finally{S.kuroPicked=false;if(B)B.kPicks=null}})};step();return}
     if(R){A3.kuroModal(R,v=>{B.kPick=v;S.kuroPicked=true;try{doPlay(i,shift,ok)}finally{S.kuroPicked=false;if(B)B.kPick=null}});return}}}catch(e){}

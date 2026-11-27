@@ -52,7 +52,7 @@ A3.register({id:"MIO",night:8,treeBase:"mi_obiuchi",
   atkRpm:(x,v,k,max)=>x.attack(v+Math.min(max,Math.floor((B.cvtRpm||0)/k))),
   blkLowHp:(x,v)=>x.block(G.hp<=G.maxhp/2?v*2:v),
   fromDisc:(x,n)=>{let k=0;for(let i=B.disc.length-1;i>=0&&k<n;i--){if(B.hand.length>=RULES.handMax)break;const c=B.disc[i];if(c.uid===B.playUid)continue;B.hand.push(B.disc.splice(i,1)[0]);k++}addLog(k?`捨て札から${k}枚手札に`:"捨て札にカードがない");if(k)ev({k:"draw",n:k})}},
- rule:r=>{if(!r.cvt)return r;let c=r.cvt;if(A3.treeTopIs("mi_opt"))c=Object.assign({},c,{cm:1.6});if(A3.treeTopIs("mi_coast"))c=Object.assign({},c,{lo:3000,hi:7000});return c===r.cvt?r:Object.assign({},r,{cvt:c})},
+ rule:r=>{if(!r.cvt)return r;let c=r.cvt;if(A3.treeTopIs("mi_opt"))c=Object.assign({},c,{cm:A3.mioTopCm||1.6});/* ★v2.2 4段目の芯の倍率は ld で変える */if(A3.treeTopIs("mi_coast"))c=Object.assign({},c,{lo:3000,hi:7000});return c===r.cvt?r:Object.assign({},r,{cvt:c})},
  before:x=>{B.cvtRpm=Math.min(limit(),B.rpm+(x.cost||0))},/* ★v0.8 ふぐあい：倍率は「打ったあとの回転」で（画面の光と同じ）。前は打つ前の回転だった */
  attack:(v,m)=>A3.isChar("MIO")?v*cvtMul():v,
  after:x=>{if(has("mi_belt")&&x.d.sup&&x.d.fx.some(f=>["rpmTo","revDown","revUp","revUpCap"].includes(f[0]))){B.block+=3;addLog("強化ベルト：防御 +3");ev({k:"pblk",v:3})}},

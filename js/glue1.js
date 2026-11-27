@@ -12,6 +12,4 @@
     return r});
   if(typeof SND==="object"){const b=SND.bgm;SND.bgm=function(id){try{if(id==="title"&&(+PRF().zeroClear||0)>0&&window.AUDIO&&AUDIO.BGM_IDS&&AUDIO.BGM_IDS.includes("title_morning"))id="title_morning"}catch(e){}return b.call(this,id)}}
   W("enterBattle",f=>function(){const r=f.apply(this,arguments);try{if(B&&(B.key==="hw_boss")&&!B.sim&&!(G&&G.fullAuto))SND.se("zankyou_enter")}catch(e){}return r});
-  /* ★v0.22.201 text v0.22.75：NIGHT 9 の夜のパーツの名前＝タイダウンベルト（牽引フック＝ふつうのパーツと同じ名前だったので）。②の night2.js が直すまでの上書き */
-  try{if(typeof PARTS==="object"&&PARTS.p_night_harbor&&PARTS.p_night_harbor.n==="牽引フック")PARTS.p_night_harbor.n="タイダウンベルト"}catch(x){}
 })();

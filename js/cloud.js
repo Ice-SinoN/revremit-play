@@ -156,3 +156,18 @@ function cloudRow(){if(!cloudUsable()&&!CLOUD.drive.fake)return"";const on=!!clo
 function cloudRender(){const b=$("#modal .opts");if(!b)return;b.querySelectorAll(".cloudrow,.cloudst").forEach(e=>e.remove());const h=cloudRow();if(!h)return;
   const anchor=[...b.querySelectorAll(".oprow")].find(r=>/引き継ぎ/.test(r.textContent));(anchor||b.querySelector(".row")).insertAdjacentHTML(anchor?"afterend":"beforebegin",h)}
 RRHOOK.on("screen",o=>{if(o.n==="opts")cloudRender()});
+/* ===== v0.5.30 ★虎雪 11-27 16:57「ホーム画面に追加すると普通のになっちゃうね」=====
+   ホーム画面のアプリは、ブラウザと保存が別で、URL も ?cloud=1 なしで開く → クラウドの欄を出す印（revremit_cloud_on）がない。
+   ふつうの人には出さないまま、その端末で出せる入口：タイトルの版の表示（左上の「試作 v…」の行・.t3）を 3秒のうちに5回タップ → 出す／もう一度5回 → 隠す。
+   その端末（そのアプリ）の保存に覚える（?cloud=1 と同じ印）。出たら「設定」の中の引き継ぎの下にクラウドの欄。 */
+(function(){
+let n=0,t0=0;
+function tap(){const now=Date.now();if(now-t0>3000){n=0;t0=now}n++;if(n<5)return;n=0;
+  let on=false;try{on=localStorage.getItem("revremit_cloud_on")==="1";if(on)localStorage.removeItem("revremit_cloud_on");else localStorage.setItem("revremit_cloud_on","1")}catch(e){return}
+  const msg=on?"クラウドの欄をしまいました":(cloudHere()?"設定にクラウドの欄を出しました":"印をつけました（ここでは使えません）");
+  try{SND.se("ui_ok")}catch(e){}try{toast2(msg,300,3000)}catch(e){}}
+window.cloudSecretTap=tap;
+function hook(){try{const el=document.querySelector("#ui .logo .t3");if(el&&!el.__cloud){el.__cloud=1;el.addEventListener("click",tap);el.style.pointerEvents="auto"}}catch(e){}}
+if(typeof showTitle==="function"&&!showTitle.__cloudTap){const f=showTitle;window.showTitle=function(){const r=f.apply(this,arguments);hook();return r};window.showTitle.__cloudTap=1}
+hook();
+})();

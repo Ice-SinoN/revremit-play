@@ -21,8 +21,8 @@ function syncDisp(){if(!B||!G)return;Object.assign(A.disp,{php:G.hp,pmax:G.maxhp
    1つの段＝{d:時間ms, on(): はじめに1回, up(k): 0〜1, end(): おわりに1回} */
 function push(...steps){A.q.push(...steps)}
 /* ★v0.22.194 audio-list 22-3：第2形態の演出の頭の音。埠頭（hb_boss）＝「汽笛の霧」の霧笛 futou_phase。天候の音は今の wxApply の weather(x,{boss}) のまま */
-function phaseSnd(){try{if(typeof B!=="undefined"&&B&&(B.key==="hb_boss"||B.key==="futou"))SND.se("futou_phase");if(typeof B!=="undefined"&&B&&(B.key==="hw_boss"||B.key==="zankyou"))SND.se("zankyou_phase")/* ★v0.22.201 audio v0.37 */}catch(e){}}
-function formOf(e){try{if(!e)return 1;if(B&&B.key==="zero")return (e.zf|0)+1;if(B&&B.key==="boss3")return e.phased?2:1}catch(x){}return 1}/* ★v0.22.201 ZERO の形（剣・槍・盾）・零号の形 */
+function phaseSnd(){try{/* ★v0.22.204 futou_phase は②の night2.js（checkWx2）だけで鳴らす（二重だった） */if(typeof B!=="undefined"&&B&&(B.key==="hw_boss"||B.key==="zankyou"))SND.se("zankyou_phase")/* ★v0.22.201 audio v0.37 */}catch(e){}}
+function atkForm(e){try{if(!e)return 1;const f=typeof formOf==="function"?formOf(e):"";if(f)return f;if(B&&B.key==="zero")return (e.zf|0)+1}catch(x){}return 1}/* ★v0.22.204 audio-check ㉕：formOf（engine.js・剣／槍／盾の名前）と同じ名前を anim.js で上書きしていた（敵の名前の横に「・1」）。音には engine の形の名前をそのまま渡す（audio は「剣」「槍」「盾」も読める）。ZERO は zf（0〜2）＋1 */
 function busy(){return !!A.cur||A.q.length>0}
 /* 残りを全部すぐ終わらせる（押したら次へ） */
 function flushAnim(){
@@ -133,7 +133,7 @@ function mPlayerHit(e){const t=ytag("hit");return{d:220,on(){SND.se(e.v>0?"hit_p
   if(e.blk)fxNum(PC().x+14,PC().y-12,"-"+e.blk,"#8B95A3");A.disp.php=Math.max(0,A.disp.php-e.v);A.disp.pblk=Math.max(0,A.disp.pblk-(e.blk||0))},up(k){if(k>0.5){A.P.tint=null;if(A.P.tag===t)A.P.fi=yfi(t,1)}},end(){A.P.tag="stand";A.P.fi=0;A.P.dx=0}}}
 function mEnemyAct(p,subs){const s=A.E.scale;
   if(p==="blk")return[{d:260,on(){SND.se("guard_block");A.E.tint="#8B95A3";fxRing(EC().x-16*s,EC().y,14*s,"#C9CED6",240)},end(){A.E.tint=null}}];
-  return[{d:200,on(){try{SND.call(A=>A.enemyAtk?A.enemyAtk(B.key,{form:formOf(B.e)}):A.se("enemy_attack"))}catch(e){SND.se("enemy_attack")}/* ★v0.22.201 audio v0.37：敵ごとの攻撃の音 */A.E.tag="atk";A.E.fi=0;A.E.dx=6}},
+  return[{d:200,on(){try{SND.call(A=>A.enemyAtk?A.enemyAtk(B.key,{form:atkForm(B.e)}):A.se("enemy_attack"))}catch(e){SND.se("enemy_attack")}/* ★v0.22.201 audio v0.37：敵ごとの攻撃の音 */A.E.tag="atk";A.E.fi=0;A.E.dx=6}},
     {d:90,on(){A.E.fi=1;A.E.dx=-26}},
     ...subs.map((e,i)=>Object.assign(mPlayerHit(e),{d:i<subs.length-1?150:220})),
     {d:150,on(){A.E.tag="stand";A.E.fi=0;A.E.dx=0}}]}

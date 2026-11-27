@@ -30,7 +30,7 @@ const BETA={
     let bi=0,bv=99;r.forEach((n,j)=>{let v=pref.indexOf(n.k);if(v<0)v=50;if(n.k==="shop"&&G.money<40)v+=3;if(v<bv){bv=v;bi=j}});return bi},
   /* ul：{cards:[...],parts:[...]}（null＝全部）。戻り値：{clear,area,row,hp,night,hidden,elites,log,steps,err} */
   run(mode,o){o=o||{};const kind=o.kind||"smart",save=BOT.CARD_PREF;BOT.CARD_PREF=BETA.pref(o.pref,o.char);
-    try{newRunState(mode,o.char||"YUKI",[],null,{ghost:o.ghost||null,night:o.night||1,ul:o.ul?{cards:o.ul.cards.slice(),parts:o.ul.parts.slice()}:null,hidden:!!o.hidden});if(BETA.wx)G.map.flat().forEach(x=>{if(x.wx&&x.k!=="boss")x.wx=BETA.wx});
+    try{newRunState(mode,o.char||"YUKI",o.bring||[],null,{ghost:o.ghost||null,night:o.night||1,ul:o.ul?{cards:o.ul.cards.slice(),parts:o.ul.parts.slice()}:null,hidden:!!o.hidden,tree:o.tree?{lv:o.tree}:null});if(o.og){const ch=o.char||"YUKI",ids=Object.keys(CARDS).filter(id=>CARDS[id].r==="OG"&&CARDS[id].own===ch);if(G.ul)ids.forEach(id=>{if(!G.ul.cards.includes(id))G.ul.cards.push(id)});if(o.og==="deck"&&ids.length)G.deck.push(inst(ids[0]))}/* ★v0.22.204 育った形（design・LD）：ツリー・奥義・持ちこみ */if(BETA.wx)G.map.flat().forEach(x=>{if(x.wx&&x.k!=="boss")x.wx=BETA.wx});
       let steps=0;const max=o.maxSteps||20000;
       while(G.row<G.map.length){const j=kind==="random"?Math.floor(Math.random()*G.map[G.row].length):BETA.node(),n=G.map[G.row][j];G.path[G.row]=j;
         if(n.k==="battle"||n.k==="elite"||n.k==="boss"||n.k==="hidden"){/* ★v0.22.3 その子のボス（零号の前に連戦）。o.noAllyBoss で外す */
@@ -58,7 +58,7 @@ const BETA={
   weak:0,WEAK_HIT:25,WEAK_STEP:15,
   weakDist(gear){const w=weakOf(B.e);if(!w)return 0;const g=gear+1,[a,b]=weakRange(w);return g<a?a-g:g>b?g-b:0},
   weakOn(){return BETA.weak>0&&B&&B.e&&B.e.weakGear&&weakKnown(B.e)},
-  out(clear,n,steps,err){const lg=runLog(clear,null);return{rec:{char:G.char,result:clear?"clear":"lose",reach:{area:clear?3:(n.a||0)+1,row:G.row},deck:G.deck.filter(c=>!c.gen).map(c=>({id:c.id,up:c.up?1:0}))},ghostMet:G.ghostMet||0,ghostWon:G.ghostWon||0,heatMax:G.heatMax||0,clear,area:clear?3:n.a,row:G.row,hp:G.hp,night:G.night,hidden:G.st.hidden,hiddenCards:(G.hiddenWon||[]).slice(),elites:G.st.elites,log:lg.total,steps,err}},
+  out(clear,n,steps,err){const lg=runLog(clear,null);return{rec:{char:G.char,result:clear?"clear":"lose",reach:{area:clear?3:(n.a||0)+1,row:G.row},deck:G.deck.filter(c=>!c.gen).map(c=>({id:c.id,up:c.up?1:0})),parts:(G.parts||[]).filter(x=>!(G.mcParts||[]).includes(x))},ghostMet:G.ghostMet||0,ghostWon:G.ghostWon||0,heatMax:G.heatMax||0,clear,area:clear?3:n.a,row:G.row,hp:G.hp,night:G.night,hidden:G.st.hidden,hiddenCards:(G.hiddenWon||[]).slice(),elites:G.st.elites,log:lg.total,steps,err}},
   /* 解放の状態から ul を作る（ゲームの unlockedCards・unlockedParts と同じ）。prog：{areas,nightMax,sCount,cards,parts} または "start"｜"all" */
   ul(prog){if(prog==="all")return null;const u=Object.assign({chars:["YUKI"],sCountC:{},cards:[],parts:[],story:[],stages:[],nightMax:0,sCount:0,areas:[]},prog==="start"?{}:prog||{});
     const p={unlock:u};return{cards:unlockedCards(p),parts:unlockedParts(p)}},

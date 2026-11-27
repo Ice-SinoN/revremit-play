@@ -187,7 +187,7 @@ A3.dig12=()=>{
  };
  L.ku_dig_bugged={r:"C",mo:"rev",own:"KURO",n:"グリッチ +2",t:"rev",gen:1,exile:1,sup:1,c:0,gas:0,hr:0,v:2,vu:2,fx:[["kGl","v"]],d:"グリッチ +{v}（打つと消える）。"};
  // ★v1.9 文（text-add v0.22.70 47章・段ありは design 26-8）
- Object.entries({"s_dig1": {"n": "逆再生", "d": "白・五線の音符の並びを、逆にする。", "flav": "うしろから聞くと、ちがう曲に聞こえる。", "yomi": "ぎゃくさいせい", "lp": "上りをそろえたいときに。"}, "s_dig2": {"n": "ハミング", "d": "白・回転 −500。音符を消さずに、いちばん多い色の締めの得を半分。", "flav": "口ずさむだけでも、曲は、ちゃんと鳴る。", "lp": "音符は残る。締めの得だけ、半分ぶん鳴る。"}, "k_dig1": {"n": "空ぶかし", "d": "回転 +2000・ガソリン 0。この番、ブローしない（1戦1回）。", "flav": "止まったまま、針だけ、赤へ。", "yomi": "からぶかし", "lp": "この番、レッドをこえてもブローしない。1戦に1回。"}, "k_dig2": {"n": "赤い落ち葉", "d": "{v} ダメージ＋この戦闘でオーバーレブした回数 ×4。", "flav": "燃えつきた葉ほど、あかく、重く落ちる。", "yomi": "あかいおちば"}, "r_dig1": {"n": "盤の外", "d": "駒を外す。この番、弓のアタック +{v}。", "flav": "駒を捨てるのも、作戦のうちよ。", "yomi": "ばんのそと", "lp": "駒はなくなる。"}, "r_dig2": {"n": "遠鳴り", "d": "弓・{v} ダメージ。間合い 3 なら、次の敵の攻撃 −5。", "flav": "遠くで鳴った弦の音が、相手の足を止める。", "yomi": "とおなり"}, "l_dig1": {"n": "月食", "d": "この番だけ、月の倍率が反対に（新月 ×1.5・満月 ×0.8）。", "flav": "満ちた月が、いちばん暗くなる夜。", "yomi": "げっしょく"}, "l_dig2": {"n": "星の入れかえ", "d": "灯った星を1つ、好きなマスへ動かす・防御 {v}。", "flav": "……この星は、こっちのほうが、きれい。", "yomi": "ほしのいれかえ"}, "mi_dig1": {"n": "段あり", "d": "この番だけ、帯の芯で打つと倍率 +0.3。", "flav": "段のない帯に、一段だけ、手で刻む。", "yomi": "だんあり"}, "mi_dig2": {"n": "試作ロガー", "d": "この戦闘、帯の中で番を終えるたびに防御 {v}。", "flav": "最初に作った、小さな記録の箱。", "yomi": "しさくロガー"}, "ku_dig1": {"n": "逆漕ぎ", "d": "心拍 −50。この番のアタックは、心拍の帯 ×1.0。", "flav": "くひひっ♪ うしろに漕いでも、進むんだよ。", "yomi": "さかこぎ"}, "ku_dig2": {"n": "バグった札", "d": "手札1枚を「グリッチ +2」の札に変える（打つと消える）。", "flav": "あれれ？このカード、こわれちゃった♪", "yomi": "バグったふだ"}}).forEach(([id,o])=>{if(L[id])Object.assign(L[id],o)});
+ Object.entries({"s_dig1": {"n": "逆再生", "d": "白・五線の音符の並びを、逆にする。", "flav": "うしろから聞くと、ちがう曲に聞こえる。", "yomi": "ぎゃくさいせい", "lp": "上りをそろえたいときに。"}, "s_dig2": {"n": "ハミング", "d": "白・回転 −500。音符を消さずに、いちばん多い色の締めの得を半分。", "flav": "口ずさむだけでも、曲は、ちゃんと鳴る。", "lp": "音符は残る。締めの得だけ、半分ぶん鳴る。"}, "k_dig1": {"n": "空ぶかし", "d": "回転 +2000・ガソリン 0。この番、ブローしない（1戦1回）。", "flav": "止まったまま、針だけ、赤へ。", "yomi": "からぶかし", "lp": "この番、レッドをこえてもブローしない。1戦に1回。"}, "k_dig2": {"n": "赤い落ち葉", "d": "{v} ダメージ＋この戦闘でオーバーレブした回数 ×4。", "flav": "燃えつきた葉ほど、あかく、重く落ちる。", "yomi": "あかいおちば"}, "r_dig1": {"n": "盤の外", "d": "駒を外す。この番、弓のアタック +{v}。", "flav": "駒を捨てるのも、作戦のうちよ。", "yomi": "ばんのそと", "lp": "駒はなくなる。"}, "r_dig2": {"n": "遠鳴り", "d": "弓・{v} ダメージ。間合い 3 なら、次の敵の攻撃 −5。", "flav": "遠くで鳴った弦の音が、相手の足を止める。", "yomi": "とおなり"}, "l_dig1": {"n": "月食", "d": "この番だけ、月の倍率が新月と満月で入れかわる。", "flav": "満ちた月が、いちばん暗くなる夜。", "yomi": "げっしょく"}, "l_dig2": {"n": "星の入れかえ", "d": "灯った星を1つ、好きなマスへ動かす・防御 {v}。", "flav": "……この星は、こっちのほうが、きれい。", "yomi": "ほしのいれかえ"}, "mi_dig1": {"n": "段あり", "d": "この番だけ、帯の芯で打つと倍率 +0.3。", "flav": "段のない帯に、一段だけ、手で刻む。", "yomi": "だんあり"}, "mi_dig2": {"n": "試作ロガー", "d": "この戦闘、帯の中で番を終えるたびに防御 {v}。", "flav": "最初に作った、小さな記録の箱。", "yomi": "しさくロガー"}, "ku_dig1": {"n": "逆漕ぎ", "d": "心拍 −50。この番のアタックは、心拍の帯 ×1.0。", "flav": "くひひっ♪ うしろに漕いでも、進むんだよ。", "yomi": "さかこぎ"}, "ku_dig2": {"n": "バグった札", "d": "手札1枚を「グリッチ +2」の札に変える（打つと消える）。", "flav": "あれれ？このカード、こわれちゃった♪", "yomi": "バグったふだ"}}).forEach(([id,o])=>{if(L[id])Object.assign(L[id],o)});
  Object.keys(L).forEach(id=>{if(!has(L[id].own))delete L[id]});Object.assign(CARDS,L);
  try{if(window.DIG_CARDS)C6.forEach(ch=>{const ids=Object.keys(L).filter(id=>L[id].dig&&L[id].own===ch);if(ids.length)DIG_CARDS[ch]=[...new Set([...(DIG_CARDS[ch]||[]),...ids])]})}catch(e){}
  if(A3._dgHooked)return;A3._dgHooked=1;
@@ -197,7 +197,7 @@ A3.dig12=()=>{
  {const es=enemyStep;enemyStep=function(){const r=es.apply(this,arguments);if(B)B.dgEDown=0;return r}}
  H0("attack",(v,m)=>{try{if(B.curBow&&A3.turnVal("dgBow"))v+=A3.turnVal("dgBow")/(m||1);
    if(A3.turnVal("dgGears")&&A3.isChar("MIO")){const r=cvt(),y=B.cvtRpm;if(r&&y>=r.clo&&y<=r.chi)v*=1+0.3/Math.max(1,m||1)}}catch(e){}return v});
- if(A3.luna){const mu=A3.luna.mul;A3.luna.mul=function(){if(B&&A3.turnVal("dgEclipse")){const p=A3.luna.moon();if(p===0)return 1.5;if(p===3)return 0.8}return mu.apply(this,arguments)}}
+ if(A3.luna){const mu=A3.luna.mul;A3.luna.mul=function(){if(B&&A3.turnVal("dgEclipse")){const p=A3.luna.moon(),M=A3.luna.rule().moon.mul;if(p===0)return M[3];if(p===3)return M[0]}/* ★v2.4 text 54-2：新月と満月の倍率を入れかえる（今の数のまま） */return mu.apply(this,arguments)}}
  if(A3.kuro){const hm=A3.kuro.hrMul;A3.kuro.hrMul=function(){if(B&&A3.turnVal("dgFlat"))return 1;return hm.apply(this,arguments)}}
  {const te=turnEnd;turnEnd=function(){try{if(B&&!B.over&&B.dgLog&&A3.isChar("MIO")){const r=cvt();if(r&&B.rpm>=r.lo&&B.rpm<=r.hi){B.block+=B.dgLog;addLog(`試作ロガー：防御 +${B.dgLog}`);ev({k:"pblk",v:B.dgLog})}}}catch(e){}return te.apply(this,arguments)}}
  A3.pickAlias=Object.assign(A3.pickAlias||{},{ku_dig2:"ku_kakushifuda"});A3.pickTtl=Object.assign(A3.pickTtl||{},{ku_dig2:"「グリッチ +2」に変える手札をえらぶ"});/* 題の字は写すのまま（文はシナリオ班のあとで） */
@@ -230,6 +230,9 @@ A3.tree25=()=>{
    if(c.id==="ku_glitch"){const rs=[["half","心拍が半分"],["noFall","転倒を1回なしに"],["gl15","グリッチ 15 まで"],["pick2","引くときは2枚から選ぶ"]],TX=TEXT.ui||{},done=B.kRule||{};const n=Math.min(2,rs.filter(r=>!done[r[0]]).length);if(n<2)return undefined;
      return{multi:2,ttl:"ルールを書きかえる（2つえらぶ・道化）",opts:rs.map(([k,nm],j)=>({v:k,dis:!!done[k],h:`<div class="kpi">${esc(TX["kuro_rule_"+(j+1)]||nm)}</div>`}))}}
    return undefined});
+ // RIN 駒の「昇格の枚数 −1 を1回」（design 25-2 の案・LD／デザイン班の測り用。globalThis.ALLY3_RIN_KOMA=1 のときだけ・ゲームではまだ入れない）
+ if(A3.rin&&globalThis.ALLY3_RIN_KOMA){const R=A3.rin,tf=R.tierFor;R.tierFor=function(n){const t0=tf.apply(this,arguments);if(!(B&&B.__rinTE&&top("r_qmove")&&!B.komaDownUsed))return t0;const t1=tf.call(this,n+1),PI=["rook","bishop","knight","queen"],cur=PI.indexOf(B.piece);if(t1>t0&&t1>cur){B.komaDownUsed=1;return t1}return t0};
+  const te=turnEnd;turnEnd=function(){if(B)B.__rinTE=1;try{return te.apply(this,arguments)}finally{if(B)B.__rinTE=0}}}
  // SORA 余韻：白の音符の防御
  {const te=turnEnd;turnEnd=function(){try{if(B&&G&&!B.over&&A3.isChar("SORA")&&top("s_yoin")&&B.staff){const w=Math.min(6,2*A3.notes.cnt("w"));if(w){B.block+=w;addLog(`余韻：白の音符で防御 +${w}`);ev({k:"pblk",v:w})}}}catch(e){}return te.apply(this,arguments)}}
 };
@@ -418,11 +421,30 @@ const STEPS=[
  ["v1.8 ディグのカード12枚（design 26-6）：6人 × 2枚・フルオートでだけ見つかる。名前は仮",()=>A3.dig12()],
  ["v1.9 赤い鎖罠の強化 4→5（design 26-8：グリッチ ×{v} は主の数なので ×1.5。次のアタック +グリッチ ×2 は変えない）",()=>card("f_ku_akaikusariwana",{vu:5})],
  ["v2.0 スキルツリーの枝（design 25-2）：KURO 電脳・道化・鼓動（4段目＝盾 +5・刃 +2／ドラフティング3枚・書きかえ +1／帯の倍率 +0.2・すまし顔 +2）・SORA 余韻の4段目＝白の音符1つにつき防御 +2（最大 6）",()=>A3.tree25()],
+ ["v2.2 SORA：初期デッキのサウンドチェック 1→0・音階 1→2（design 26-9・引く数は同じ）",()=>{if(has("SORA")){const D=CHARS.SORA.deck,k=D.findIndex(x=>x[0]==="s_soundcheck");if(k>=0){D[k][1]--;if(D[k][1]<=0)D.splice(k,1);const o=D.find(x=>x[0]==="s_onkai");if(o)o[1]++;else D.push(["s_onkai",1])}}}],
+ ["v2.3 MIO：CVT の芯の倍率 ×1.4→×1.5・最適解の4段目 ×1.6→×1.7（design 26-9）",()=>{if(has("MIO")){rule("MIO",{cvt:Object.assign({},CHARS.MIO.rule.cvt,{cm:1.5})});A3.mioTopCm=1.7}}],
 ];
 /* "pending" の版（準備だけ）は、ALLY3_LD_STEP でその番号まで指したときだけ入る */
 const lim=Number.isInteger(globalThis.ALLY3_LD_STEP)?globalThis.ALLY3_LD_STEP:STEPS.reduce((a,s0,i)=>s0[2]==="pending"?a:i,0);
 A3.LD={steps:STEPS.map(s=>s[0]),step:lim,ver:STEPS[lim][0].split(" ")[0]};
 STEPS.slice(0,lim+1).forEach(s=>s[1]());
+/* ★v2.2 数を字で書いていた文を、ld のあとの数で埋める（シナリオ班 11-27：数が変わっても文がそのまま使える）。型の字は {名前}、埋めるのはここだけ */
+try{const has=c=>!!CHARS[c]&&A3.chars.includes(c),F=(t,o)=>t.replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:m),n=x=>String(Math.round(x*100)/100);
+ if(has("MIO")){const C=CHARS.MIO,r=C.rule.cvt,o={lo:r.lo,hi:r.hi,clo:r.clo,chi:r.chi,bm:n(r.bm),cm:n(r.cm),top:n(A3.mioTopCm||1.6)};
+  C.ruleTxt=F("CVT：シフトはなく、ブローもしない。強い回転を保つほど、帯の倍率が続く・番のはじめは回転 4000。回転 {lo}〜{hi} で打つと ×{bm}、{clo}〜{chi} なら ×{cm}。2ターン目からガソリン +1・1枚多く引く",o);
+  if(A3.style.MIO)A3.style.MIO[0]=F("ギアの段がない特殊な型（CVT）。シフトのかわりに、帯の中の回転で打つと強い（真ん中なら ×{cm}）。",o);
+  if(CARDS.mi_enzan)CARDS.mi_enzan.d=F("{v}ダメージを2回（帯の真ん中で打つと ×{cm} がかかる）",o);
+  (TREE.MIO||[]).forEach(b=>{if(b.id==="mi_opt"){b.top=F("CVT の真ん中が ×{cm} → ×{top}",o);b.tip=F("回転 {clo}〜{chi} で打つと ×{top}。",o)}if(b.id==="mi_coast")b.tip=F("×{bm} になる帯が 3000〜7000 に広がる。",o)})}
+ if(has("LUNA")){const C=CHARS.LUNA,m=C.rule.moon.mul,o={m0:n(m[0]),m2:n(m[2]),m3:n(m[3]),m3p:n(m[3]+0.2),fm:n(C.rule.sky.fullMoonMul),line:C.rule.sky.line,tri:C.rule.sky.tri,full:C.rule.sky.full};
+  C.ruleTxt=F("星読み：月は番ごとに 新月 → 三日月 → 半月 → 満月 と進む（戦闘をまたぐ）。新月 アタック ×{m0}・ガード +3・番の終わりに星1つ／三日月 ガード +1／半月 ×{m2}／満月 ×{m3}・星座 ×{fm}。カードを打つと3×3の夜空に星が灯り、直線で流れ星 {line}・三角で防御 {tri}・9つで星座の完成 {full}",o);
+  if(A3.style.LUNA)A3.style.LUNA[0]=F("月の満ち欠けと3×3の夜空で戦う「星読み」型。月は番ごとに進み（戦闘をまたぐ）、満月の番はアタック ×{m3}・星座 ×{fm}。打ったカードのマスに星が灯り、形がそろうと自動で効く。",o);
+  (TREE.LUNA||[]).forEach(b=>{if(b.id==="l_seizu")b.tip=F("満月の番のアタックの倍率に +0.2（満月 ×{m3} なら ×{m3p}）。",o)})}
+ if(has("SORA")){const r=CHARS.SORA.rule.notes||{},o={up:n(r.up||1.5)};(TREE.SORA||[]).forEach(b=>{if(b.id==="s_waon")b.top=F("上りの締め ×{up} → ×2",o)})}
+}catch(e){console.warn("ally3 fill",e)}
+/* ★v2.0 枝の名前と一行（text 25章 v0.22.62）：文だけ（強さは変えない） */
+try{if(typeof TREE!=="undefined"){const NM={SORA:{s_tempo:["強音","同じ色を重ねる型"],s_waon:["和音","色をそろえる型"],s_yoin:["余韻","白の音で守る型"]},RIN:{r_nui:["間合い","遠くから射る型"],r_qmove:["成り駒","駒を育てる型"],r_fuku:["女王の一手","最後に詰める型"]},LUNA:{l_seizu:["満ち欠け","月で決める型"],l_ryusei:["流れ星","星を灯す型"],l_shin:["星座","夜空を満たす型"]},KURO:{ku_t1:["電脳","グリッチで守って刺す型"],ku_t2:["道化","作戦を入れかえる型"],ku_t3:["鼓動","心拍を上げて走る型"]}};
+ const YM={s_tempo:"フォルテ",s_waon:"わおん",s_yoin:"よいん",r_nui:"まあい",r_qmove:"なりごま",r_fuku:"じょおうのいって",l_seizu:"みちかけ",l_ryusei:"ながれぼし",l_shin:"せいざ",ku_t1:"でんのう",ku_t2:"どうけ",ku_t3:"こどう",k_guren:"ぐれん",k_shoubu:"しょうぶし",k_soto:"そとせん",mi_opt:"さいてきかい",mi_ana:"かいせき",mi_coast:"かいがんせん"};
+ ["KAEDE","MIO"].forEach(ch=>(TREE[ch]||[]).forEach(b=>{if(YM[b.id])b.yomi=YM[b.id]}));/* ★v2.4 読みだけ（名前は今のまま） */Object.entries(NM).forEach(([ch,o])=>(TREE[ch]||[]).forEach(b=>{if(!o[b.id])return;if(ch==="KURO"&&!A3.kuTree2)return;/* KURO は ld 67 から（中身が変わるため） */b.n=o[b.id][0];b.d=o[b.id][1];b.yomi=YM[b.id]}))}}catch(e){}
 /* ★text v0.22.26 36-3b：MIO の決まりの2行目（lowDraw が入っている版だけ・{n} は今の数） */
 if(has("MIO")){const n=(CHARS.MIO.rule||{}).lowDraw;if(n!=null&&!/もう1枚引く/.test(CHARS.MIO.ruleTxt||""))CHARS.MIO.ruleTxt+=`・ターンのはじめに手札が${n}枚以下なら、もう1枚引く`}
 /* ★design 22章（v0.11.103）：◎＝starter。③の6人は、数の直しのあとの初期デッキ（CHARS[ch].deck）から入れる（データにあればそのまま） */
@@ -431,7 +453,3 @@ if(has("KURO")){const C=CHARS.KURO,U=(typeof TEXT!=="undefined"&&TEXT.ui)||{},R=
 A3.chars.forEach(ch=>(CHARS[ch].deck||[]).forEach(([id])=>{const d=CARDS[id];if(!d)return;/* ★v1.3 BUG-63：①の持ち方＝その子の名前の配列（d.starter.includes(ch)） */if(!Array.isArray(d.starter))d.starter=d.starter&&d.own&&d.own!=="N"?[d.own]:[];if(!d.starter.includes(ch))d.starter.push(ch)}));
 A3.ldDone=true})();
 
-/* ★v2.0 枝の名前と一行（text 25章 v0.22.62）：文だけ（強さは変えない） */
-try{if(typeof TREE!=="undefined"){const NM={SORA:{s_tempo:["強音","同じ色を重ねる型"],s_waon:["和音","色をそろえる型"],s_yoin:["余韻","白の音で守る型"]},RIN:{r_nui:["間合い","遠くから射る型"],r_qmove:["成り駒","駒を育てる型"],r_fuku:["女王の一手","最後に詰める型"]},LUNA:{l_seizu:["満ち欠け","月で決める型"],l_ryusei:["流れ星","星を灯す型"],l_shin:["星座","夜空を満たす型"]},KURO:{ku_t1:["電脳","グリッチで守って刺す型"],ku_t2:["道化","作戦を入れかえる型"],ku_t3:["鼓動","心拍を上げて走る型"]}};
- const YM={s_tempo:"フォルテ",s_waon:"わおん",s_yoin:"よいん",r_nui:"まあい",r_qmove:"なりごま",r_fuku:"じょおうのいって",l_seizu:"みちかけ",l_ryusei:"ながれぼし",l_shin:"せいざ",ku_t1:"でんのう",ku_t2:"どうけ",ku_t3:"こどう"};
- Object.entries(NM).forEach(([ch,o])=>(TREE[ch]||[]).forEach(b=>{if(!o[b.id])return;if(ch==="KURO"&&!A3.kuTree2)return;/* KURO は ld 67 から（中身が変わるため） */b.n=o[b.id][0];b.d=o[b.id][1];b.yomi=YM[b.id]}))}}catch(e){}

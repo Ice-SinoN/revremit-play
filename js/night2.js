@@ -115,7 +115,7 @@ W("showScene",f=>function(key,done){const rl=POST_LOG[key];if(rl&&!(seenGet()||{
 if(typeof PARTS!=="undefined"){Object.assign(PARTS,{
  p_night_bay:{own:"N",n:"ナイトビジョン",d:"霧と夜霧の悪い所が半分",night:5},
  p_night_storm:{own:"N",n:"撥水コーティング",d:"天候が変わった番に防御 +8",night:7},
- p_night_harbor:{own:"N",n:"牽引フック",d:"ボスの第2形態に入った番に防御 +10・回転を帯の真ん中に",night:9},
+ p_night_harbor:{own:"N",n:"タイダウンベルト",d:"ボスの第2形態に入った番に防御 +10・回転を帯の真ん中に",night:9},
  p_night_dawn:{own:"N",n:"サンバイザー",d:"夜明けの悪い所が効かない・レッドの帯がもっと広がる",night:11}});
  [["p_night_bay",5],["p_night_storm",7],["p_night_harbor",9],["p_night_dawn",11]].forEach(([id,n])=>{const N=NIGHTS[n-1];if(!N)return;N.open=N.open||{};N.open.parts=N.open.parts||[];if(!N.open.parts.includes(id))N.open.parts.push(id)})}
 const hasP=id=>typeof has==="function"&&has(id);
@@ -156,5 +156,5 @@ W("redLo",f=>function(){const r=f.apply(this,arguments);return hasP("p_night_daw
 /* v0.5.26 QA：「つづきから」の札のエリアの名前は、その夜の並び（N9〜11 の5つ目など）で */
 W("runLabel",f=>function(r){try{const g=r.G,ks=NIGHT_AREAS[g.night|0];if(ks&&g.map){const row=Math.min(g.row,g.map.length-1),a=g.map[row][0].a,start=g.map.findIndex(x=>x[0].a===a),AR=BYKEY[ks[a]];
   if(AR)return`${g.mode}・エリア${a+1} ${AR.n} ${row-start+1}段・耐久${g.hp}/${g.maxhp}`}}catch(e){}return f.apply(this,arguments)});
-window.NIGHT2={VERSION:"0.5.26",applyAreas};
+window.NIGHT2={VERSION:"0.5.30",applyAreas};
 })();
