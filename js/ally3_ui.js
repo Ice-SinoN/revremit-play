@@ -345,3 +345,6 @@ if(typeof TEXT!=="undefined"&&TEXT.ally3&&TEXT.ally3.duoAny){const X=TEXT.ally3,
   if(!TEXT.banter[`banter_${me}_${al}_start_1`])put(TEXT.banter,`banter_${me}_${al}_start_`,`duo_any_${al}_runstart`,2);
   if(!TEXT.banter[`banter_${me}_${al}_low_1`])put(TEXT.banter,`banter_${me}_${al}_low_`,`duo_any_${al}_low`,2)}
  if(typeof duoShow==="function"){const ds=duoShow;duoShow=function(){const r=ds.apply(this,arguments);try{if(G&&SYN.has(G.duoLast))document.querySelectorAll("#ui .duo .dl.me").forEach(e=>e.remove())}catch(e){}return r}}}
+
+/* ★v2.1 audio.js v0.36：車ごとのエンジン音。①の SND.car() に voice（走る子の小文字）を足す（①が足したら同じ値なので何もしない） */
+if(typeof SND!=="undefined"&&typeof SND.car==="function"&&!SND.car.__a3v){const c0=SND.car;SND.car=function(){const r=c0.apply(this,arguments)||{};if(r.voice==null)r.voice=((typeof G!=="undefined"&&G&&G.char)||"YUKI").toLowerCase();return r};SND.car.__a3v=1}

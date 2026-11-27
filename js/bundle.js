@@ -1,6 +1,6 @@
 /* ★v0.22.200 絵の束（アーティファクトの「1つの版に 512 ファイルまで」のため・窓口 11-27 案A）
    アーティファクトの版だけ window.RR_BUNDLED=1（tools/bundle_art.py が index.html に書く）。そのときは
-   assets/bundles/index.json（path → [束, 位置, 長さ, 種類]）と assets/bundles/<束>.bin（元のファイルをそのままつないだもの）から絵を出す。
+   assets/bundles/index.json（path → [束, 位置, 長さ, 種類]）と assets/bundles/<束>.txt（元のファイルをそのままつないで base64 にしたもの）から絵を出す。
    ・ゲームのコードは今までどおり "assets/c2/…png" の名前で使う。<img> の src・style の url()・fetch・new Image() をここで束の blob URL に読みかえる。
    ・起動で読む束（eager）は先に全部ひらく。キャラの戦闘シート・奥義・カットインの束（lazy）は、その絵が初めて要るときにひらく。
    ・RR_BUNDLED がなければ何もしない（revremit-play・試作の1ファイル版はそのまま）。 */
@@ -10,7 +10,7 @@
   const norm=u=>String(u||"").replace(/^\.\//,"").replace(/^\/+/,"");
   const ent=u=>IDX&&IDX.files[norm(u)];
   function openGroup(g){if(LOADING[g])return LOADING[g];
-    return LOADING[g]=(async()=>{const r=await _fetch("assets/bundles/"+g+".bin");if(!r.ok)throw new Error("bundle "+g);const buf=await r.arrayBuffer();
+    return LOADING[g]=(async()=>{const r=await _fetch("assets/bundles/"+g+".txt");if(!r.ok)throw new Error("bundle "+g);const bs=atob((await r.text()).trim()),buf=new Uint8Array(bs.length).buffer,u8=new Uint8Array(buf);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);/* アーティファクトは .bin を置けないので base64 の .txt */
       for(const[p,e]of Object.entries(IDX.files)){if(e[0]!==g||BLOB[p])continue;BLOB[p]=URL.createObjectURL(new Blob([new Uint8Array(buf,e[1],e[2])],{type:e[3]}))}})()
       .catch(e=>{delete LOADING[g];console.warn(e)})}
   async function ensure(u){const e=ent(u);if(!e)return null;const p=norm(u);if(!BLOB[p])await openGroup(e[0]);return BLOB[p]||null}

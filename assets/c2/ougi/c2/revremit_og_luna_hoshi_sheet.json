@@ -1,0 +1,139 @@
+{
+ "frames": [
+  {
+   "filename": "og_hoshi_01",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_02",
+   "frame": {
+    "x": 224,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_03",
+   "frame": {
+    "x": 448,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_04",
+   "frame": {
+    "x": 672,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_05",
+   "frame": {
+    "x": 896,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_06",
+   "frame": {
+    "x": 1120,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_07",
+   "frame": {
+    "x": 1344,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_08",
+   "frame": {
+    "x": 1568,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_09",
+   "frame": {
+    "x": 1792,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_10",
+   "frame": {
+    "x": 2016,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_11",
+   "frame": {
+    "x": 2240,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_hoshi_12",
+   "frame": {
+    "x": 2464,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "image": "revremit_og_luna_hoshi_sheet.png",
+  "size": {
+   "w": 2688,
+   "h": 224
+  },
+  "frameTags": [
+   {
+    "name": "hoshi",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

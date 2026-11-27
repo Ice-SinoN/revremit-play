@@ -1,0 +1,139 @@
+{
+ "frames": [
+  {
+   "filename": "og_kaigan_01",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_02",
+   "frame": {
+    "x": 224,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_03",
+   "frame": {
+    "x": 448,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_04",
+   "frame": {
+    "x": 672,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_05",
+   "frame": {
+    "x": 896,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_06",
+   "frame": {
+    "x": 1120,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_07",
+   "frame": {
+    "x": 1344,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_08",
+   "frame": {
+    "x": 1568,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_09",
+   "frame": {
+    "x": 1792,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_10",
+   "frame": {
+    "x": 2016,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_11",
+   "frame": {
+    "x": 2240,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  },
+  {
+   "filename": "og_kaigan_12",
+   "frame": {
+    "x": 2464,
+    "y": 0,
+    "w": 224,
+    "h": 224
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "image": "revremit_og_mio_kaigan_sheet.png",
+  "size": {
+   "w": 2688,
+   "h": 224
+  },
+  "frameTags": [
+   {
+    "name": "kaigan",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -6,7 +6,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const GAME_TITLE="Rev:Remit";
-const VERSION="試作 v0.22.200（β2）";
+const VERSION="試作 v0.22.201（β2）";
 document.title=GAME_TITLE+" "+VERSION;
 const S={sel:-1};
 /* ★各画面の背景（bg\c2 の 640×360）。戦闘・マップ・会話はそれぞれで描く */
@@ -930,7 +930,7 @@ function wxNameB(w){const b=wxBoss2();return b?b.n:wxName(w)}
 /* 天候の見た目と音を今の B.wx に合わせる（背景の絵・降る層・コードで描く幕・環境音） */
 function wxApply(){const w=(B&&B.wx)||"dry",b2=B&&B.wx2On;A.wxOn=w!=="dry"?w:null;A.wxBase=null;A.wxFx=null;
   A.wxProc=w==="fog"?(B.key==="boss3"&&b2?"blackfog":B.key==="sanka"&&b2?"petals":"fog"):w==="dawn"?"dawn":null;A.wxP=null;
-  try{window.AUDIO&&AUDIO.weather&&AUDIO.weather(w,b2?{boss:B.key}:undefined)}catch(e){}
+  try{window.AUDIO&&AUDIO.weather&&AUDIO.weather(w,b2?{boss:B.key}:(G&&G.map&&curArea().key==="highway"?{area:"highway"}:undefined))}catch(e){}/* ★v0.22.201 audio v0.37 高速の天候 */
   if(w==="dry"||B.sim)return;const bgk=A.bgKey==="hidden"?null:A.bgKey;
   wxLoad(w,bgk||"none").then(o=>{if(!B||B.wx!==w||window.SCREEN!=="battle")return;A.wxBase=o.base;A.wxFx=o.fx})}
 function wxEnter(){wxApply();const w=(B&&B.wx)||"dry";if(w==="dry"||B.sim)return;
