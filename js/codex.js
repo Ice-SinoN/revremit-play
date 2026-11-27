@@ -48,12 +48,12 @@ function cdxSndGroup(id,j){if(j)return/^jingle_win_|^win$|one_turn_kill/.test(id
   if(/^talk|^ending|^pzlog/.test(id))return"話";if(/^title|^select|^lab|^shop|^result|^tutorial/.test(id))return"タイトル・画面";return"そのほか"}
 const CDX_SG=["タイトル・画面","マップ","戦闘","ボス","その子の曲","話","勝ち曲","ジングル","そのほか"];
 function cdxSnds(){const AU=window.AUDIO||(typeof AUDIO!=="undefined"?AUDIO:null);if(!AU)return[];
-  const L=(AU.BGM_IDS||[]).map(id=>({id,j:0})).concat((AU.JINGLE_IDS||[]).map(id=>({id,j:1})));
+  const L=(AU.BGM_IDS||[]).map(id=>({id,j:0})).concat((AU.JINGLE_IDS||[]).map(id=>({id,j:1}))).filter(x=>cdxSndAvail(x.id));
   L.forEach(x=>{x.g=cdxSndGroup(x.id,x.j);x.n=CDX_SND_JP[x.id]||x.id});return L.sort((a,b)=>CDX_SG.indexOf(a.g)-CDX_SG.indexOf(b.g))}
 /* 一枚絵（story/c2 の絵。立ち絵は入れない） */
 function cdxImgGroup(k){if(/^opening_road/.test(k))return"ROAD に入る";if(/^join_/.test(k))return"仲間が加わる";if(/^ending/.test(k))return"エンディング";if(/_after$/.test(k))return"撃破";return"話"}
 const CDX_IG=["ROAD に入る","仲間が加わる","話","撃破","エンディング","奥義","奥義（金の縁）"];
-function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p,id:cdxImgKey(p)})).filter(x=>x.id&&/\/story\/c2\//.test(x.p)).concat(cdxOgImgs());
+function cdxImgs(){const H=window.ART_HAVE?[...ART_HAVE]:[];const L=H.map(p=>({p,id:cdxImgKey(p)})).filter(x=>x.id&&/\/story\/c2\//.test(x.p)&&cdxImgAvail(x.id)).concat(cdxOgImgs());
   L.forEach(x=>{if(!x.g)x.g=cdxImgGroup(x.id)});return L.sort((a,b)=>CDX_IG.indexOf(a.g)-CDX_IG.indexOf(b.g)||(a.og?a.ord-b.ord:a.id.localeCompare(b.id)))}
 
 /* ---- ヒント（手に入れ方の1行。仮の文：シナリオ班の文が来たら TEXT.ui.cdx_* で差しかえ）---- */
@@ -224,3 +224,15 @@ function cdxStarter(id){const d=CARDS[id]||{};if(d.r==="OG")return false;const c
   try{return!!(CHARS[ch]&&(CHARS[ch].deck||[]).some(e=>(Array.isArray(e)?e[0]:e)===id))}catch(e){return false}}
 function cdxFlav(id){const d=CARDS[id]||{};const f=d.flav||d.flavor||d.fl||(TEXT.flav&&TEXT.flav[id])||"";if(f)return f;if(d.r==="OG"){const T=(TEXT.og&&TEXT.og[d.og])||{};return T.flav||""}return""}
 function cdxRuby(n,y){return y&&y!==n?`<span class="cdxrb">${rr2Esc(n)}<span class="cdxrt">${rr2Esc(y)}</span></span>`:rr2Esc(n)}/* ルビは自前（<ruby> は読みが長いと名前の字の間が空くため）。読みは名前の左にそろえて上に */
+
+/* v0.5.18 サウンドライブラリに出す曲：①前の版の曲（ID が _v1）は出さない（ゲームでは流れない・聞きくらべ用）
+   ②この版にいないキャラの曲（theme_／garage_／tree_／win_ のうしろが CHARS にない）とそのボスの曲（ENEMIES にないボス）は出さない
+   ＝β の4人の版では、ゲームで流れうる曲だけ。キャラやボスが CHARS・ENEMIES に入れば自然に出てくる。 */
+const CDX_AREA_BOSS={zankou:1,byakuya:1,zerogou:1};
+function cdxSndAvail(id){if(/_v\d+$/.test(id))return false;
+  const m=id.match(/^(?:theme|garage|tree|win)_([a-z]+)$/);if(m)return typeof CHARS!=="undefined"&&!!CHARS[m[1].toUpperCase()];
+  const b=id.match(/^boss_([a-z]+)$/);if(b)return!!CDX_AREA_BOSS[b[1]]||(typeof ENEMIES!=="undefined"&&!!ENEMIES[b[1]]);
+  return true}
+/* v0.5.18 イラストライブラリも同じ：この版にいないキャラの名前が入った絵（join_sora・ending_rin・kaede_lap など）は出さない */
+const CDX_ALL_CH=["yuki","hina","momo","nana","sora","kaede","rin","luna","kuro","mio"];
+function cdxImgAvail(k){return!k.split("_").some(t=>CDX_ALL_CH.includes(t)&&!(typeof CHARS!=="undefined"&&CHARS[t.toUpperCase()]))}
